@@ -1,3 +1,45 @@
+############################## Frontend ############################
+
+# dependencies
+/hangbank_frontend/node_modules
+/hangbank_frontend/.pnp
+/hangbank_frontend/.pnp.*
+/hangbank_frontend/.yarn/*
+/hangbank_frontend/!.yarn/patches
+/hangbank_frontend/!.yarn/plugins
+/hangbank_frontend/!.yarn/releases
+/hangbank_frontend/!.yarn/versions
+
+# testing
+/hangbank_frontend/coverage
+
+# next.js
+/hangbank_frontend/.next/
+/hangbank_frontend/out/
+
+# production
+/hangbank_frontend/build
+
+# misc
+/hangbank_frontend/.DS_Store
+/hangbank_frontend/*.pem
+
+# debug
+/hangbank_frontend/npm-debug.log*
+/hangbank_frontend/yarn-debug.log*
+/hangbank_frontend/yarn-error.log*
+/hangbank_frontend/.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+/hangbank_frontend/.env*
+
+# vercel
+/hangbank_frontend/.vercel
+
+# typescript
+/hangbank_frontend/*.tsbuildinfo
+/hangbank_frontend/next-env.d.ts
+
 ############################ Auth ############################
 
 # =========================
