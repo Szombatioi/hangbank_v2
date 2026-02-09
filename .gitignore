@@ -1,0 +1,69 @@
+############################ Auth ############################
+
+# =========================
+# Dependencies
+# =========================
+/auth/node_modules/
+
+# =========================
+# Build output
+# =========================
+/auth/dist/
+/auth/build/
+
+# =========================
+# Environment variables
+# =========================
+/auth/.env
+/auth/.env.*
+/auth/!.env.example
+
+# =========================
+# Logs
+# =========================
+/auth/npm-debug.log*
+/auth/yarn-debug.log*
+/auth/yarn-error.log*
+/auth/pnpm-debug.log*
+/auth/logs/
+/auth/*.log
+
+# =========================
+# OS / Editor files
+# =========================
+/auth/.DS_Store
+/auth/Thumbs.db
+/auth/.idea/
+/auth/.vscode/
+/auth/!.vscode/extensions.json
+/auth/!.vscode/settings.json
+
+# =========================
+# Test / Coverage
+# =========================
+/auth/coverage/
+/auth/.nyc_output/
+
+# =========================
+# Cache
+# =========================
+/auth/.cache/
+/auth/.eslintcache
+/auth/.npm/
+/auth/.yarn/
+/auth/.pnpm-store/
+
+# =========================
+# TypeScript
+# =========================
+/auth/*.tsbuildinfo
+
+# =========================
+# NestJS specific
+# =========================
+/auth/nestjs-debug.log
+
+# =========================
+# Docker
+# =========================
+/auth/.dockerignore
