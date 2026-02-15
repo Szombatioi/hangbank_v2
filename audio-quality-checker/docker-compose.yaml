@@ -1,0 +1,14 @@
+services:
+  # Audio Quality Checker Service
+  audio-quality-checker-service:
+    build:
+      context: ./audio-quality-checker
+      dockerfile: Dockerfile
+    container_name: audio_quality_checker_service
+    ports:
+      - "3002:3002"
+    env_file:
+      - .env
+    environment:
+      QUIETNESS_THRESHOLD: 0.02
+      PORT: 3002
