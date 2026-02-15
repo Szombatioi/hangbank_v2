@@ -8,7 +8,7 @@ export class AppController {
 
   @Post()
   @UseInterceptors(FileInterceptor('file', {
-    storage: process.env.NODE_ENV === 'development' ? undefined : undefined, // Alapértelmezésben a memóriát használja a NestJS/Multer
+    //storage: process.env.NODE_ENV === 'development' ? undefined : undefined, // Alapértelmezésben a memóriát használja a NestJS/Multer
     limits: {
       fileSize: 50 * 1024 * 1024, //Max. 50Mb
     },
