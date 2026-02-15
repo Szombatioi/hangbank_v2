@@ -1,0 +1,1 @@
+`npm i @types/multer node-wav`
