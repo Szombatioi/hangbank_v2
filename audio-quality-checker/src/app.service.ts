@@ -1,8 +1,10 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { QuietnessCheck } from './strategy/quietness_check';
-import { LoudnessCheck } from './strategy/loudness_check';
-import { AudioQualityChecker, AudioQualityCheckerStrategy, QualityMeasure } from './strategy/audio_quality_checker';
+// import { QuietnessCheck } from './strategy/quietness_check';
+// import { LoudnessCheck } from './strategy/loudness_check';
+import { AudioQualityChecker, AudioQualityCheckerStrategy, QualityMeasure, WavDecodeResult } from './strategy/audio_quality_checker';
 import * as wav from "node-wav";
+import { VolumeCheck } from './strategy/volume_check';
+import { NoiseCheck } from './strategy/noise_check';
 
 @Injectable()
 export class AppService implements AudioQualityChecker {
@@ -11,8 +13,10 @@ export class AppService implements AudioQualityChecker {
   async collectStrategies(){
     //TODO: In a real implementation, you would dynamically load strategies from a folder or database
     return [
-      new QuietnessCheck(),
-      new LoudnessCheck(),
+      // new QuietnessCheck(),
+      // new LoudnessCheck(),
+      // new VolumeCheck(),
+      new NoiseCheck(),
     ]
   }
 
@@ -24,20 +28,27 @@ export class AppService implements AudioQualityChecker {
     if(!['audio/wav', 'audio/x-wav', 'audio/wave'].includes(audioFile.mimetype)) {
       throw new BadRequestException("File must be a WAV audio file");
     }
-    
+
     const strategies = this.collectStrategies();
     let results: QualityMeasure[] = [];
 
     const decoded = wav.decode(audioFile.buffer);
-    const samples: number[][] = decoded.channelData;
+
+    console.log("Sample rate:", decoded.sampleRate);
+    console.log("Number of channels:", decoded.channelData.length);
+    console.log("Length of first channel:", decoded.channelData[0].length);
+    console.log("Duration (seconds):", decoded.channelData[0].length / decoded.sampleRate);
+
+
+    // const samples: number[][] = decoded.channelData;
     
     //Collecting the strategies and executing them in parallel
-    const tasks: Array<(samples: number[][]) => Promise<QualityMeasure>> = [];
+    const tasks: Array<(wav: WavDecodeResult) => Promise<QualityMeasure>> = [];
     for(const strategy of await strategies) {
-      tasks.push(async (samples) => await strategy.checkQuality(samples));
+      tasks.push(async (wav) => await strategy.checkQuality(wav));
     }
 
-    const resultsPromises = tasks.map(task => task(samples));
+    const resultsPromises = tasks.map(task => task(decoded));
     results = await Promise.all(resultsPromises);
 
     return results;
