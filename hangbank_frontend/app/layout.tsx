@@ -1,4 +1,6 @@
-import { AuthProvider } from "./contexts/auth-context";
+"use client";
+import { Box, CircularProgress } from "@mui/material";
+import { AuthProvider, useAuth } from "./contexts/auth-context";
 import { LanguageProvider } from "./providers/language-provider";
 
 export default function RootLayout({

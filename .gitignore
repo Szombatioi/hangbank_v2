@@ -109,3 +109,120 @@
 # Docker
 # =========================
 /auth/.dockerignore
+
+################################ Audio Quality Checker ############################
+# compiled output
+/audio-quality-checker/dist
+/audio-quality-checker/node_modules
+/audio-quality-checker/build
+
+# Logs
+/audio-quality-checker/logs
+/audio-quality-checker/*.log
+/audio-quality-checker/npm-debug.log*
+/audio-quality-checker/pnpm-debug.log*
+/audio-quality-checker/yarn-debug.log*
+/audio-quality-checker/yarn-error.log*
+/audio-quality-checker/lerna-debug.log*
+
+# OS
+/audio-quality-checker/.DS_Store
+
+# Tests
+/audio-quality-checker/coverage
+/audio-quality-checker/.nyc_output
+
+# IDEs and editors
+/audio-quality-checker/.idea
+/audio-quality-checker/.project
+/audio-quality-checker/.classpath
+/audio-quality-checker/.c9/
+/audio-quality-checker/*.launch
+/audio-quality-checker/.settings/
+/audio-quality-checker/*.sublime-workspace
+
+# IDE - VSCode
+/audio-quality-checker/.vscode/*
+/audio-quality-checker/!.vscode/settings.json
+/audio-quality-checker/!.vscode/tasks.json
+/audio-quality-checker/!.vscode/launch.json
+/audio-quality-checker/!.vscode/extensions.json
+
+# dotenv environment variable files
+/audio-quality-checker/.env
+/audio-quality-checker/.env.development.local
+/audio-quality-checker/.env.test.local
+/audio-quality-checker/.env.production.local
+/audio-quality-checker/.env.local
+
+# temp directory
+/audio-quality-checker/.temp
+/audio-quality-checker/.tmp
+
+# Runtime data
+/audio-quality-checker/pids
+/audio-quality-checker/*.pid
+/audio-quality-checker/*.seed
+/audio-quality-checker/*.pid.lock
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+/audio-quality-checker/report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+################################ Backend ############################
+
+# compiled output
+/backend/dist
+/backend/node_modules
+/backend/build
+
+# Logs
+/backend/logs
+/backend/*.log
+/backend/npm-debug.log*
+/backend/pnpm-debug.log*
+/backend/yarn-debug.log*
+/backend/yarn-error.log*
+/backend/lerna-debug.log*
+
+# OS
+/backend/.DS_Store
+
+# Tests
+/backend/coverage
+/backend/.nyc_output
+
+# IDEs and editors
+/backend/.idea
+/backend/.project
+/backend/.classpath
+/backend/.c9/
+/backend/*.launch
+/backend/.settings/
+/backend/*.sublime-workspace
+
+# IDE - VSCode
+/backend/.vscode/*
+/backend/!.vscode/settings.json
+/backend/!.vscode/tasks.json
+/backend/!.vscode/launch.json
+/backend/!.vscode/extensions.json
+
+# dotenv environment variable files
+/backend/.env
+/backend/.env.development.local
+/backend/.env.test.local
+/backend/.env.production.local
+/backend/.env.local
+
+# temp directory
+/backend/.temp
+/backend/.tmp
+
+# Runtime data
+/backend/pids
+/backend/*.pid
+/backend/*.seed
+/backend/*.pid.lock
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+/backend/report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
