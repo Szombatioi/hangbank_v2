@@ -15,7 +15,7 @@ export class AppService implements AudioQualityChecker {
     return [
       // new QuietnessCheck(),
       // new LoudnessCheck(),
-      // new VolumeCheck(),
+      new VolumeCheck(),
       new NoiseCheck(),
     ]
   }
