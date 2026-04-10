@@ -1,9 +1,8 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
-import api, { validate } from "../axios";
+import api, { getAuthToken, validate } from "../axios";
 
 export interface User {
     id: string;
@@ -35,16 +34,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const validateAuth = async () => {
-        const isValid = await validate();
-        if(!isValid && !pathname.includes('/auth')) {
-            router.push(`/auth/login`);
+      try{
+        const token = getAuthToken();
+        if(!token){
+          throw new Error();
         }
 
+        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        const response = await api.get("/user/me", { headers: { Authorization: `Bearer ${token}` }, });
+
+        if(response.data){
+          setUser(response.data);
+        }
+      }catch(error){
+        setUser(null);
+      } finally{
         setLoading(false);
+      }
     };
-
-
-    
 
     validateAuth();
   }, [pathname, router]);
@@ -54,6 +61,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
 export const useAuth = () => useContext(AuthContext);

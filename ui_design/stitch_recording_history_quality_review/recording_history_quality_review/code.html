@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sonic Archivist - Recording History</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;family=Manrope:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "error": "#ba1a1a",
+              "inverse-primary": "#bbc6e2",
+              "surface-container-low": "#f3f4f5",
+              "on-primary-container": "#79849d",
+              "inverse-surface": "#2e3132",
+              "on-error": "#ffffff",
+              "outline": "#74777d",
+              "secondary": "#47607e",
+              "surface-dim": "#d9dadb",
+              "primary-fixed-dim": "#bbc6e2",
+              "on-secondary": "#ffffff",
+              "on-tertiary-fixed": "#3b0900",
+              "surface-variant": "#e1e3e4",
+              "surface-container-high": "#e7e8e9",
+              "on-tertiary-container": "#ed4a14",
+              "on-primary-fixed": "#101b30",
+              "on-error-container": "#93000a",
+              "on-primary": "#ffffff",
+              "on-background": "#191c1d",
+              "surface-bright": "#f8f9fa",
+              "tertiary": "#000000",
+              "outline-variant": "#c4c6cc",
+              "surface": "#f8f9fa",
+              "surface-container-lowest": "#ffffff",
+              "background": "#f8f9fa",
+              "surface-container-highest": "#e1e3e4",
+              "surface-container": "#edeeef",
+              "on-tertiary": "#ffffff",
+              "on-primary-fixed-variant": "#3c475d",
+              "primary": "#000000",
+              "error-container": "#ffdad6",
+              "on-surface": "#191c1d",
+              "inverse-on-surface": "#f0f1f2",
+              "on-surface-variant": "#44474c",
+              "on-tertiary-fixed-variant": "#862200",
+              "on-secondary-fixed-variant": "#2f4865",
+              "secondary-fixed": "#d1e4ff",
+              "primary-container": "#101b30",
+              "surface-tint": "#545e76",
+              "tertiary-container": "#3b0900",
+              "on-secondary-fixed": "#001d36",
+              "secondary-container": "#c2dcff",
+              "tertiary-fixed": "#ffdbd1",
+              "on-secondary-container": "#48617e",
+              "secondary-fixed-dim": "#afc9ea",
+              "tertiary-fixed-dim": "#ffb5a0",
+              "primary-fixed": "#d7e2ff"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Inter"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+      .waveform-bar {
+        transition: height 0.3s ease;
+      }
+    </style>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 right-0 z-50 bg-slate-50 dark:bg-slate-950 flex justify-between items-center w-full px-8 py-4 max-w-full">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-bold text-slate-950 dark:text-white tracking-tighter font-['Space_Grotesk']">Sonic Archivist</span>
+<nav class="hidden md:flex gap-6">
+<a class="font-['Space_Grotesk'] font-bold tracking-tight text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors" href="#">Projects</a>
+<a class="font-['Space_Grotesk'] font-bold tracking-tight text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors" href="#">Corpus</a>
+<a class="font-['Space_Grotesk'] font-bold tracking-tight text-slate-950 dark:text-white border-b-2 border-orange-600 dark:border-orange-500 pb-1" href="#">History</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="bg-surface-container-low px-4 py-2 rounded-full flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant text-sm" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm font-label w-48" placeholder="Search archive..." type="text"/>
+</div>
+<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all active:scale-95 duration-150">
+<span class="material-symbols-outlined text-slate-900 dark:text-slate-100" data-icon="settings">settings</span>
+</button>
+<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all active:scale-95 duration-150">
+<span class="material-symbols-outlined text-slate-900 dark:text-slate-100" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-slate-100 dark:bg-slate-900 flex flex-col py-6 pt-24">
+<div class="px-8 mb-8">
+<h2 class="font-['Space_Grotesk'] text-lg font-black uppercase tracking-widest text-slate-900 dark:text-slate-100">The Archive</h2>
+<p class="font-label text-xs text-secondary opacity-70">Technical Editorial</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-4 text-slate-500 dark:text-slate-400 pl-8 py-3 hover:text-slate-900 dark:hover:text-slate-100 hover:translate-x-1 transition-transform font-['Manrope'] font-medium text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-4 text-slate-500 dark:text-slate-400 pl-8 py-3 hover:text-slate-900 dark:hover:text-slate-100 hover:translate-x-1 transition-transform font-['Manrope'] font-medium text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="Receipt_long">receipt_long</span>
+<span>Library</span>
+</a>
+<a class="flex items-center gap-4 text-slate-500 dark:text-slate-400 pl-8 py-3 hover:text-slate-900 dark:hover:text-slate-100 hover:translate-x-1 transition-transform font-['Manrope'] font-medium text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="mic">mic</span>
+<span>Recorders</span>
+</a>
+<a class="flex items-center gap-4 text-orange-600 dark:text-orange-400 font-bold bg-white dark:bg-slate-800 rounded-l-full ml-4 pl-4 py-3 transition-all duration-300 ease-in-out font-['Manrope'] text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span>Archive</span>
+</a>
+</nav>
+<div class="mt-auto px-6 space-y-4">
+<button class="w-full bg-orange-600 text-white py-3 rounded-xl font-headline font-bold flex items-center justify-center gap-2 hover:bg-orange-700 transition-colors shadow-lg shadow-orange-600/20">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+                New Recording
+            </button>
+<div class="pt-6 border-t border-slate-200 dark:border-slate-800">
+<a class="flex items-center gap-4 text-slate-500 pl-2 py-2 hover:text-slate-900 font-label text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+<a class="flex items-center gap-4 text-slate-500 pl-2 py-2 hover:text-slate-900 font-label text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span>Support</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="ml-64 pt-24 px-12 pb-12">
+<!-- Header Section -->
+<header class="mb-12 flex justify-between items-end">
+<div>
+<nav class="flex gap-2 text-xs font-label text-on-surface-variant mb-4 uppercase tracking-widest">
+<span>Corpus</span>
+<span>/</span>
+<span class="text-on-surface">Dataset A</span>
+</nav>
+<h1 class="text-6xl font-headline font-bold tracking-tighter text-on-surface">Recording History</h1>
+<p class="mt-4 text-secondary font-body max-w-xl">Review and validate the high-fidelity acoustic captures within Dataset A. Quality scores are calculated based on SNR and phonetic alignment.</p>
+</div>
+<div class="flex gap-4">
+<button class="px-6 py-2.5 bg-surface-container-high text-on-surface rounded-full font-label text-sm flex items-center gap-2 hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="filter_list">filter_list</span>
+                    All Recordings
+                </button>
+<button class="px-6 py-2.5 bg-tertiary-container text-on-tertiary-container rounded-full font-label text-sm flex items-center gap-2 border border-on-tertiary-container/20 hover:bg-tertiary-container/80 transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="error_outline">error_outline</span>
+                    Failed Quality
+                </button>
+</div>
+</header>
+<!-- Recordings List (Editorial Grid) -->
+<div class="grid grid-cols-1 gap-12">
+<!-- Entry 1 -->
+<article class="grid grid-cols-12 gap-8 items-start group">
+<!-- Metadata Column -->
+<div class="col-span-2 pt-2">
+<span class="font-label text-xs text-on-surface-variant block mb-1">08 OCT 2023</span>
+<span class="font-label text-xs font-bold text-on-surface-variant block uppercase tracking-tighter">14:22:15 UTC</span>
+<div class="mt-8 flex items-center gap-2">
+<div class="h-2 w-2 rounded-full bg-green-500"></div>
+<span class="font-label text-[10px] font-bold text-on-surface uppercase tracking-widest">Pass (98.2%)</span>
+</div>
+</div>
+<!-- Main Content Area -->
+<div class="col-span-10 bg-surface-container-low p-8 rounded-xl transition-all duration-300 group-hover:bg-surface-container">
+<div class="flex justify-between items-start mb-6">
+<div class="max-w-2xl">
+<span class="font-label text-[10px] text-secondary uppercase tracking-[0.2em] mb-2 block">Prompt Context</span>
+<h3 class="text-xl font-headline font-bold text-on-primary-fixed mb-4">"The quick brown fox jumps over the lazy dog in a spectacular display of agility."</h3>
+</div>
+<button class="w-14 h-14 bg-primary rounded-full flex items-center justify-center text-white hover:scale-105 transition-transform active:scale-95">
+<span class="material-symbols-outlined text-3xl" data-icon="play_arrow" data-weight="fill">play_arrow</span>
+</button>
+</div>
+<!-- Waveform Visual -->
+<div class="h-16 flex items-end gap-[2px] mb-8 bg-surface-container-highest/30 rounded px-4 py-2">
+<div class="flex-1 h-3 bg-secondary/20 rounded-t-sm"></div>
+<div class="flex-1 h-6 bg-secondary/40 rounded-t-sm"></div>
+<div class="flex-1 h-10 bg-secondary/60 rounded-t-sm"></div>
+<div class="flex-1 h-4 bg-secondary/20 rounded-t-sm"></div>
+<div class="flex-1 h-12 bg-secondary rounded-t-sm"></div>
+<div class="flex-1 h-8 bg-secondary/80 rounded-t-sm"></div>
+<div class="flex-1 h-14 bg-secondary rounded-t-sm"></div>
+<div class="flex-1 h-10 bg-secondary/90 rounded-t-sm"></div>
+<div class="flex-1 h-6 bg-secondary/40 rounded-t-sm"></div>
+<div class="flex-1 h-12 bg-secondary rounded-t-sm"></div>
+<div class="flex-1 h-4 bg-secondary/20 rounded-t-sm"></div>
+<div class="flex-1 h-8 bg-secondary/50 rounded-t-sm"></div>
+<div class="flex-1 h-10 bg-secondary/70 rounded-t-sm"></div>
+<div class="flex-1 h-6 bg-secondary/40 rounded-t-sm"></div>
+<div class="flex-1 h-12 bg-secondary rounded-t-sm"></div>
+</div>
+<div class="grid grid-cols-2 gap-12">
+<div>
+<span class="font-label text-[10px] text-on-surface-variant uppercase tracking-[0.2em] mb-2 block">Transcript</span>
+<p class="font-body text-on-surface-variant leading-relaxed">the quick brown fox jumps over the lazy dog in a spectacular display of agility.</p>
+</div>
+<div class="flex flex-col justify-between items-end border-l border-outline-variant/20 pl-12">
+<div class="text-right">
+<span class="font-label text-[10px] text-on-surface-variant uppercase tracking-[0.2em] mb-1 block">Audio Quality</span>
+<span class="font-headline font-bold text-2xl text-on-surface">Pristine</span>
+</div>
+<button class="font-label text-xs flex items-center gap-1 text-secondary hover:underline">
+<span class="material-symbols-outlined text-sm" data-icon="file_download">file_download</span>
+                                Export WAV
+                            </button>
+</div>
+</div>
+</div>
+</article>
+<!-- Entry 2 (FAILED) -->
+<article class="grid grid-cols-12 gap-8 items-start group">
+<div class="col-span-2 pt-2">
+<span class="font-label text-xs text-on-surface-variant block mb-1">08 OCT 2023</span>
+<span class="font-label text-xs font-bold text-on-surface-variant block uppercase tracking-tighter">14:18:02 UTC</span>
+<div class="mt-8 flex items-center gap-2">
+<div class="h-2 w-2 rounded-full bg-error"></div>
+<span class="font-label text-[10px] font-bold text-error uppercase tracking-widest">Failed (64.5%)</span>
+</div>
+</div>
+<div class="col-span-10 bg-surface-container-low p-8 rounded-xl ring-2 ring-error/10">
+<div class="flex justify-between items-start mb-6">
+<div class="max-w-2xl">
+<span class="font-label text-[10px] text-secondary uppercase tracking-[0.2em] mb-2 block">Prompt Context</span>
+<h3 class="text-xl font-headline font-bold text-on-primary-fixed mb-4">"Sphinx of black quartz, judge my vow with extreme prejudice."</h3>
+</div>
+<button class="w-14 h-14 bg-surface-container-highest border border-outline-variant/30 rounded-full flex items-center justify-center text-on-surface hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined text-3xl" data-icon="play_arrow">play_arrow</span>
+</button>
+</div>
+<div class="flex items-center gap-4 mb-8 bg-error/5 p-4 rounded border border-error/10">
+<span class="material-symbols-outlined text-error" data-icon="warning">warning</span>
+<p class="text-xs font-label text-error">Background noise detected above -40dB threshold. High-frequency clipping in segment 02.</p>
+</div>
+<div class="grid grid-cols-2 gap-12">
+<div>
+<span class="font-label text-[10px] text-on-surface-variant uppercase tracking-[0.2em] mb-2 block">Transcript</span>
+<p class="font-body text-on-surface-variant leading-relaxed italic">[Inaudible] sphinx of black quartz, [Noise] my vow with extreme prejudice.</p>
+</div>
+<div class="flex flex-col justify-between items-end border-l border-outline-variant/20 pl-12">
+<button class="bg-on-tertiary-container text-white px-6 py-3 rounded-lg font-headline font-bold flex items-center gap-2 hover:bg-black transition-all group-hover:scale-105">
+<span class="material-symbols-outlined" data-icon="mic" data-weight="fill">mic</span>
+                                Re-record
+                            </button>
+<button class="font-label text-xs flex items-center gap-1 text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="delete">delete</span>
+                                Discard Recording
+                            </button>
+</div>
+</div>
+</div>
+</article>
+<!-- Entry 3 -->
+<article class="grid grid-cols-12 gap-8 items-start group">
+<div class="col-span-2 pt-2">
+<span class="font-label text-xs text-on-surface-variant block mb-1">08 OCT 2023</span>
+<span class="font-label text-xs font-bold text-on-surface-variant block uppercase tracking-tighter">13:55:42 UTC</span>
+<div class="mt-8 flex items-center gap-2">
+<div class="h-2 w-2 rounded-full bg-green-500"></div>
+<span class="font-label text-[10px] font-bold text-on-surface uppercase tracking-widest">Pass (94.8%)</span>
+</div>
+</div>
+<div class="col-span-10 bg-surface-container-low p-8 rounded-xl group-hover:bg-surface-container transition-colors">
+<div class="flex justify-between items-start mb-6">
+<div class="max-w-2xl">
+<span class="font-label text-[10px] text-secondary uppercase tracking-[0.2em] mb-2 block">Prompt Context</span>
+<h3 class="text-xl font-headline font-bold text-on-primary-fixed mb-4">"The acoustic resonance of the chamber provided an ideal environment for vocalization."</h3>
+</div>
+<button class="w-14 h-14 bg-primary rounded-full flex items-center justify-center text-white hover:scale-105 transition-transform active:scale-95">
+<span class="material-symbols-outlined text-3xl" data-icon="play_arrow" data-weight="fill">play_arrow</span>
+</button>
+</div>
+<div class="grid grid-cols-2 gap-12">
+<div>
+<span class="font-label text-[10px] text-on-surface-variant uppercase tracking-[0.2em] mb-2 block">Transcript</span>
+<p class="font-body text-on-surface-variant leading-relaxed">the acoustic resonance of the chamber provided an ideal environment for vocalization.</p>
+</div>
+<div class="flex flex-col justify-between items-end border-l border-outline-variant/20 pl-12">
+<div class="text-right">
+<span class="font-label text-[10px] text-on-surface-variant uppercase tracking-[0.2em] mb-1 block">Audio Quality</span>
+<span class="font-headline font-bold text-2xl text-on-surface">Standard</span>
+</div>
+<div class="flex gap-4">
+<button class="p-2 bg-surface-container-highest rounded-lg hover:text-orange-600 transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="edit">edit</span>
+</button>
+<button class="p-2 bg-surface-container-highest rounded-lg hover:text-orange-600 transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="share">share</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</article>
+</div>
+<!-- Pagination/Footer -->
+<footer class="mt-24 py-8 border-t border-outline-variant/10 flex justify-between items-center">
+<span class="font-label text-xs text-on-surface-variant">Showing 3 of 1,240 recordings</span>
+<div class="flex gap-2">
+<button class="w-10 h-10 flex items-center justify-center rounded border border-outline-variant/30 hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="px-4 h-10 flex items-center justify-center rounded bg-primary text-white font-label text-xs font-bold">1</button>
+<button class="px-4 h-10 flex items-center justify-center rounded border border-outline-variant/30 hover:bg-surface-container-high transition-colors font-label text-xs">2</button>
+<button class="px-4 h-10 flex items-center justify-center rounded border border-outline-variant/30 hover:bg-surface-container-high transition-colors font-label text-xs">3</button>
+<button class="w-10 h-10 flex items-center justify-center rounded border border-outline-variant/30 hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</footer>
+</main>
+<!-- Contextual Details Pane (Floating Asymmetric Element) -->
+<div class="fixed right-8 top-32 w-80 bg-surface-container-lowest/80 backdrop-blur-xl border border-outline-variant/20 p-6 rounded-2xl shadow-2xl hidden lg:block">
+<h4 class="font-headline font-bold text-on-surface mb-4">Dataset Integrity</h4>
+<div class="space-y-6">
+<div class="flex justify-between items-center">
+<span class="font-label text-xs text-on-surface-variant uppercase tracking-widest">Total Samples</span>
+<span class="font-headline font-bold text-on-surface">1,240</span>
+</div>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
+<div class="bg-orange-500 h-full w-[82%]"></div>
+</div>
+<p class="text-[10px] font-label text-on-surface-variant leading-relaxed">
+                82% of current samples meet the "Golden Archive" standard. Target 1,500 samples for model training phase 2.
+            </p>
+<div class="grid grid-cols-2 gap-4 pt-4 border-t border-outline-variant/10">
+<div>
+<span class="block text-[10px] font-label text-on-surface-variant uppercase">Success</span>
+<span class="text-xl font-headline font-bold text-on-surface">1,016</span>
+</div>
+<div>
+<span class="block text-[10px] font-label text-on-surface-variant uppercase">Failed</span>
+<span class="text-xl font-headline font-bold text-on-tertiary-container">224</span>
+</div>
+</div>
+</div>
+</div>
+</body></html>

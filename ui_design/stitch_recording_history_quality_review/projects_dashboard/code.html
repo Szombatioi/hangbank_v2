@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;family=Manrope:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "error": "#ba1a1a",
+              "inverse-primary": "#bbc6e2",
+              "surface-container-low": "#f3f4f5",
+              "on-primary-container": "#79849d",
+              "inverse-surface": "#2e3132",
+              "on-error": "#ffffff",
+              "outline": "#74777d",
+              "secondary": "#47607e",
+              "surface-dim": "#d9dadb",
+              "primary-fixed-dim": "#bbc6e2",
+              "on-secondary": "#ffffff",
+              "on-tertiary-fixed": "#3b0900",
+              "surface-variant": "#e1e3e4",
+              "surface-container-high": "#e7e8e9",
+              "on-tertiary-container": "#ed4a14",
+              "on-primary-fixed": "#101b30",
+              "on-error-container": "#93000a",
+              "on-primary": "#ffffff",
+              "on-background": "#191c1d",
+              "surface-bright": "#f8f9fa",
+              "tertiary": "#000000",
+              "outline-variant": "#c4c6cc",
+              "surface": "#f8f9fa",
+              "surface-container-lowest": "#ffffff",
+              "background": "#f8f9fa",
+              "surface-container-highest": "#e1e3e4",
+              "surface-container": "#edeeef",
+              "on-tertiary": "#ffffff",
+              "on-primary-fixed-variant": "#3c475d",
+              "primary": "#000000",
+              "error-container": "#ffdad6",
+              "on-surface": "#191c1d",
+              "inverse-on-surface": "#f0f1f2",
+              "on-surface-variant": "#44474c",
+              "on-tertiary-fixed-variant": "#862200",
+              "on-secondary-fixed-variant": "#2f4865",
+              "secondary-fixed": "#d1e4ff",
+              "primary-container": "#101b30",
+              "surface-tint": "#545e76",
+              "tertiary-container": "#3b0900",
+              "on-secondary-fixed": "#001d36",
+              "secondary-container": "#c2dcff",
+              "tertiary-fixed": "#ffdbd1",
+              "on-secondary-container": "#48617e",
+              "secondary-fixed-dim": "#afc9ea",
+              "tertiary-fixed-dim": "#ffb5a0",
+              "primary-fixed": "#d7e2ff"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Inter"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        .font-headline { font-family: 'Space Grotesk', sans-serif; }
+        .font-label { font-family: 'Manrope', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen">
+<!-- SideNavBar Component -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-slate-100 dark:bg-slate-900 flex flex-col h-full py-6 font-['Manrope'] font-medium text-sm">
+<div class="px-8 mb-10">
+<h1 class="font-['Space_Grotesk'] text-lg font-black uppercase tracking-widest text-slate-900 dark:text-slate-100">The Archive</h1>
+<p class="text-xs text-on-surface-variant opacity-70">Technical Editorial</p>
+</div>
+<nav class="flex-1">
+<ul class="space-y-1">
+<li>
+<a class="flex items-center gap-3 text-orange-600 dark:text-orange-400 font-bold bg-white dark:bg-slate-800 rounded-l-full ml-4 pl-4 py-3 transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span>Dashboard</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 text-slate-500 dark:text-slate-400 pl-8 py-3 hover:text-slate-900 dark:hover:text-slate-100 hover:translate-x-1 transition-transform transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="Receipt_long">receipt_long</span>
+<span>Library</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 text-slate-500 dark:text-slate-400 pl-8 py-3 hover:text-slate-900 dark:hover:text-slate-100 hover:translate-x-1 transition-transform transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="mic">mic</span>
+<span>Recorders</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 text-slate-500 dark:text-slate-400 pl-8 py-3 hover:text-slate-900 dark:hover:text-slate-100 hover:translate-x-1 transition-transform transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span>Archive</span>
+</a>
+</li>
+</ul>
+</nav>
+<div class="mt-auto px-4">
+<button class="w-full bg-on-tertiary-container text-white py-4 rounded-xl font-headline font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-95 duration-150 mb-8">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+                New Recording
+            </button>
+<ul class="space-y-1">
+<li>
+<a class="flex items-center gap-3 text-slate-500 dark:text-slate-400 pl-8 py-3 hover:text-slate-900 dark:hover:text-slate-100 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 text-slate-500 dark:text-slate-400 pl-8 py-3 hover:text-slate-900 dark:hover:text-slate-100 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span>Support</span>
+</a>
+</li>
+</ul>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 min-h-screen">
+<!-- TopAppBar Component -->
+<header class="bg-slate-50 dark:bg-slate-950 flex justify-between items-center w-full px-8 py-4 max-w-full sticky top-0 z-10 bg-slate-100 dark:bg-slate-900">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-bold text-slate-950 dark:text-white tracking-tighter font-['Space_Grotesk']">Sonic Archivist</span>
+<nav class="hidden md:flex gap-6 font-['Space_Grotesk'] font-bold tracking-tight">
+<a class="text-slate-950 dark:text-white border-b-2 border-orange-600 dark:border-orange-500 pb-1" href="#">Projects</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors" href="#">Corpus</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors" href="#">History</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="search">search</span>
+<input class="bg-surface-container-high border-none rounded-full pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-secondary/20 w-64" placeholder="Search archive..." type="text"/>
+</div>
+<button class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all active:scale-95 duration-150">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<button class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all active:scale-95 duration-150">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</header>
+<section class="p-12 max-w-7xl mx-auto">
+<div class="flex justify-between items-end mb-12">
+<div>
+<h2 class="text-4xl font-headline font-bold text-primary tracking-tight mb-2">Active Projects</h2>
+<p class="text-on-surface-variant font-label text-sm uppercase tracking-widest">Ongoing collections &amp; datasets</p>
+</div>
+<button class="px-6 py-3 bg-tertiary text-on-tertiary font-headline font-bold rounded-xl flex items-center gap-2 hover:bg-opacity-90 active:scale-95 transition-all">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                    New Project
+                </button>
+</div>
+<!-- Bento-style Project Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<!-- Project Card 1 -->
+<div class="bg-surface-container-low rounded-xl p-6 transition-all duration-300 hover:bg-surface-container flex flex-col group relative overflow-hidden">
+<div class="flex justify-between items-start mb-6">
+<div class="w-12 h-12 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-icon="folder_zip">folder_zip</span>
+</div>
+<span class="bg-on-tertiary-container/10 text-on-tertiary-container px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter">In Progress</span>
+</div>
+<h3 class="text-xl font-headline font-bold text-on-surface mb-1">Dataset A</h3>
+<p class="text-sm text-on-surface-variant mb-8 line-clamp-2">Linguistic patterns for regional dialect analysis in the northern sector.</p>
+<div class="mt-auto">
+<div class="flex justify-between items-end mb-2">
+<span class="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest">Corpus Progress</span>
+<span class="text-sm font-headline font-bold text-on-surface">65%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-secondary rounded-full" style="width: 65%"></div>
+</div>
+</div>
+<!-- Waveform background decorative -->
+<div class="absolute -bottom-4 -right-4 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
+<span class="material-symbols-outlined text-[120px]" data-icon="waves">waves</span>
+</div>
+</div>
+<!-- Project Card 2 -->
+<div class="bg-surface-container-low rounded-xl p-6 transition-all duration-300 hover:bg-surface-container flex flex-col group relative overflow-hidden">
+<div class="flex justify-between items-start mb-6">
+<div class="w-12 h-12 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-icon="audio_file">audio_file</span>
+</div>
+<span class="bg-on-tertiary-container/10 text-on-tertiary-container px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter">In Progress</span>
+</div>
+<h3 class="text-xl font-headline font-bold text-on-surface mb-1">Project Sonic</h3>
+<p class="text-sm text-on-surface-variant mb-8 line-clamp-2">Ambient environmental capture for high-fidelity acoustic modeling.</p>
+<div class="mt-auto">
+<div class="flex justify-between items-end mb-2">
+<span class="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest">Corpus Progress</span>
+<span class="text-sm font-headline font-bold text-on-surface">42%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-secondary rounded-full" style="width: 42%"></div>
+</div>
+</div>
+</div>
+<!-- Project Card 3: Large Asymmetric Card -->
+<div class="bg-slate-900 rounded-xl p-6 transition-all duration-300 hover:bg-slate-800 flex flex-col group relative overflow-hidden text-white lg:col-span-1 lg:row-span-1">
+<div class="flex justify-between items-start mb-6">
+<div class="w-12 h-12 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-500">
+<span class="material-symbols-outlined" data-icon="settings_voice">settings_voice</span>
+</div>
+<span class="bg-orange-600 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter">Priority</span>
+</div>
+<h3 class="text-xl font-headline font-bold mb-1">Lexicon 4.0</h3>
+<p class="text-sm text-slate-400 mb-8 line-clamp-2">Technical vocabulary expansion for AI-assisted editorial transcription.</p>
+<div class="mt-auto">
+<div class="flex justify-between items-end mb-2">
+<span class="text-[10px] font-label font-bold text-slate-500 uppercase tracking-widest">Corpus Progress</span>
+<span class="text-sm font-headline font-bold">89%</span>
+</div>
+<div class="h-1.5 w-full bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-orange-600 rounded-full" style="width: 89%"></div>
+</div>
+</div>
+</div>
+<!-- Project Card 4 -->
+<div class="bg-surface-container-low rounded-xl p-6 transition-all duration-300 hover:bg-surface-container flex flex-col group relative overflow-hidden">
+<div class="flex justify-between items-start mb-6">
+<div class="w-12 h-12 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-icon="history_edu">history_edu</span>
+</div>
+<span class="bg-secondary/10 text-secondary px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter">Drafting</span>
+</div>
+<h3 class="text-xl font-headline font-bold text-on-surface mb-1">Archival Synthesis</h3>
+<p class="text-sm text-on-surface-variant mb-8 line-clamp-2">Restoration project for legacy magnetic tape recordings (1970-1985).</p>
+<div class="mt-auto">
+<div class="flex justify-between items-end mb-2">
+<span class="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest">Corpus Progress</span>
+<span class="text-sm font-headline font-bold text-on-surface">12%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-secondary rounded-full" style="width: 12%"></div>
+</div>
+</div>
+</div>
+<!-- Featured Image Bento Cell -->
+<div class="lg:col-span-2 bg-surface-container-low rounded-xl relative overflow-hidden h-64 md:h-auto group">
+<img class="absolute inset-0 w-full h-full object-cover grayscale opacity-50 transition-all duration-700 group-hover:scale-105 group-hover:grayscale-0" data-alt="close-up of a high-end studio microphone in a dark recording booth with soft blue atmospheric lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuARGBhiaaZnvjBLJvgfFVXjJqR86-dAbvQEJhFzX9ODswYrm9KV8GIBNmX5013tILKbw8O_bmZ1pXiHwxv6ULPy6fj5_h8_Q647_kNSzgfMwSj8ns8RAVVNLYGxNi9180279kCOnbkhpivWy0hTPUUnQJDOe1NsnKtW78rCG5Z0D1A9ZxGQURBZelgtc6S0Cfa0EVrNk-6ja_5l83sfNe2ZpvYJ8RCsJLL5r4zBPH8fKtWGwTzav0KthOoeaTzvjQ0ywuiAAOuMFeoq"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8">
+<div class="max-w-md">
+<p class="text-orange-500 font-label text-[10px] font-bold uppercase tracking-[0.2em] mb-2">Featured Research</p>
+<h3 class="text-2xl font-headline font-bold text-white mb-2">Technical Auditory Environments</h3>
+<p class="text-slate-300 text-sm font-body">Exploring the intersection of high-fidelity capture and machine learning interpretation in extreme acoustic conditions.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Metadata Insight Section -->
+<div class="mt-16 grid grid-cols-1 md:grid-cols-4 gap-8">
+<div class="p-6 bg-surface-container-low rounded-xl">
+<p class="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest mb-1">Total Recording Hours</p>
+<p class="text-3xl font-headline font-bold text-primary">1,248.4</p>
+</div>
+<div class="p-6 bg-surface-container-low rounded-xl">
+<p class="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest mb-1">Active Corpi</p>
+<p class="text-3xl font-headline font-bold text-primary">14</p>
+</div>
+<div class="p-6 bg-surface-container-low rounded-xl">
+<p class="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest mb-1">Transcription Accuracy</p>
+<p class="text-3xl font-headline font-bold text-primary">99.4%</p>
+</div>
+<div class="p-6 bg-surface-container-low rounded-xl">
+<p class="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest mb-1">Signal Quality</p>
+<div class="flex items-center gap-2 mt-2">
+<div class="flex gap-0.5">
+<div class="w-1 h-4 bg-orange-600"></div>
+<div class="w-1 h-6 bg-orange-600"></div>
+<div class="w-1 h-8 bg-orange-600"></div>
+<div class="w-1 h-5 bg-orange-600"></div>
+</div>
+<span class="text-sm font-headline font-bold text-on-surface">OPTIMAL</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+</body></html>

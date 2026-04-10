@@ -11,6 +11,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
   # Authentication Service
   auth-service:
     build:
@@ -30,6 +31,43 @@ services:
       DB_USERNAME: auth_admin
       DB_PASSWORD: auth_admin
       DB_DATABASE: auth_db
-  
+
+  # NestJS Backend
+  hangbank-backend:
+    build:
+      context: ./hangbank_backend
+      dockerfile: Dockerfile
+    container_name: hangbank_backend
+    ports:
+      - "3001:3000"
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:8888
+      ENABLED_URLS: http://hangbank-frontend:3000,http://localhost:3000
+    env_file:
+      - ./hangbank_backend/.env
+
+  # Audio Quality Checker Service
+  audio-quality-checker:
+    build:
+      context: ./audio-quality-checker
+      dockerfile: Dockerfile
+    container_name: audio_quality_checker
+    ports:
+      - "3002:3002"
+
+  # Next.js Frontend
+  hangbank-frontend:
+    build:
+      context: ./hangbank_frontend
+      dockerfile: Dockerfile
+    container_name: hangbank_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_BACKEND_URL: http://hangbank-backend:3001
+    depends_on:
+      - auth-service
+      - hangbank-backend
+
 volumes:
   postgres_data:

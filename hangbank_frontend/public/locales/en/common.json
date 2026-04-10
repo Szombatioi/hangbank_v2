@@ -23,5 +23,21 @@
     "label_password": "Password",
     "label_verify": "Verify",
     "button_register": "Register",
-    "link_login": "Already registered? Login"
+    "link_login": "Already registered? Login",
+    "login_title": "Identity Verification",
+    "login_description": "Enter your credentials to interface with the Archive.",
+    "login_hero": "Audio Intelligence\nat Scale.",
+    "login_hero_sub": "Access the global repository of processed acoustic data and high-fidelity transcriptions.",
+    "stat_archived_nodes": "Archived Nodes",
+    "stat_signal_latency": "Signal Latency",
+    "login_footer_meta": "System Protocol v4.0.2 // Encrypted Session",
+    "label_email_identifier": "Node Identifier (Email)",
+    "label_security_sequence": "Security Sequence",
+    "link_forgot": "Lost Sequence?",
+    "button_login": "Access Corpus",
+    "link_register": "New archivist? Initialize account",
+    "secure_terminal": "Secure Terminal // S-01",
+    "error_invalid_credentials": "Invalid email or password.",
+    "error_passwords_mismatch": "Passwords do not match.",
+    "error_register_failed": "Registration failed. Please try again."
 }

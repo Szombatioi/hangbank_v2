@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>The Sonic Archive | Login</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@400;500;700&amp;family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary-fixed-dim": "#bbc6e2",
+              "on-tertiary-fixed-variant": "#862200",
+              "on-tertiary": "#ffffff",
+              "tertiary": "#000000",
+              "tertiary-fixed": "#ffdbd1",
+              "tertiary-container": "#3b0900",
+              "outline-variant": "#c4c6cc",
+              "surface-tint": "#545e76",
+              "on-tertiary-container": "#ed4a14",
+              "primary-container": "#101b30",
+              "outline": "#74777d",
+              "tertiary-fixed-dim": "#ffb5a0",
+              "surface-variant": "#e1e3e4",
+              "on-primary": "#ffffff",
+              "secondary-fixed-dim": "#afc9ea",
+              "primary": "#000000",
+              "inverse-on-surface": "#f0f1f2",
+              "secondary-container": "#c2dcff",
+              "inverse-surface": "#2e3132",
+              "on-surface-variant": "#44474c",
+              "on-error-container": "#93000a",
+              "secondary": "#47607e",
+              "secondary-fixed": "#d1e4ff",
+              "on-secondary-container": "#48617e",
+              "inverse-primary": "#bbc6e2",
+              "surface-container-lowest": "#ffffff",
+              "on-secondary-fixed": "#001d36",
+              "on-secondary": "#ffffff",
+              "surface-container-high": "#e7e8e9",
+              "on-secondary-fixed-variant": "#2f4865",
+              "surface-container-low": "#f3f4f5",
+              "surface-container": "#edeeef",
+              "background": "#f8f9fa",
+              "error": "#ba1a1a",
+              "surface-container-highest": "#e1e3e4",
+              "error-container": "#ffdad6",
+              "on-tertiary-fixed": "#3b0900",
+              "on-surface": "#191c1d",
+              "on-primary-fixed-variant": "#3c475d",
+              "on-error": "#ffffff",
+              "surface-bright": "#f8f9fa",
+              "primary-fixed": "#d7e2ff",
+              "on-background": "#191c1d",
+              "surface-dim": "#d9dadb",
+              "surface": "#f8f9fa",
+              "on-primary-container": "#79849d",
+              "on-primary-fixed": "#101b30"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Inter"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .asymmetric-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+      }
+      .glass-card {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(12px);
+      }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body min-h-screen flex items-center justify-center">
+<!-- Login Container -->
+<main class="w-full max-w-6xl h-[870px] flex overflow-hidden shadow-2xl rounded-xl">
+<!-- Left Panel: Brand & Identity -->
+<section class="hidden md:flex flex-col justify-between w-[45%] bg-primary-container p-12 relative overflow-hidden">
+<!-- Decorative Waveform Background -->
+<div class="absolute inset-0 opacity-10 pointer-events-none flex items-center justify-center">
+<div class="flex items-end gap-1 h-64">
+<div class="w-1 bg-on-primary-container h-1/4"></div>
+<div class="w-1 bg-on-primary-container h-1/2"></div>
+<div class="w-1 bg-on-primary-container h-3/4"></div>
+<div class="w-1 bg-on-primary-container h-full"></div>
+<div class="w-1 bg-on-primary-container h-2/3"></div>
+<div class="w-1 bg-on-primary-container h-1/2"></div>
+<div class="w-1 bg-on-primary-container h-1/3"></div>
+<div class="w-1 bg-on-primary-container h-4/5"></div>
+<div class="w-1 bg-on-primary-container h-full"></div>
+<div class="w-1 bg-on-primary-container h-1/2"></div>
+<div class="w-1 bg-on-primary-container h-1/4"></div>
+</div>
+</div>
+<div class="z-10">
+<h1 class="font-headline font-bold text-2xl text-on-primary uppercase tracking-tighter mb-2">
+                    The Sonic Archive
+                </h1>
+<p class="font-label text-xs text-on-primary-container uppercase tracking-[0.2em] font-medium opacity-80">
+                    Technical Editorial Division
+                </p>
+</div>
+<div class="z-10 space-y-8">
+<div class="space-y-4">
+<h2 class="font-headline text-5xl font-bold text-on-primary leading-tight tracking-tight">
+                        Audio Intelligence <br/>
+                        at Scale.
+                    </h2>
+<p class="text-on-primary-container text-lg max-w-sm font-light leading-relaxed">
+                        Access the global repository of processed acoustic data and high-fidelity transcriptions.
+                    </p>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="p-4 rounded-lg bg-surface/5 border border-on-primary/10">
+<span class="block font-headline text-on-primary text-xl font-bold">24.8k</span>
+<span class="block font-label text-[10px] uppercase tracking-widest text-on-primary-container">Archived Nodes</span>
+</div>
+<div class="p-4 rounded-lg bg-surface/5 border border-on-primary/10">
+<span class="block font-headline text-on-primary text-xl font-bold">0.02ms</span>
+<span class="block font-label text-[10px] uppercase tracking-widest text-on-primary-container">Signal Latency</span>
+</div>
+</div>
+</div>
+<div class="z-10 pt-8 border-t border-on-primary/10">
+<p class="font-label text-[10px] uppercase tracking-widest text-on-primary-container">
+                    System Protocol v4.0.2 // encrypted session
+                </p>
+</div>
+</section>
+<!-- Right Panel: Authentication Form -->
+<section class="flex-1 bg-surface-container-low flex items-center justify-center p-8 md:p-16 relative">
+<div class="w-full max-w-md space-y-12">
+<!-- Header -->
+<header class="space-y-2">
+<div class="flex items-center gap-2 mb-6 md:hidden">
+<span class="font-headline font-bold text-xl text-primary uppercase tracking-tighter">The Sonic Archive</span>
+</div>
+<h3 class="font-headline text-3xl font-bold text-on-surface tracking-tight">
+                        Identity Verification
+                    </h3>
+<p class="text-on-surface-variant font-body">
+                        Enter your credentials to interface with the Archive.
+                    </p>
+</header>
+<!-- Form Fields -->
+<form class="space-y-8">
+<div class="space-y-6">
+<!-- Email Input -->
+<div class="space-y-2 group">
+<label class="block font-label text-[11px] font-bold uppercase tracking-widest text-on-surface-variant group-focus-within:text-secondary transition-colors">
+                                Node Identifier (Email)
+                            </label>
+<div class="relative">
+<input class="w-full bg-surface-container-high border-none border-b-2 border-transparent focus:ring-0 focus:border-secondary transition-all px-0 py-3 font-body text-on-surface placeholder:text-outline-variant/50" placeholder="archivist@archive.org" type="email"/>
+</div>
+</div>
+<!-- Password Input -->
+<div class="space-y-2 group">
+<div class="flex justify-between items-end">
+<label class="block font-label text-[11px] font-bold uppercase tracking-widest text-on-surface-variant group-focus-within:text-secondary transition-colors">
+                                    Security Sequence
+                                </label>
+<button class="text-[10px] font-label font-bold uppercase tracking-widest text-outline hover:text-secondary transition-colors" type="button">
+                                    Lost Sequence?
+                                </button>
+</div>
+<div class="relative">
+<input class="w-full bg-surface-container-high border-none border-b-2 border-transparent focus:ring-0 focus:border-secondary transition-all px-0 py-3 font-body text-on-surface placeholder:text-outline-variant/50" placeholder="••••••••••••" type="password"/>
+</div>
+</div>
+</div>
+<!-- Action Button -->
+<div class="pt-4 space-y-6">
+<button class="w-full py-4 bg-primary text-on-primary font-headline font-bold uppercase tracking-widest hover:bg-secondary transition-all duration-300 flex items-center justify-center gap-2 group" type="submit">
+                            Access Corpus
+                            <span class="material-symbols-outlined text-sm translate-x-0 group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</button>
+<!-- Registration Link -->
+<div class="text-center pt-4">
+<a class="inline-flex flex-col items-center gap-1 group" href="#">
+<span class="text-on-surface-variant text-xs font-body">New archivist?</span>
+<span class="font-label text-[11px] font-bold uppercase tracking-widest text-secondary border-b border-transparent group-hover:border-secondary transition-all">
+                                    Initialize account node
+                                </span>
+</a>
+</div>
+</div>
+</form>
+<!-- Footer Meta -->
+<footer class="pt-12 flex items-center justify-between border-t border-outline-variant/10">
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-outline-variant text-lg" data-icon="security" style="font-variation-settings: 'FILL' 1;">security</span>
+<span class="material-symbols-outlined text-outline-variant text-lg" data-icon="fingerprint">fingerprint</span>
+</div>
+<span class="font-label text-[9px] text-outline-variant uppercase tracking-widest">
+                        SECURE TERMINAL // S-01
+                    </span>
+</footer>
+</div>
+<!-- Absolute decorative tech info -->
+<div class="absolute bottom-8 right-8 hidden xl:block opacity-20 rotate-90 origin-bottom-right pointer-events-none">
+<p class="font-label text-[8px] uppercase tracking-[0.5em] text-on-surface-variant">
+                    AUTHENTICATION_LAYER_ACTIVE // TRACE_ENABLED
+                </p>
+</div>
+</section>
+</main>
+<!-- Global Background Elements -->
+<div class="fixed inset-0 -z-10 bg-surface pointer-events-none">
+<div class="absolute top-0 right-0 p-8">
+<span class="font-label text-[10px] text-outline-variant/40 tracking-widest uppercase">
+                LAT: 40.7128° N // LON: 74.0060° W
+            </span>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>The Sonic Archive - Register</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary-fixed-dim": "#bbc6e2",
+                        "on-tertiary-fixed-variant": "#862200",
+                        "on-tertiary": "#ffffff",
+                        "tertiary": "#000000",
+                        "tertiary-fixed": "#ffdbd1",
+                        "tertiary-container": "#3b0900",
+                        "outline-variant": "#c4c6cc",
+                        "surface-tint": "#545e76",
+                        "on-tertiary-container": "#ed4a14",
+                        "primary-container": "#101b30",
+                        "outline": "#74777d",
+                        "tertiary-fixed-dim": "#ffb5a0",
+                        "surface-variant": "#e1e3e4",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed-dim": "#afc9ea",
+                        "primary": "#000000",
+                        "inverse-on-surface": "#f0f1f2",
+                        "secondary-container": "#c2dcff",
+                        "inverse-surface": "#2e3132",
+                        "on-surface-variant": "#44474c",
+                        "on-error-container": "#93000a",
+                        "secondary": "#47607e",
+                        "secondary-fixed": "#d1e4ff",
+                        "on-secondary-container": "#48617e",
+                        "inverse-primary": "#bbc6e2",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed": "#001d36",
+                        "on-secondary": "#ffffff",
+                        "surface-container-high": "#e7e8e9",
+                        "on-secondary-fixed-variant": "#2f4865",
+                        "surface-container-low": "#f3f4f5",
+                        "surface-container": "#edeeef",
+                        "background": "#f8f9fa",
+                        "error": "#ba1a1a",
+                        "surface-container-highest": "#e1e3e4",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#3b0900",
+                        "on-surface": "#191c1d",
+                        "on-primary-fixed-variant": "#3c475d",
+                        "on-error": "#ffffff",
+                        "surface-bright": "#f8f9fa",
+                        "primary-fixed": "#d7e2ff",
+                        "on-background": "#191c1d",
+                        "surface-dim": "#d9dadb",
+                        "surface": "#f8f9fa",
+                        "on-primary-container": "#79849d",
+                        "on-primary-fixed": "#101b30"
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Manrope"]
+                    },
+                    borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .editorial-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+        @media (max-width: 1024px) {
+            .editorial-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        input:focus {
+            outline: none !important;
+            box-shadow: none !important;
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface selection:bg-on-tertiary-container selection:text-white">
+<main class="min-h-screen editorial-grid">
+<!-- Left Panel: Brand Anchor & Visual -->
+<section class="relative hidden lg:flex flex-col justify-between p-16 bg-primary-container overflow-hidden">
+<!-- Background Texture -->
+<div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(circle at 2px 2px, #47607e 1px, transparent 0); background-size: 40px 40px;"></div>
+<div class="relative z-10">
+<h1 class="font-headline font-bold text-3xl text-white tracking-tighter uppercase mb-2">The Sonic Archive</h1>
+<p class="font-label text-secondary-fixed-dim text-xs tracking-[0.2em] uppercase mb-12">Technical Editorial Division</p>
+<div class="mt-24 space-y-8">
+<div class="space-y-2">
+<span class="font-label text-on-tertiary-container text-[10px] font-extrabold uppercase tracking-widest block">System Status</span>
+<h2 class="font-headline text-5xl text-white font-light leading-tight">Indexing the <br/><span class="font-bold">Global Corpus</span></h2>
+</div>
+<p class="text-on-primary-container max-w-sm leading-relaxed text-sm">
+                        Our platform provides precision-engineered metadata analysis for historical audio broadcasts. Join the collective of archivists maintaining the signal integrity of the past.
+                    </p>
+</div>
+</div>
+<div class="relative z-10 flex items-center gap-6">
+<div class="flex flex-col">
+<span class="font-label text-[10px] text-secondary-fixed-dim uppercase tracking-tighter">Current Bitrate</span>
+<span class="font-headline text-xl text-white font-bold">1,411 kbps</span>
+</div>
+<div class="h-8 w-[1px] bg-secondary/30"></div>
+<div class="flex flex-col">
+<span class="font-label text-[10px] text-secondary-fixed-dim uppercase tracking-tighter">Latency</span>
+<span class="font-headline text-xl text-white font-bold">4.2 ms</span>
+</div>
+</div>
+<!-- Absolute decorative waveform image -->
+<div class="absolute bottom-0 right-0 w-full h-1/2 opacity-40 mix-blend-overlay">
+<img class="w-full h-full object-cover grayscale opacity-50" data-alt="abstract vertical soundwave visualization with thin technical lines and dark navy gradients matching architectural precision" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJpi3dOzz33_ubmYj7Z0bdod-eC8kramhfRvYjn1jyO7JzJmSk4dVVwKfMLOT4Dqfx108MYmjHqzHZZkiTYlpogpl4YSK4g10JnCuQhv-3kEkcBpVKuYeaUZ-OnGMCkMphbgx89mfRdUjGCnGlqghzkzj8NbWBP8eQlfuBWaubFrxugVNpgZnhNp3wOy1hpp_rnnRSW2IgT7INf5xz7wkGbSgWUGZRKLb2qn311RSgipWuMgy_lsjqijDh1orqUZYMrNY5kjcxvoyZ"/>
+</div>
+</section>
+<!-- Right Panel: Registration Form -->
+<section class="bg-surface flex flex-col justify-center px-8 py-16 md:px-24 lg:px-32 relative">
+<div class="max-w-md w-full mx-auto">
+<header class="mb-12">
+<div class="lg:hidden mb-8">
+<span class="font-headline font-bold text-xl text-primary tracking-tighter uppercase">The Sonic Archive</span>
+</div>
+<h3 class="font-headline text-3xl font-bold text-on-surface mb-2 tracking-tight">Register Access</h3>
+<p class="text-on-surface-variant text-sm font-medium">Provision a new archivist profile to begin transcription.</p>
+</header>
+<form class="space-y-6">
+<!-- Profile Picture Upload (Custom Technical Look) -->
+<div class="mb-8 group">
+<label class="font-label text-[10px] font-bold text-secondary uppercase tracking-widest block mb-4">Identity Visualization</label>
+<div class="flex items-center gap-6">
+<div class="w-16 h-16 rounded-full bg-surface-container-high flex items-center justify-center border-2 border-dashed border-outline-variant group-hover:border-on-tertiary-container transition-colors">
+<span class="material-symbols-outlined text-secondary text-2xl" data-icon="add_a_photo">add_a_photo</span>
+</div>
+<div class="flex flex-col gap-1">
+<button class="text-xs font-bold text-on-surface hover:text-on-tertiary-container transition-colors text-left uppercase tracking-tighter" type="button">Upload Profile Picture</button>
+<span class="text-[10px] text-on-surface-variant uppercase tracking-widest">PNG, JPG up to 2MB</span>
+</div>
+</div>
+</div>
+<!-- Name Cluster -->
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-1">
+<label class="font-label text-[10px] font-bold text-secondary uppercase tracking-widest" for="first_name">First Name</label>
+<input class="w-full bg-surface-container-low border-none rounded-t-sm border-b border-outline-variant focus:border-on-tertiary-container p-3 text-sm font-headline tracking-tight placeholder:text-outline-variant uppercase" id="first_name" placeholder="ALAN" type="text"/>
+</div>
+<div class="space-y-1">
+<label class="font-label text-[10px] font-bold text-secondary uppercase tracking-widest" for="last_name">Last Name</label>
+<input class="w-full bg-surface-container-low border-none rounded-t-sm border-b border-outline-variant focus:border-on-tertiary-container p-3 text-sm font-headline tracking-tight placeholder:text-outline-variant uppercase" id="last_name" placeholder="LOMAX" type="text"/>
+</div>
+</div>
+<!-- Username -->
+<div class="space-y-1">
+<label class="font-label text-[10px] font-bold text-secondary uppercase tracking-widest" for="username">Archive Username</label>
+<div class="relative">
+<span class="absolute left-3 top-3 text-outline-variant text-sm font-headline">@</span>
+<input class="w-full bg-surface-container-low border-none rounded-t-sm border-b border-outline-variant focus:border-on-tertiary-container p-3 pl-8 text-sm font-headline tracking-tight placeholder:text-outline-variant uppercase" id="username" placeholder="ARCHIVIST_01" type="text"/>
+</div>
+</div>
+<!-- Email -->
+<div class="space-y-1">
+<label class="font-label text-[10px] font-bold text-secondary uppercase tracking-widest" for="email">Technical Email</label>
+<input class="w-full bg-surface-container-low border-none rounded-t-sm border-b border-outline-variant focus:border-on-tertiary-container p-3 text-sm font-headline tracking-tight placeholder:text-outline-variant" id="email" placeholder="archive.control@domain.com" type="email"/>
+</div>
+<!-- Passwords -->
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-1">
+<label class="font-label text-[10px] font-bold text-secondary uppercase tracking-widest" for="password">Password</label>
+<input class="w-full bg-surface-container-low border-none rounded-t-sm border-b border-outline-variant focus:border-on-tertiary-container p-3 text-sm tracking-widest placeholder:text-outline-variant" id="password" placeholder="••••••••" type="password"/>
+</div>
+<div class="space-y-1">
+<label class="font-label text-[10px] font-bold text-secondary uppercase tracking-widest" for="verify_password">Verify</label>
+<input class="w-full bg-surface-container-low border-none rounded-t-sm border-b border-outline-variant focus:border-on-tertiary-container p-3 text-sm tracking-widest placeholder:text-outline-variant" id="verify_password" placeholder="••••••••" type="password"/>
+</div>
+</div>
+<div class="pt-6 space-y-6">
+<button class="w-full bg-on-tertiary-container text-white font-headline font-bold py-4 px-6 uppercase tracking-[0.2em] text-xs hover:bg-tertiary-container transition-all flex justify-between items-center group" type="submit">
+<span>Register Archive</span>
+<span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</button>
+<div class="flex flex-col items-center gap-4">
+<a class="font-label text-[10px] text-on-surface-variant hover:text-on-tertiary-container transition-colors uppercase tracking-widest font-bold" href="#">
+                                Already registered? Login to access corpus
+                            </a>
+</div>
+</div>
+</form>
+<!-- Footer-like metadata -->
+<footer class="mt-20 pt-8 border-t border-outline-variant/10">
+<div class="flex justify-between items-center">
+<span class="font-label text-[9px] text-outline tracking-[0.3em] uppercase">V.4.2.0-STABLE</span>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-outline text-lg" data-icon="lock_open">lock_open</span>
+<span class="material-symbols-outlined text-outline text-lg" data-icon="encrypted">encrypted</span>
+</div>
+</div>
+</footer>
+</div>
+<!-- Absolute decorative corner marker -->
+<div class="absolute top-8 right-8 w-12 h-12 border-t border-r border-outline-variant opacity-20"></div>
+<div class="absolute bottom-8 left-8 w-12 h-12 border-b border-l border-outline-variant opacity-20"></div>
+</section>
+</main>
+<!-- Success Feedback (Ghost Toast - Non-functional, purely visual) -->
+<div class="fixed bottom-6 right-6 bg-surface-container-lowest border border-outline-variant/20 p-4 shadow-xl backdrop-blur-md hidden md:flex items-center gap-4 max-w-xs">
+<div class="w-2 h-2 rounded-full bg-on-tertiary-container animate-pulse"></div>
+<p class="font-label text-[10px] font-bold text-secondary uppercase tracking-widest">Archives Online: Waiting for protocol input</p>
+</div>
+</body></html>

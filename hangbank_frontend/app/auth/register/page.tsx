@@ -1,10 +1,13 @@
 "use client";
 import {
-    Box, Button, Link, Paper, TextField, Typography, InputAdornment, Avatar,
+    Box, Button, Link, Paper, TextField, Typography, InputAdornment, Avatar, Alert,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import AddAPhotoIcon from '@mui/icons-material/AddAPhoto';
 import { ArrowForward } from "@mui/icons-material";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { register } from "../../axios";
 
 const HEADLINE_FONT = "'Space Grotesk', sans-serif";
 const BODY_FONT = "'Inter', sans-serif";
@@ -18,15 +21,45 @@ const COLORS = {
     darkBg: "#1B263B",
 };
 
-export default function LoginPage() {
+export default function RegisterPage() {
     const { t } = useTranslation("common");
+    const router = useRouter();
+
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
+    const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [verifyPassword, setVerifyPassword] = useState("");
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+
+    const handleRegister = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(null);
+
+        if (password !== verifyPassword) {
+            setError(t("error_passwords_mismatch"));
+            return;
+        }
+
+        setLoading(true);
+        try {
+            await register({ email, password, username, firstName, lastName });
+            router.push("/");
+        } catch {
+            setError(t("error_register_failed"));
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const labelStyle = {
         fontFamily: LABEL_FONT,
         fontSize: "10px",
         fontWeight: 800,
         color: COLORS.secondaryText,
-        textTransform: "uppercase",
+        textTransform: "uppercase" as const,
         letterSpacing: "0.15em",
         mb: 1,
         display: "block",
@@ -44,7 +77,6 @@ export default function LoginPage() {
             "&:after": { borderBottomColor: COLORS.primaryAccent },
             "& input": {
                 padding: "12px",
-                // textTransform: "uppercase",
                 letterSpacing: "0.025em"
             },
         },
@@ -58,7 +90,7 @@ export default function LoginPage() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 backgroundColor: "#f0f2f5",
-                p: 2
+                p: { xs: 0, sm: 2 }
             }}
         >
             <Paper
@@ -67,8 +99,8 @@ export default function LoginPage() {
                     width: '100%',
                     maxWidth: "1100px",
                     display: 'flex',
-                    minHeight: '700px',
-                    borderRadius: 2,
+                    minHeight: { xs: '100vh', sm: '700px' },
+                    borderRadius: { xs: 0, sm: 2 },
                     overflow: 'hidden'
                 }}
             >
@@ -110,6 +142,21 @@ export default function LoginPage() {
                     }}
                 >
                     <Box sx={{ width: "100%" }}>
+                        {/* Mobile-only brand */}
+                        <Box sx={{ display: { xs: "block", md: "none" }, mb: 4 }}>
+                            <Typography
+                                sx={{
+                                    fontFamily: HEADLINE_FONT,
+                                    fontWeight: 700,
+                                    fontSize: "1.25rem",
+                                    textTransform: "uppercase",
+                                    letterSpacing: "-0.02em",
+                                }}
+                            >
+                                {t("brand_name")}
+                            </Typography>
+                        </Box>
+
                         <header style={{ marginBottom: "40px" }}>
                             <Typography
                                 variant="h3"
@@ -123,12 +170,15 @@ export default function LoginPage() {
                             >
                                 {t("register_title")}
                             </Typography>
-                            {/* <Typography sx={{ fontFamily: BODY_FONT, color: "text.secondary", fontSize: "0.85rem" }}>
-                                {t("register_description")}
-                            </Typography> */}
                         </header>
 
-                        <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                        <Box component="form" onSubmit={handleRegister} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                            {error && (
+                                <Alert severity="error" sx={{ borderRadius: "2px", fontFamily: BODY_FONT, fontSize: "0.8rem" }}>
+                                    {error}
+                                </Alert>
+                            )}
+
                             {/* Profile Picture */}
                             <Box>
                                 <Typography sx={labelStyle}>{t("label_identity")}</Typography>
@@ -143,24 +193,42 @@ export default function LoginPage() {
                             </Box>
 
                             {/* Name Fields */}
-                            <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
+                            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
                                 <Box>
                                     <Typography sx={labelStyle}>{t("label_first_name")}</Typography>
-                                    <TextField fullWidth variant="filled" placeholder={t("placeholder_first_name")} sx={inputSx} hiddenLabel />
+                                    <TextField
+                                        fullWidth
+                                        variant="filled"
+                                        placeholder={t("placeholder_first_name")}
+                                        value={firstName}
+                                        onChange={(e) => setFirstName(e.target.value)}
+                                        sx={inputSx}
+                                        hiddenLabel
+                                    />
                                 </Box>
                                 <Box>
                                     <Typography sx={labelStyle}>{t("label_last_name")}</Typography>
-                                    <TextField fullWidth variant="filled" placeholder={t("placeholder_last_name")} sx={inputSx} hiddenLabel />
+                                    <TextField
+                                        fullWidth
+                                        variant="filled"
+                                        placeholder={t("placeholder_last_name")}
+                                        value={lastName}
+                                        onChange={(e) => setLastName(e.target.value)}
+                                        sx={inputSx}
+                                        hiddenLabel
+                                    />
                                 </Box>
                             </Box>
 
-                            {/* Username with centered @ adornment */}
+                            {/* Username */}
                             <Box>
                                 <Typography sx={labelStyle}>{t("label_username")}</Typography>
                                 <TextField
                                     fullWidth
                                     variant="filled"
                                     placeholder={t("placeholder_username")}
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
                                     sx={inputSx}
                                     InputProps={{
                                         disableUnderline: false,
@@ -176,31 +244,53 @@ export default function LoginPage() {
                             {/* Email */}
                             <Box>
                                 <Typography sx={labelStyle}>{t("label_email")}</Typography>
-                                <TextField 
-                                    fullWidth 
-                                    variant="filled" 
-                                    placeholder={t("placeholder_email")} 
-                                    sx={{ ...inputSx, "& input": { textTransform: "none" } }} 
+                                <TextField
+                                    fullWidth
+                                    variant="filled"
+                                    type="email"
+                                    placeholder={t("placeholder_email")}
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    sx={{ ...inputSx, "& input": { textTransform: "none" } }}
+                                    hiddenLabel
                                 />
                             </Box>
 
                             {/* Passwords */}
-                            <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
+                            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
                                 <Box>
                                     <Typography sx={labelStyle}>{t("label_password")}</Typography>
-                                    <TextField fullWidth type="password" variant="filled" sx={inputSx} />
+                                    <TextField
+                                        fullWidth
+                                        type="password"
+                                        variant="filled"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        sx={inputSx}
+                                        hiddenLabel
+                                    />
                                 </Box>
                                 <Box>
                                     <Typography sx={labelStyle}>{t("label_verify")}</Typography>
-                                    <TextField fullWidth type="password" variant="filled" sx={inputSx} />
+                                    <TextField
+                                        fullWidth
+                                        type="password"
+                                        variant="filled"
+                                        value={verifyPassword}
+                                        onChange={(e) => setVerifyPassword(e.target.value)}
+                                        sx={inputSx}
+                                        hiddenLabel
+                                    />
                                 </Box>
                             </Box>
 
                             {/* Submit */}
                             <Button
                                 fullWidth
+                                type="submit"
                                 variant="contained"
                                 disableElevation
+                                disabled={loading}
                                 endIcon={<ArrowForward className="arrow-icon" />}
                                 sx={{
                                     bgcolor: COLORS.primaryAccent,
