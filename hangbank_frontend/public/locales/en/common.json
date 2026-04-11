@@ -39,5 +39,14 @@
     "secure_terminal": "Secure Terminal // S-01",
     "error_invalid_credentials": "Invalid email or password.",
     "error_passwords_mismatch": "Passwords do not match.",
-    "error_register_failed": "Registration failed. Please try again."
+    "error_register_failed": "Registration failed. Please try again.",
+    "brand_subtitle": "Technical Editorial",
+    "nav_projects": "Projects",
+    "nav_dashboard": "Dashboard",
+    "nav_library": "Library",
+    "nav_recorders": "Recorders",
+    "nav_archive": "Archive",
+    "nav_settings": "Settings",
+    "nav_support": "Support",
+    "button_new_recording": "New Recording"
 }

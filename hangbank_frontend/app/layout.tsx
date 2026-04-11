@@ -1,6 +1,7 @@
 "use client";
-import { Box, CircularProgress } from "@mui/material";
-import { AuthProvider, useAuth } from "./contexts/auth-context";
+import { CssBaseline } from "@mui/material";
+import { AuthProvider } from "./contexts/auth-context";
+import { ThemeProvider } from "./contexts/theme-context";
 import { LanguageProvider } from "./providers/language-provider";
 
 export default function RootLayout({
@@ -10,12 +11,23 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&family=Manrope:wght@400;500;700;800&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body>
-        <AuthProvider>
-          <LanguageProvider>
-            {children}
-          </LanguageProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <CssBaseline />
+          <AuthProvider>
+            <LanguageProvider>
+              {children}
+            </LanguageProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
