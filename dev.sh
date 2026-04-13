@@ -5,7 +5,7 @@
 # Stop:  Ctrl+C  (all child processes are killed automatically)
 # =============================================================================
 
-set -euo pipefail
+set -e
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -32,9 +32,9 @@ MINIO_CONSOLE_PORT="9001"
 MINIO_ROOT_USER="minioadmin"
 MINIO_ROOT_PASSWORD="minioadmin"
 
-AUTH_SERVICE_PORT="8888"
+AUTH_PORT="8888"
 BACKEND_PORT="3001"
-AUDIO_CHECKER_PORT="3002"
+AUDIO_PORT="3002"
 FRONTEND_PORT="3000"
 
 # Collect PIDs of all background services for cleanup
@@ -44,13 +44,11 @@ PIDS=()
 cleanup() {
   echo ""
   warn "Shutting down services…"
-  for pid in "${PIDS[@]}"; do
+  for pid in "${PIDS[@]:-}"; do
     kill "$pid" 2>/dev/null && wait "$pid" 2>/dev/null || true
   done
-
   warn "Stopping infrastructure containers…"
   docker stop "$POSTGRES_CONTAINER" "$MINIO_CONTAINER" 2>/dev/null || true
-
   ok "All stopped. Goodbye!"
 }
 trap cleanup EXIT INT TERM
@@ -60,30 +58,30 @@ require() {
   command -v "$1" &>/dev/null || die "'$1' not found. Please install it first."
 }
 
+# Source a .env file inside the current shell scope, stripping CR and comments.
+# Call inside a subshell so it doesn't pollute the parent.
+load_dotenv() {
+  local file="$1"
+  if [[ -f "$file" ]]; then
+    # tr -d '\r' handles Windows CRLF; grep filters blanks & comments
+    set -a
+    # shellcheck disable=SC1090
+    source <(grep -v '^\s*#' "$file" | grep -v '^\s*$' | tr -d '\r')
+    set +a
+  fi
+}
+
 wait_for_port() {
-  local name="$1" port="$2" tries=30
+  local name="$1" port="$2" tries=40
   log "Waiting for $name on port $port…"
   for ((i=1; i<=tries; i++)); do
     if nc -z 127.0.0.1 "$port" 2>/dev/null; then
-      ok "$name is ready"
+      ok "$name is ready ✓"
       return 0
     fi
     sleep 1
   done
   die "$name did not become ready on port $port after ${tries}s"
-}
-
-run_service() {
-  # run_service <label> <dir> <cmd> [env_pairs...]
-  local label="$1" dir="$2"; shift 2
-  local cmd=("$@")
-  log "Starting ${BOLD}$label${RESET}…"
-  (
-    cd "$ROOT/$dir"
-    exec "${cmd[@]}"
-  ) &
-  PIDS+=($!)
-  ok "$label started (PID ${PIDS[-1]})"
 }
 
 # ── Pre-flight ────────────────────────────────────────────────────────────────
@@ -124,73 +122,76 @@ wait_for_port "MinIO" "$MINIO_PORT"
 
 echo ""
 echo -e "${BOLD}Infrastructure ready:${RESET}"
-echo -e "  ${GREEN}●${RESET} PostgreSQL   → localhost:${POSTGRES_PORT}"
-echo -e "  ${GREEN}●${RESET} MinIO API    → http://localhost:${MINIO_PORT}"
-echo -e "  ${GREEN}●${RESET} MinIO Console→ http://localhost:${MINIO_CONSOLE_PORT}  (${MINIO_ROOT_USER} / ${MINIO_ROOT_PASSWORD})"
+echo -e "  ${GREEN}●${RESET} PostgreSQL    localhost:${POSTGRES_PORT}"
+echo -e "  ${GREEN}●${RESET} MinIO API     http://localhost:${MINIO_PORT}"
+echo -e "  ${GREEN}●${RESET} MinIO Console http://localhost:${MINIO_CONSOLE_PORT}  (${MINIO_ROOT_USER} / ${MINIO_ROOT_PASSWORD})"
 echo ""
 
 # ── 3. Auth Service ───────────────────────────────────────────────────────────
-# Load its own .env then override DB host to localhost
-AUTH_ENV=$(grep -v '^#' "$ROOT/auth/.env" 2>/dev/null | xargs) || AUTH_ENV=""
-
-env \
-  $AUTH_ENV \
-  DB_TYPE=postgres \
-  DB_HOST=127.0.0.1 \
-  DB_PORT="$POSTGRES_PORT" \
-  DB_USERNAME="$POSTGRES_USER" \
-  DB_PASSWORD="$POSTGRES_PASSWORD" \
-  DB_DATABASE="$POSTGRES_DB" \
-  PORT="$AUTH_SERVICE_PORT" \
-  bash -c "cd '$ROOT/auth' && npm run start:dev" &
+log "Starting auth-service on :${AUTH_PORT}…"
+(
+  load_dotenv "$ROOT/auth/.env"
+  export DB_TYPE=postgres
+  export DB_HOST=127.0.0.1
+  export DB_PORT="$POSTGRES_PORT"
+  export DB_USERNAME="$POSTGRES_USER"
+  export DB_PASSWORD="$POSTGRES_PASSWORD"
+  export DB_DATABASE="$POSTGRES_DB"
+  export PORT="$AUTH_PORT"
+  cd "$ROOT/auth"
+  exec npm run start:dev
+) &
 PIDS+=($!)
-ok "auth-service started (PID ${PIDS[-1]})"
-wait_for_port "auth-service" "$AUTH_SERVICE_PORT"
+wait_for_port "auth-service" "$AUTH_PORT"
 
 # ── 4. HangBank Backend ───────────────────────────────────────────────────────
-BACKEND_ENV=$(grep -v '^#' "$ROOT/hangbank_backend/.env" 2>/dev/null | xargs) || BACKEND_ENV=""
-
-env \
-  $BACKEND_ENV \
-  AUTH_SERVICE_URL="http://localhost:${AUTH_SERVICE_PORT}" \
-  ENABLED_URLS="http://localhost:${FRONTEND_PORT}" \
-  PORT="$BACKEND_PORT" \
-  bash -c "cd '$ROOT/hangbank_backend' && npm run start:dev" &
+log "Starting hangbank-backend on :${BACKEND_PORT}…"
+(
+  load_dotenv "$ROOT/hangbank_backend/.env"
+  export AUTH_SERVICE_URL="http://localhost:${AUTH_PORT}"
+  export ENABLED_URLS="http://localhost:${FRONTEND_PORT}"
+  export PORT="$BACKEND_PORT"
+  cd "$ROOT/hangbank_backend"
+  exec npm run start:dev
+) &
 PIDS+=($!)
-ok "hangbank-backend started (PID ${PIDS[-1]})"
 wait_for_port "hangbank-backend" "$BACKEND_PORT"
 
 # ── 5. Audio Quality Checker ──────────────────────────────────────────────────
-env \
-  PORT="$AUDIO_CHECKER_PORT" \
-  bash -c "cd '$ROOT/audio-quality-checker' && npm run start:dev" &
+log "Starting audio-quality-checker on :${AUDIO_PORT}…"
+(
+  export PORT="$AUDIO_PORT"
+  cd "$ROOT/audio-quality-checker"
+  exec npm run start:dev
+) &
 PIDS+=($!)
-ok "audio-quality-checker started (PID ${PIDS[-1]})"
-wait_for_port "audio-quality-checker" "$AUDIO_CHECKER_PORT"
+wait_for_port "audio-quality-checker" "$AUDIO_PORT"
 
 # ── 6. Frontend ───────────────────────────────────────────────────────────────
-env \
-  NEXT_PUBLIC_BACKEND_URL="http://localhost:${BACKEND_PORT}" \
-  PORT="$FRONTEND_PORT" \
-  bash -c "cd '$ROOT/hangbank_frontend' && npm run dev" &
+log "Starting hangbank-frontend on :${FRONTEND_PORT}…"
+(
+  export NEXT_PUBLIC_BACKEND_URL="http://localhost:${BACKEND_PORT}"
+  export PORT="$FRONTEND_PORT"
+  cd "$ROOT/hangbank_frontend"
+  exec npm run dev
+) &
 PIDS+=($!)
-ok "hangbank-frontend started (PID ${PIDS[-1]})"
 wait_for_port "hangbank-frontend" "$FRONTEND_PORT"
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""
 echo -e "${BOLD}╔══════════════════════════════════════════════╗${RESET}"
-echo -e "${BOLD}║        HangBank v2 — all systems go          ║${RESET}"
+echo -e "${BOLD}║       HangBank v2 — all systems go  🎵       ║${RESET}"
 echo -e "${BOLD}╠══════════════════════════════════════════════╣${RESET}"
-echo -e "${BOLD}║${RESET}  Frontend          http://localhost:${FRONTEND_PORT}       ${BOLD}║${RESET}"
-echo -e "${BOLD}║${RESET}  Backend           http://localhost:${BACKEND_PORT}       ${BOLD}║${RESET}"
-echo -e "${BOLD}║${RESET}  Auth service      http://localhost:${AUTH_SERVICE_PORT}       ${BOLD}║${RESET}"
-echo -e "${BOLD}║${RESET}  Audio checker     http://localhost:${AUDIO_CHECKER_PORT}       ${BOLD}║${RESET}"
-echo -e "${BOLD}║${RESET}  MinIO Console     http://localhost:${MINIO_CONSOLE_PORT}       ${BOLD}║${RESET}"
+echo -e "${BOLD}║${RESET}  Frontend        http://localhost:${FRONTEND_PORT}       ${BOLD}║${RESET}"
+echo -e "${BOLD}║${RESET}  Backend         http://localhost:${BACKEND_PORT}       ${BOLD}║${RESET}"
+echo -e "${BOLD}║${RESET}  Auth service    http://localhost:${AUTH_PORT}       ${BOLD}║${RESET}"
+echo -e "${BOLD}║${RESET}  Audio checker   http://localhost:${AUDIO_PORT}       ${BOLD}║${RESET}"
+echo -e "${BOLD}║${RESET}  MinIO Console   http://localhost:${MINIO_CONSOLE_PORT}       ${BOLD}║${RESET}"
 echo -e "${BOLD}╚══════════════════════════════════════════════╝${RESET}"
 echo ""
 echo -e "  Press ${BOLD}Ctrl+C${RESET} to stop everything."
 echo ""
 
-# Keep the script alive — wait for any child to exit unexpectedly
+# Wait — if any service exits unexpectedly, exit the whole script (triggers cleanup)
 wait -n 2>/dev/null || wait

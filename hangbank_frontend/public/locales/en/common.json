@@ -48,5 +48,33 @@
     "nav_archive": "Archive",
     "nav_settings": "Settings",
     "nav_support": "Support",
-    "button_new_recording": "New Recording"
+    "button_new_recording": "New Recording",
+    "upload_corpus_page": {
+        "title": "Upload Corpus",
+        "description": "Expand the archive with your corpora. Upload text-based sources to calibrate the engine for specific terminologies and dialects.",
+        "language_selection": "Corpus language",
+        "select_language_placeholder": "Select language",
+        "corpus_title": "Corpus Title",
+        "corpus_title_placeholder": "Set a title",
+        "submit_button": "Upload Corpus",
+        "visibility": {
+            "title": "Visibility Settings",
+            "private": "Private",
+            "private_desc": "Only you can access and use this corpus for transcriptions.",
+            "public": "Public",
+            "public_desc": "Anyone in the Sonic Archive community can use this data.",
+            "protected": "Protected",
+            "protected_desc": "Grant specific access to members via email address."
+        },
+        "access_control": {
+            "title": "Access Control",
+            "restricted_badge": "RESTRICTED",
+            "add_collaborator_placeholder": "Add collaborator by email..."
+        }
+    },
+    "file_upload": {
+        "drag_drop_files": "Drag & drop your files here",
+        "supported_formats": "Support for .txt, .docx, and .pdf files (Max 50MB per file)",
+        "browse_files": "BROWSE FILES"
+    }
 }

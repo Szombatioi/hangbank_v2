@@ -12,6 +12,7 @@ import {
   Divider,
   AppBar,
   Toolbar,
+  IconButton,
 } from "@mui/material";
 import {
   GridView,
@@ -21,11 +22,14 @@ import {
   Settings,
   Help,
   AddCircle,
+  DarkMode,
+  LightMode,
 } from "@mui/icons-material";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@mui/material/styles";
 import { useAuth } from "../contexts/auth-context";
+import { useCustomTheme } from "../contexts/theme-context";
 
 const DRAWER_WIDTH = 256;
 const LABEL_FONT = "'Manrope', sans-serif";
@@ -244,6 +248,7 @@ export default function MainLayout({
     </Box>
   );
 
+  const { mode, toggleTheme } = useCustomTheme();
   return (
     <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       <AppBar
@@ -271,8 +276,14 @@ export default function MainLayout({
                   fontWeight: active ? 700 : 500,
                   textTransform: "uppercase",
                   letterSpacing: "0.12em",
-                  color: active ? textColor : isDark ? "rgba(240,241,242,0.5)" : "rgba(6,10,23,0.45)",
-                  borderBottom: active ? `2px solid ${textColor}` : "2px solid transparent",
+                  color: active
+                    ? textColor
+                    : isDark
+                    ? "rgba(240,241,242,0.5)"
+                    : "rgba(6,10,23,0.45)",
+                  borderBottom: active
+                    ? `2px solid ${textColor}`
+                    : "2px solid transparent",
                   pb: "2px",
                   transition: "all 0.2s ease",
                   "&:hover": { color: textColor },
@@ -282,6 +293,9 @@ export default function MainLayout({
               </Box>
             );
           })}
+          <IconButton onClick={toggleTheme} color="inherit">
+            {mode === "dark" ? <LightMode /> : <DarkMode />}
+          </IconButton>
         </Toolbar>
       </AppBar>
       <Box sx={{ display: "flex", flex: 1 }}>
@@ -310,6 +324,7 @@ export default function MainLayout({
             // ml: { xs: 0, md: `${DRAWER_WIDTH}px` },
             minHeight: "100vh",
             bgcolor: "background.default",
+            p: 2,
           }}
         >
           {children}
