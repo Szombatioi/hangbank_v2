@@ -5,5 +5,6 @@ import { S3StorageController } from './s3-storage.controller';
 @Module({
   controllers: [S3StorageController],
   providers: [S3StorageService],
+  exports: [S3StorageService]
 })
 export class S3StorageModule {}

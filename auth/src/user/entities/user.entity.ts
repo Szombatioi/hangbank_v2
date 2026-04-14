@@ -1,8 +1,9 @@
 import { UserRole } from "src/user-role/entity/user-role.entity";
 import { Column, Entity, JoinTable, ManyToMany, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
+import type { IUser } from "@hangbank/shared";
 
 @Entity()
-export class User {
+export class User implements IUser {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 

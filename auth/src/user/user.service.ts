@@ -160,4 +160,19 @@ export class UserService {
   // remove(id: number) {
   //   return `This action removes a #${id} user`;
   // }
+
+  async getProfile(id: string) {
+    const user = await this.userRepository.findOne({ where: { id }, relations: ['roles'] });
+    if(!user) {
+      throw new NotFoundException('User not found');
+    }
+    return {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      profilePictureUrl: user.profilePictureUrl,
+    }
+  }
 }

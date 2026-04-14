@@ -15,8 +15,8 @@ services:
   # Authentication Service
   auth-service:
     build:
-      context: ./auth
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: auth/Dockerfile
     container_name: auth_service
     ports:
       - "8888:8888"
@@ -32,17 +32,38 @@ services:
       DB_PASSWORD: auth_admin
       DB_DATABASE: auth_db
 
+  # PostgreSQL DB for hangbank backend
+  hangbank-db:
+    image: postgres:15-alpine
+    container_name: dev_hangbank
+    environment:
+      POSTGRES_USER: hangbank_admin
+      POSTGRES_PASSWORD: hangbank_admin
+      POSTGRES_DB: hangbank_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - hangbank_postgres_data:/var/lib/postgresql/data
+
   # NestJS Backend
   hangbank-backend:
     build:
-      context: ./hangbank_backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: hangbank_backend/Dockerfile
     container_name: hangbank_backend
     ports:
       - "3001:3000"
+    depends_on:
+      - hangbank-db
     environment:
       AUTH_SERVICE_URL: http://auth-service:8888
       ENABLED_URLS: http://hangbank-frontend:3000,http://localhost:3000
+      DB_TYPE: postgres
+      DB_HOST: hangbank-db
+      DB_PORT: 5432
+      DB_USERNAME: hangbank_admin
+      DB_PASSWORD: hangbank_admin
+      DB_DATABASE: hangbank_db
     env_file:
       - ./hangbank_backend/.env
 
@@ -71,3 +92,4 @@ services:
 
 volumes:
   postgres_data:
+  hangbank_postgres_data:

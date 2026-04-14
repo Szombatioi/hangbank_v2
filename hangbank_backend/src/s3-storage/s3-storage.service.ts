@@ -1,13 +1,15 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger, OnModuleInit } from '@nestjs/common';
 import { Client } from 'minio';
 import * as path from 'path';
 import * as stream from 'stream';
 
 @Injectable()
-export class S3StorageService {
-    private readonly audioBucket = 'audio';
-    private readonly originalCorpusBucket = 'corpus-original';
-    private readonly corpusBucket = 'corpus'; //This is processed corpus files (in .txt)
+export class S3StorageService implements OnModuleInit {
+    private readonly logger = new Logger(S3StorageService.name);
+
+    public readonly audioBucket = 'audio';
+    public readonly originalCorpusBucket = 'corpus-original';
+    public readonly corpusBucket = 'corpus';
     private readonly bucketNames = [this.audioBucket, this.corpusBucket, this.originalCorpusBucket];
     private readonly minioClient: Client;
 
@@ -17,20 +19,19 @@ export class S3StorageService {
             port: Number(process.env.MINIO_PORT) || 9000,
             useSSL: false,
             accessKey: process.env.MINIO_ACCESS_KEY || 'minioadmin',
-            secretKey: process.env.MINIO_SECRET_KEY || 'minioadmin123',
+            secretKey: process.env.MINIO_SECRET_KEY || 'minioadmin',
         });
-        // this.ensureBucketsExists();
     }
 
-    //Making sure all required buckets exist on S3 server
-    // private async ensureBucketsExists() {
-    //     this.bucketNames.forEach(async (bucketName) => {
-    //     const exists = await this.minioClient.bucketExists(bucketName).catch(() => false);
-    //     if (!exists) {
-    //         await this.minioClient.makeBucket(bucketName, 'us-east-1');
-    //     }
-    //     });
-    // }
+    async onModuleInit() {
+        for (const bucketName of this.bucketNames) {
+            const exists = await this.minioClient.bucketExists(bucketName).catch(() => false);
+            if (!exists) {
+                await this.minioClient.makeBucket(bucketName);
+                this.logger.log(`Created bucket: ${bucketName}`);
+            }
+        }
+    }
 
     async uploadObject(file: Express.Multer.File, bucket: string) {
     const objectName = `${Date.now()}-${path.basename(file.originalname)}`; //Creating unique object name
@@ -57,6 +58,7 @@ export class S3StorageService {
         url: `${process.env.MINIO_PUBLIC_URL || 'http://localhost:9000'}/${bucket}/${objectName}`,
       };
     } catch (err) {
+      this.logger.error('Failed to upload file', err);
       throw new InternalServerErrorException('Failed to upload file');
     }
   }
@@ -78,6 +80,7 @@ export class S3StorageService {
       // }
       return await this.minioClient.getObject(bucket, objectName);
     } catch (err) {
+      this.logger.error('Failed to download file', err);
       throw new InternalServerErrorException('Failed to download file');
     }
   }
@@ -94,6 +97,7 @@ export class S3StorageService {
       const sanitizedObjectName = path.basename(objectName);
       await this.minioClient.removeObject(bucket, sanitizedObjectName);
     } catch (err) {
+      this.logger.error('Failed to delete file', err);
       throw new InternalServerErrorException('Failed to delete file');
     }
   }
