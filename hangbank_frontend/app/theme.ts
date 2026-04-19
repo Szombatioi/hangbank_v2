@@ -34,7 +34,9 @@ const LIGHT = {
   outline: "#74777d",
   outlineVariant: "#c4c6cc",
   appBar: "#f8f9fa",
-  appBarText: "#060a17"
+  appBarText: "#060a17",
+  primaryText: "#1a1c1d",
+  secondaryText: "#4c607c"
 };
 
 const DARK = {
@@ -49,7 +51,9 @@ const DARK = {
   outline: "#8e9099",
   outlineVariant: "#44474c",
   appBar: "#1e2021",
-  appBarText: "#F0F1F2"
+  appBarText: "#F0F1F2",
+  primaryText: "#e2e3e4",
+  secondaryText: "#939499"
 };
 
 // Shared component overrides that don't depend on mode

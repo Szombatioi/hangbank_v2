@@ -56,6 +56,7 @@
         "select_language_placeholder": "Select language",
         "corpus_title": "Corpus Title",
         "corpus_title_placeholder": "Set a title",
+        "corpus_domain_placeholder": "Set a domain (e.g., medical, legal, technical)",
         "submit_button": "Upload Corpus",
         "visibility": {
             "title": "Visibility Settings",
@@ -76,5 +77,18 @@
         "drag_drop_files": "Drag & drop your files here",
         "supported_formats": "Support for .txt, .docx, and .pdf files (Max 50MB per file)",
         "browse_files": "BROWSE FILES"
+    },
+    "language":
+    {
+        "lang_en-US": "English (US)",
+        "lang_hu-HU": "Hungarian (HU)",
+        "lang_de-DE": "German (DE)"
+    },
+    "error":{
+        "language_load": "Could not load available languages."
+    },
+    "corpus_upload":{
+        "success": "Corpus uploaded successfully!",
+        "failure": "Failed to upload corpus. Please try again."
     }
 }
