@@ -1,19 +1,20 @@
-import { Controller, Get, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, UploadedFile, UploadedFiles, UseInterceptors } from '@nestjs/common';
 import { AppService } from './app.service';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) { }
 
   @Post()
-  @UseInterceptors(FileInterceptor('file', {
-    //storage: process.env.NODE_ENV === 'development' ? undefined : undefined, // Alapértelmezésben a memóriát használja a NestJS/Multer
+  @UseInterceptors(FilesInterceptor('wavs', 2, {
     limits: {
-      fileSize: 50 * 1024 * 1024, //Max. 50Mb
+      fileSize: 50 * 1024 * 1024,
     },
+    storage: memoryStorage()
   }))
-  async checkAudioQuality(@UploadedFile() file: Express.Multer.File) {
-    return await this.appService.checkAudioQuality(file);
+  async checkAudioQuality(@UploadedFiles() files: Express.Multer.File[]) {
+    return await this.appService.checkAudioQuality(files);
   }
 }

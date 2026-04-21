@@ -1,5 +1,5 @@
 import { Language } from "src/language/entities/language.entity";
-import { Column, Entity, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { CorpusVisibility } from "./corpus-visibility";
 import { CorpusDomain } from "src/corpus-domain/entities/corpus-domain.entity";
 
@@ -43,6 +43,9 @@ export class Corpus {
     // feltöltő ID (user ID, az Auth service pedig majd lekéri a user nevét, hogy megjeleníthesse)
     @Column({ nullable: false })
     uploaderId!: string;
+
+    @CreateDateColumn()
+    createdAt!: Date;
 
     // forrás??
 }

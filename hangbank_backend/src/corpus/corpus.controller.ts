@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { Request } from 'express';
 import { AuthGuard } from 'src/guards/auth.guard';
 import type { IJwtPayload } from '@hangbank/shared';
@@ -13,6 +13,12 @@ export class CorpusController {
     private readonly corpusService: CorpusService,
     private readonly corpusProcesserService: CorpusProcesserService,
   ) { }
+
+  @UseGuards(AuthGuard)
+  @Get()
+  findAll(@Req() req: Request & { user: IJwtPayload }) {
+    return this.corpusService.findAll(req.user.id);
+  }
 
   @UseGuards(AuthGuard)
   @Post()

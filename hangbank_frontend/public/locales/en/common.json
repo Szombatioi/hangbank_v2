@@ -84,6 +84,30 @@
         "lang_hu-HU": "Hungarian (HU)",
         "lang_de-DE": "German (DE)"
     },
+    "library_page": {
+        "title": "Corpus Library",
+        "description": "Access your high-precision audio repositories and editorial datasets.",
+        "filters_button": "Filters",
+        "sort_button": "Recently Modified",
+        "chip_all_languages": "All Languages",
+        "primary_archive_label": "Primary Archive",
+        "view_corpus": "View Corpus",
+        "view_button": "View",
+        "archive_button": "Archive",
+        "new_corpus_title": "Initialize New Corpus",
+        "new_corpus_subtitle": "Start a fresh editorial repository",
+        "label_language": "Language",
+        "label_domain": "Domain",
+        "label_uploaded": "Uploaded",
+        "label_coverage": "Coverage",
+        "empty_filters": "No corpora match your filters.",
+        "visibility": {
+            "all": "All",
+            "public": "Public",
+            "protected": "Protected",
+            "private": "Private"
+        }
+    },
     "error":{
         "language_load": "Could not load available languages."
     },

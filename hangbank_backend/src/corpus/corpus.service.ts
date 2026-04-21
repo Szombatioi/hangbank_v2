@@ -3,6 +3,7 @@ import { CreateCorpusDto } from './dto/create-corpus.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Corpus } from './entities/corpus.entity';
 import { Repository } from 'typeorm';
+import { CorpusVisibility } from './entities/corpus-visibility';
 import { CorpusDomainService } from 'src/corpus-domain/corpus-domain.service';
 import { LanguageService } from 'src/language/language.service';
 import { CorpusDomain } from 'src/corpus-domain/entities/corpus-domain.entity';
@@ -19,6 +20,14 @@ export class CorpusService {
     @Inject() private readonly s3StorageService: S3StorageService,
     @Inject() private readonly corpusProcesserService: CorpusProcesserService,
   ) {}
+
+  async findAll(uploaderId: string): Promise<Corpus[]> {
+    return this.corpusRepository.find({
+      where: { uploaderId },
+      relations: ['language', 'domain'],
+      order: { createdAt: 'DESC' },
+    });
+  }
 
   async create(uploader: IJwtPayload, createCorpusDto: CreateCorpusDto, file: Express.Multer.File): Promise<Corpus> {
     const { name, languageCode, visibility, domainName } = createCorpusDto;

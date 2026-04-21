@@ -9,12 +9,13 @@ export interface QualityMeasure {
 
 //The main interface for the audio quality check
 export interface AudioQualityCheckerStrategy {
-  checkQuality(wav: WavDecodeResult): Promise<QualityMeasure>;
+  readonly requiredWavCount: number;
+  checkQuality(wav: WavDecodeResult[]): Promise<QualityMeasure>;
 }
 
 export interface AudioQualityChecker {
     // strategies: AudioQualityCheckerStrategy[];
-    checkAudioQuality(audioFile: Express.Multer.File): Promise<QualityMeasure[]>;
+    checkAudioQuality(audioFiles: Express.Multer.File[]): Promise<QualityMeasure[]>;
 }
 
 export interface WavDecodeResult {

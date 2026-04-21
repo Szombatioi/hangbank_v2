@@ -1,6 +1,8 @@
 import { AudioQualityCheckerStrategy, QualityMeasure, WavDecodeResult } from './audio_quality_checker';
 
 export class VolumeCheck implements AudioQualityCheckerStrategy {
+    readonly requiredWavCount = 1;
+
     // private readonly tooQuietThreshold: number
     private readonly windowMs: number;
     private readonly overlapMs: number;
@@ -22,8 +24,8 @@ export class VolumeCheck implements AudioQualityCheckerStrategy {
         this.silenceTrimThreshold = process.env.VOLUME_CHECK_SILENCE_TRIM_THRESHOLD ? parseFloat(process.env.VOLUME_CHECK_SILENCE_TRIM_THRESHOLD) : -75;
     }
 
-    async checkQuality(wav: WavDecodeResult): Promise<QualityMeasure> {
-
+    async checkQuality(wavs: WavDecodeResult[]): Promise<QualityMeasure> {
+        const wav = wavs[0];
 
         //Window size (in Samples)
         const windowSize = Math.floor(wav.sampleRate * (this.windowMs / 1000));

@@ -2,10 +2,10 @@ import { AudioQualityCheckerStrategy, QualityMeasure, WavDecodeResult } from './
 import { runVad } from './common/vad';
 
 export class NoiseCheck implements AudioQualityCheckerStrategy {
+    readonly requiredWavCount = 1;
 
-
-    async checkQuality(wav: WavDecodeResult): Promise<QualityMeasure> {
-        const segments = await runVad(wav);
+    async checkQuality(wavs: WavDecodeResult[]): Promise<QualityMeasure> {
+        const segments = await runVad(wavs[0]);
         const speechSegs = segments.filter(s => s.isSpeech && s.rmsDb !== undefined);
         const silenceSegs = segments.filter(s => !s.isSpeech && s.rmsDb !== undefined);
 
