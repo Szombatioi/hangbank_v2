@@ -1,4 +1,8 @@
 /audio_processing_codes/
+/audio-quality-checker/node_modules/
+/audio-quality-checker/onnx/pretrained_ecapa/*
+/audio-quality-checker/onnx/ecapa_tdnn.onnx
+/audio-quality-checker/onnx/ecapa_tdnn.onnx.data
 
 ############################## Frontend ############################
 
