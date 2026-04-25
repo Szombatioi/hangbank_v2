@@ -14,6 +14,7 @@ import { UserCorpusAccessModule } from './user-corpus-access/user-corpus-access.
 import { CorpusDomainModule } from './corpus-domain/corpus-domain.module';
 import { S3StorageModule } from './s3-storage/s3-storage.module';
 import { SeederModule } from './seeder/seeder.module';
+import { ProjectModule } from './project/project.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { SeederModule } from './seeder/seeder.module';
     CorpusDomainModule,
     S3StorageModule,
     SeederModule,
+    ProjectModule,
   ],
   controllers: [AppController],
   providers: [AppService],
