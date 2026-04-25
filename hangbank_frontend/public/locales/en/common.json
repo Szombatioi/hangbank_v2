@@ -58,6 +58,7 @@
         "corpus_title_placeholder": "Set a title",
         "corpus_domain_placeholder": "Set a domain (e.g., medical, legal, technical)",
         "submit_button": "Upload Corpus",
+        "domain": "Domain",
         "visibility": {
             "title": "Visibility Settings",
             "private": "Private",
@@ -114,5 +115,11 @@
     "corpus_upload":{
         "success": "Corpus uploaded successfully!",
         "failure": "Failed to upload corpus. Please try again."
+    },
+    "new_project": {
+        "corpus_based_title": "Corpus based",
+        "ai_chat_title": "AI chat",
+        "multi_speaker_conversation_title": "Multi-speaker conversation",
+        "existing_files_title": "Existing files"
     }
 }

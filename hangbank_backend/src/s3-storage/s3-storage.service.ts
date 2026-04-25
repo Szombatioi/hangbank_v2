@@ -87,7 +87,7 @@ export class S3StorageService implements OnModuleInit {
 
     try {
       //Fetching audio object - throws error if not found
-      const stat = await this.minioClient.statObject(bucket, objectName);
+      // const stat = await this.minioClient.statObject(bucket, objectName);
       // console.log(`Metadata for downloaded audio: `);
       // for (const key in stat.metaData) {
       //   console.log(`  ${key}: ${stat.metaData[key]}`);

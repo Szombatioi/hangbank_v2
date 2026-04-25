@@ -1,0 +1,1 @@
+TODO: ez lesz egy db projekt megtekintése

@@ -75,7 +75,7 @@ export default function CorpusUploadPage() {
         const response = await api.get("/language");
         setCorpusLanguage(
           response.data.find((lang: LanguageDto) => lang.code === "en-US") ||
-            null
+          null
         ); //Default to English if available
         setSupportedLanguages(response.data);
       } catch (error) {
@@ -115,22 +115,22 @@ export default function CorpusUploadPage() {
     label: string;
     description: string;
   }[] = [
-    {
-      value: "private",
-      label: t("upload_corpus_page.visibility.private"),
-      description: t("upload_corpus_page.visibility.private_desc"),
-    },
-    {
-      value: "public",
-      label: t("upload_corpus_page.visibility.public"),
-      description: t("upload_corpus_page.visibility.public_desc"),
-    },
-    {
-      value: "protected",
-      label: t("upload_corpus_page.visibility.protected"),
-      description: t("upload_corpus_page.visibility.protected_desc"),
-    },
-  ];
+      {
+        value: "private",
+        label: t("upload_corpus_page.visibility.private"),
+        description: t("upload_corpus_page.visibility.private_desc"),
+      },
+      {
+        value: "public",
+        label: t("upload_corpus_page.visibility.public"),
+        description: t("upload_corpus_page.visibility.public_desc"),
+      },
+      {
+        value: "protected",
+        label: t("upload_corpus_page.visibility.protected"),
+        description: t("upload_corpus_page.visibility.protected_desc"),
+      },
+    ];
 
   //TODO: handle collaborators
   const handleUpload = async () => {
@@ -147,13 +147,13 @@ export default function CorpusUploadPage() {
     formData.append("languageCode", corpusLanguage?.code);
     formData.append("domainName", corpusDomain);
     formData.append("visibility", visibility);
-    try{
-      await api.post("/corpus", formData,{
-        headers: {"Content-Type": "multipart/form-data"}
+    try {
+      await api.post("/corpus", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
       });
       showMessage(t("corpus_upload.success"), Severity.success);
       router.replace("/library");
-    } catch(ex){
+    } catch (ex) {
       //TODO: snackbar
       console.error("Upload failed:", ex);
       showMessage(t("corpus_upload.error"), Severity.error);
@@ -186,9 +186,9 @@ export default function CorpusUploadPage() {
 
           <Paper
             elevation={0}
-            sx={{ backgroundColor: "#f3f4f5", py: 4, px: 4, borderRadius: 4 }}
+            sx={{ backgroundColor: "#f3f4f5", py: 4, px: 4, borderRadius: 4, display: "flex", flexDirection: "column", gap: 2 }}
           >
-            <div style={{ marginBottom: "1.5rem" }}>
+            <div style={{ }}>
               <Typography
                 variant="h6"
                 sx={{ textTransform: "capitalize" }}
@@ -233,6 +233,7 @@ export default function CorpusUploadPage() {
               </Select>
             </div>
 
+            {/* Title */}
             <div>
               <Typography
                 variant="h6"
@@ -249,7 +250,18 @@ export default function CorpusUploadPage() {
                 fullWidth
                 sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px" } }}
               />
+            </div>
 
+            {/* Domain */}
+            <div>
+              <Typography
+                variant="h6"
+                sx={{ textTransform: "capitalize" }}
+                gutterBottom
+                color="primary"
+              >
+                {t("upload_corpus_page.domain")}
+              </Typography>
               {/* TODO: replace with auto search for existing domain names */}
               <TextField
                 value={corpusDomain}

@@ -48,6 +48,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }catch(error){
         setUser(null);
+
+        //redirect to login page
+        if(!pathname.includes("/auth")){
+          router.replace("/auth/login");
+        }
       } finally{
         setLoading(false);
       }

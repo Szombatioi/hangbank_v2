@@ -36,7 +36,8 @@ const LIGHT = {
   appBar: "#f8f9fa",
   appBarText: "#060a17",
   primaryText: "#1a1c1d",
-  secondaryText: "#4c607c"
+  secondaryText: "#4c607c",
+  buttonPrimary: "#ed4a14",
 };
 
 const DARK = {
@@ -53,7 +54,8 @@ const DARK = {
   appBar: "#1e2021",
   appBarText: "#F0F1F2",
   primaryText: "#e2e3e4",
-  secondaryText: "#939499"
+  secondaryText: "#939499",
+  buttonPrimary: "#ed4a14",
 };
 
 // Shared component overrides that don't depend on mode
@@ -134,6 +136,7 @@ export function createAppTheme(mode: PaletteMode) {
       divider: isDark
         ? "rgba(68, 71, 76, 0.4)"      // outlineVariant dark at 40%
         : "rgba(196, 198, 204, 0.15)", // outlineVariant light at 15% (Ghost Border rule)
+      
     },
 
     typography: sharedTypography,
