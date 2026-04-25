@@ -120,6 +120,31 @@
         "corpus_based_title": "Corpus based",
         "ai_chat_title": "AI chat",
         "multi_speaker_conversation_title": "Multi-speaker conversation",
-        "existing_files_title": "Existing files"
+        "existing_files_title": "Existing files",
+        "corpus_based": {
+            "title": "New Corpus-Based Project",
+            "subtitle": "Configure your project and bind it to an existing corpus from your library.",
+            "section_details": "Project Details",
+            "label_name": "Project Name",
+            "placeholder_name": "e.g. Hungarian TTS Dataset",
+            "label_description": "Description",
+            "placeholder_description": "Describe the purpose of this project...",
+            "label_sampling_rate": "Sampling Rate",
+            "placeholder_sampling_rate": "Select a sampling rate",
+            "section_corpus": "Corpus",
+            "corpus_hint": "No corpus selected yet. Browse your library to attach one.",
+            "browse_corpus": "Browse Corpora",
+            "change_corpus": "Change Corpus",
+            "dialog_title": "Select a Corpus",
+            "dialog_select": "Select",
+            "dialog_selected": "Selected",
+            "dialog_preview": "Preview",
+            "no_corpora": "No corpora available in your library.",
+            "upload_corpus_link": "Upload a corpus →",
+            "create_button": "Create Project",
+            "success": "Project created successfully!",
+            "error_create": "Failed to create project. Please try again.",
+            "error_load_corpora": "Could not load corpora."
+        }
     }
 }
