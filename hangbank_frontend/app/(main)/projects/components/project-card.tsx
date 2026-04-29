@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import GetColorFromProgress, { ProjectProgress } from "@/app/components/helpers/get-color-from-progress";
 import { ProjectDto } from "@/app/components/types/project.dto";
 import { formatUpdatedAt } from "@/app/components/helpers/format-update-date";
+import { MenuBook } from "@mui/icons-material";
 
 const LABEL = "'Manrope', sans-serif";
 const HEADLINE = "'Space Grotesk', sans-serif";
@@ -16,11 +17,10 @@ const BODY = "'Inter', sans-serif";
 
 export interface ProjectCardProps {
     project?: ProjectDto;
-    progress?: ProjectProgress;
     featured?: boolean;
 }
 
-export default function ProjectCard({ project, progress = ProjectProgress.IN_PROGRESS, featured = false }: ProjectCardProps) {
+export default function ProjectCard({ project, featured = false }: ProjectCardProps) {
     const { t } = useTranslation("common");
 
     const type = project?.type ?? ProjectType.CORPUS;
@@ -30,7 +30,11 @@ export default function ProjectCard({ project, progress = ProjectProgress.IN_PRO
     const corpusName = project?.corpusName ?? "Test Corpus";
     const language = project?.language ?? "en-US";
     const speakerCount = project?.speakerCount ?? 1;
-    const updatedAt = formatUpdatedAt(project?.updatedAt ?? project?.createdAt ?? new Date().toString());
+    const updatedAt = formatUpdatedAt(project?.updatedAt ?? project?.createdAt);
+
+    const progress = corpusProgress > 0 ?
+        corpusProgress === 100 ? ProjectProgress.FINISHED : ProjectProgress.IN_PROGRESS :
+        ProjectProgress.NEW;
 
     const colors = GetColorFromProgress(progress);
 
@@ -91,7 +95,7 @@ export default function ProjectCard({ project, progress = ProjectProgress.IN_PRO
             </Box>
 
             <Box sx={{ display: "flex", justifyContent: "space-between", flex: 1 }}>
-                <Box sx={{display: "flex", flexDirection: "column", justifyContent: "space-evenly"}}>
+                <Box sx={{ display: "flex", flexDirection: "column", justifyContent: "space-evenly" }}>
                     {/* Name */}
                     <Typography
                         sx={{
@@ -149,27 +153,30 @@ export default function ProjectCard({ project, progress = ProjectProgress.IN_PRO
 
                     {/* Corpus name badge */}
                     {corpusName && (
-                        <Typography
-                            sx={{
-                                fontFamily: LABEL,
-                                fontSize: "0.7rem",
-                                fontWeight: 600,
-                                color: featured ? "#475569" : "#94a3b8",
-                                textTransform: "uppercase",
-                                letterSpacing: "0.1em",
-                            }}
-                        >
-                            {corpusName}
-                        </Typography>
+                        <Box sx={{ mt: 0.5, display: "flex", justifyContent: "start", alignItems: "center", gap: 1 }}>
+                            <MenuBook sx={{ fontSize: "0.9rem", color: featured ? "#475569" : "#94a3b8" }} />
+                            <Typography
+                                sx={{
+                                    fontFamily: LABEL,
+                                    fontSize: "0.7rem",
+                                    fontWeight: 600,
+                                    color: featured ? "#475569" : "#94a3b8",
+                                    textTransform: "uppercase",
+                                    letterSpacing: "0.1em",
+                                }}
+                            >
+                                {corpusName}
+                            </Typography>
+                        </Box>
                     )}
                 </Box>
-                <div>
+                <Box sx={{ display: "flex", flexShrink: 0, alignItems: "end" }}>
                     {updatedAt && (
-                        <Typography sx={{ fontFamily: LABEL, fontSize: "0.65rem", fontWeight: 600, color: featured ? "#475569" : "#94a3b8", textAlign: "right", mb: 0.5 }}>
+                        <Typography sx={{fontFamily: LABEL, fontSize: "0.65rem", fontWeight: 600, color: featured ? "#475569" : "#94a3b8", textAlign: "right", mb: 0.5 }}>
                             {updatedAt}
                         </Typography>
                     )}
-                </div>
+                </Box>
             </Box>
 
             {/* Progress bar */}

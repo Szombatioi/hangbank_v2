@@ -1,8 +1,12 @@
 "use client";
-import { Box, Button, Grid, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, Grid, Typography } from "@mui/material";
 import { usePathname, useRouter } from "next/navigation";
 import ProjectCard from "./components/project-card";
 import { useTranslation } from "react-i18next";
+import { useEffect, useState } from "react";
+import { ProjectDto } from "@/app/components/types/project.dto";
+import { motion } from "framer-motion";
+import { ProjectType } from "./new/components/project-type-selector";
 
 const CARD_HEIGHT = 220;
 const FEATURED_HEIGHT = 220;
@@ -10,7 +14,45 @@ const FEATURED_HEIGHT = 220;
 export default function ProjectsOverviewPage() {
     const router = useRouter();
     const pathname = usePathname();
-    const {t} = useTranslation("common");
+    const { t } = useTranslation("common");
+
+    const [projects, setProjects] = useState<ProjectDto[] | null>(null);
+
+    useEffect(() => {
+        async function getActiveProjects() {
+            //TODO: fetch from db, mock for now
+            setProjects([
+                {
+                    id: "1",
+                    name: "Test project name",
+                    description: "Test project description",
+                    samplingRate: 48000,
+                    createdAt: "2026-01-01 00:00:00",
+                    updatedAt: "2026-01-01 00:00:00",
+                    type: ProjectType.CORPUS,
+                    corpusProgress: 24,
+                    corpusName: "Corpus name",
+                    language: "en-US",
+                    speakerCount: 1
+                },
+                {
+                    id: "2",
+                    name: "Tüskevár felolvasás",
+                    description: "Mesekönyvek generálásához felolvasom Fekete István Tüskevár c. művét",
+                    samplingRate: 48000,
+                    createdAt: "2025-04-01 12:00:00",
+                    updatedAt: "2025-07-01 12:00:00",
+                    type: ProjectType.CORPUS,
+                    corpusProgress: 0,
+                    corpusName: "Fekete István - Tüskevár",
+                    language: "hu-HU",
+                    speakerCount: 1
+                },
+            ]);
+        }
+
+        getActiveProjects();
+    }, []);
 
     return (
         <Box sx={{ p: { xs: 3, md: 5 }, maxWidth: 1400, mx: "auto" }}>
@@ -43,38 +85,36 @@ export default function ProjectsOverviewPage() {
 
             {/* TODO: add statistics from design image (e.g. total hours recorded) */}
 
-            {/* Grid */}
-            <Grid container spacing={2}>
-
-                {/* Row 1 — three equal cards */}
-                <Grid size={{ xs: 12, sm: 4 }}>
-                    <ProjectCard />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 4 }}>
-                    <ProjectCard />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 4 }}>
-                    <ProjectCard />
-                </Grid>
-
-                {/* Row 2 — small card + wide featured card */}
-                <Grid size={{ xs: 12, sm: 4 }}>
-                    <ProjectCard />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 4 }}>
-                    <ProjectCard />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 4 }}>
-                    <ProjectCard />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 4 }}>
-                    <ProjectCard />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 4 }}>
-                    <ProjectCard />
-                </Grid>
-
-            </Grid>
+            {!projects ?
+                (
+                    <>
+                        <Box sx={{ display: "flex", justifyContent: "center" }}>
+                            <CircularProgress />
+                        </Box>
+                    </>
+                ) :
+                (
+                    <>
+                        {/* Grid */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 100 }} // Start below
+                            animate={{ opacity: 1, y: 0 }} // Swim upward
+                            transition={{ duration: 0.8, ease: "easeOut" }}
+                            className="flex flex-col items-center justify-center h-screen w-screen"
+                            style={{
+                                width: "100%",
+                            }}
+                        >
+                            <Grid container spacing={2}>
+                                {projects.map((p) => (
+                                    <Grid key={p.id} size={{ xs: 12, sm: 4 }}>
+                                        <ProjectCard project={p} />
+                                    </Grid>
+                                ))}
+                            </Grid>
+                        </motion.div>
+                    </>
+                )}
         </Box>
     );
 }

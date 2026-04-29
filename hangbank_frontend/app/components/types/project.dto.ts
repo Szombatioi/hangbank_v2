@@ -10,6 +10,6 @@ export interface ProjectDto {
   type: ProjectType;
   corpusProgress?: number; // 0–100
   corpusName?: string;
-  language?: string;       // display name, e.g. "English (US)"
+  language?: string;       // translatable name, e.g. "en-US"
   speakerCount?: number;
 }
