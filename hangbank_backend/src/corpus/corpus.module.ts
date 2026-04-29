@@ -19,5 +19,6 @@ import { S3StorageModule } from 'src/s3-storage/s3-storage.module';
   ],
   controllers: [CorpusController],
   providers: [CorpusService, CorpusProcesserService],
+  exports: [CorpusService],
 })
 export class CorpusModule {}

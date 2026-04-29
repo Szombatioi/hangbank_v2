@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
+import { isAxiosError } from 'axios';
 
 @Injectable()
 export class AuthService {
@@ -37,9 +38,16 @@ export class AuthService {
   }
 
   async getProfile(userId: string) {
-    const { data } = await firstValueFrom(
-      this.httpService.get(`${this.authUrl}/profile/${userId}`),
-    );
-    return data;
+    try {
+      const { data } = await firstValueFrom(
+        this.httpService.get(`${this.authUrl}/profile/${userId}`),
+      );
+      return data;
+    } catch (err) {
+      if (isAxiosError(err) && err.response?.status === 404) {
+        throw new NotFoundException(`User ${userId} not found`);
+      }
+      throw err;
+    }
   }
 }

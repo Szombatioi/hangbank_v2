@@ -105,16 +105,22 @@ export default function CorpusBasedSettings() {
     if (hasErrors) return;
     setSubmitting(true);
     try {
-      await api.post("/project", {
-        name: name.trim(),
-        description: description.trim(),
-        samplingRate: samplingRate || undefined,
+      const res = await api.post("/project", {
+        projectName: name.trim(),
+        description: description.trim() || undefined,
+        samplingRate: samplingRate as number,
+        recordingEnvironment: recordingEnvorinment?.trim() || undefined,
         corpusId: selectedCorpusId,
-        speechDescription: speechDescription.trim() || undefined,
-        type: "corpus",
+        speaker: {
+          speechCharacteristics: speechDescription.trim() || undefined,
+        },
+        microphoneDeviceId: selectedMic?.deviceId,
       });
       showMessage(t("new_project.corpus_based.success"), Severity.success);
-      router.push("/archive");
+      
+      //TODO: redirect to the new project!
+      console.log(res.data.id);
+      router.push("/projects");
     } catch {
       showMessage(t("new_project.corpus_based.error_create"), Severity.error);
     } finally {

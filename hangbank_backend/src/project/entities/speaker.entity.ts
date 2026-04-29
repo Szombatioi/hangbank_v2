@@ -1,7 +1,6 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Gender } from './gender.enum';
-import { Microphone } from './microphone.entity';
-import { Project } from './project.entity';
+import { CorpusBasedProject } from './corpus-based-project.entity';
 
 @Entity()
 export class Speaker {
@@ -20,9 +19,9 @@ export class Speaker {
   @Column({ type: 'enum', enum: Gender })
   gender!: Gender;
 
-  @ManyToOne(() => Microphone, { nullable: true, eager: true })
-  microphone?: Microphone;
+  @Column({ nullable: true })
+  microphoneDeviceId?: string; // device ID string, e.g. "default", "communications"
 
-  @ManyToOne(() => Project, (p) => p.speakers, { onDelete: 'CASCADE' })
-  project!: Project;
+  @ManyToOne(() => CorpusBasedProject, (p) => p.speakers, { onDelete: 'CASCADE' })
+  project!: CorpusBasedProject;
 }

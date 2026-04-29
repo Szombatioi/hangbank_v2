@@ -21,6 +21,17 @@ export class CorpusService {
     @Inject() private readonly corpusProcesserService: CorpusProcesserService,
   ) {}
 
+  async findOne(id: string): Promise<Corpus> {
+    const corpus = await this.corpusRepository.findOne({
+      where: { id },
+      relations: ['language', 'domain'],
+    });
+    if (!corpus) {
+      throw new NotFoundException(`Corpus with id '${id}' not found`);
+    }
+    return corpus;
+  }
+
   async findAll(uploaderId: string): Promise<Corpus[]> {
     return this.corpusRepository.find({
       where: { uploaderId },

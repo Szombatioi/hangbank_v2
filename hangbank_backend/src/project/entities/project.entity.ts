@@ -1,7 +1,6 @@
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, TableInheritance } from 'typeorm';
 import { AudioFile } from './audio-file.entity';
 import { ProjectRole } from './project-role.entity';
-import { Speaker } from './speaker.entity';
 
 @Entity()
 @TableInheritance({ column: { type: "varchar", name: "type" } })
@@ -21,12 +20,9 @@ export class Project {
   @CreateDateColumn()
   createdAt!: Date;
 
-  @OneToMany(() => Speaker, (s) => s.project)
-  speakers!: Speaker[];
-
   @OneToMany(() => AudioFile, (a) => a.project)
   audioFiles!: AudioFile[];
 
   @OneToMany(() => ProjectRole, (r) => r.project)
-  roles!: ProjectRole[];
+  roles!: ProjectRole[]; //No default value, because on creation we MUST declare its owner
 }
