@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, TableInheritance } from 'typeorm';
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, TableInheritance, UpdateDateColumn } from 'typeorm';
 import { AudioFile } from './audio-file.entity';
 import { ProjectRole } from './project-role.entity';
 
@@ -19,6 +19,9 @@ export class Project {
 
   @CreateDateColumn()
   createdAt!: Date;
+
+  @UpdateDateColumn()
+  updatedAt!: Date;
 
   @OneToMany(() => AudioFile, (a) => a.project)
   audioFiles!: AudioFile[];

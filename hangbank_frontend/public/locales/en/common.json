@@ -50,6 +50,7 @@
     "nav_settings": "Settings",
     "nav_support": "Support",
     "button_new_recording": "New Recording",
+    "button_new_project": "New Project",
     "upload_corpus_page": {
         "title": "Upload Corpus",
         "description": "Expand the archive with your corpora. Upload text-based sources to calibrate the engine for specific terminologies and dialects.",
@@ -171,5 +172,19 @@
         "unknown_device": "Unknown Microphone",
         "default_label": "Microphone"
     },
-    "you": "You"
+    "you": "You",
+    "progress": {
+        "new": "New",
+        "in_progress": "In progress",
+        "finished": "Finished"
+    },
+    "project_card": {
+        "corpus_progress": "Corpus Progress",
+        "speaker": "Speaker",
+        "speakers": "Speakers"
+    },
+    "projects": {
+        "active_projects": "Active projects",
+        "subtitle": "Ongoing Collections & Datasets"
+    }
 }
