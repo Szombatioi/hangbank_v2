@@ -7,9 +7,11 @@ import api, { getAuthToken, validate } from "../axios";
 export interface User {
     id: string;
     email: string;
-    firstName: string;
-    lastName: string;
-    profilePictureUrl: string;
+    firstName?: string;
+    lastName?: string;
+    profilePictureUrl?: string;
+    gender?: string | null;
+    birthDate?: string | null; // ISO date string, e.g. "1990-05-20"
     roles: Role[];
 }
 

@@ -9,6 +9,8 @@
     "sign_in": "Sign In",
     "register_subtitle": "TTS Trainer Dataset Creator",
     "brand_name": "HANGBANK",
+    "recommended": "recommended",
+    "sampling_rate_explanation": "A higher sample rate collects higher quality data about the recording, and if needed, it can be scaled down to a lower value when exporting.",
     "register_title": "Registration",
     "label_identity": "Identity Visualization",
     "button_upload_image": "Upload Image",
@@ -144,7 +146,31 @@
             "create_button": "Create Project",
             "success": "Project created successfully!",
             "error_create": "Failed to create project. Please try again.",
-            "error_load_corpora": "Could not load corpora."
+            "error_load_corpora": "Could not load corpora.",
+            "label_microphone": "Recording microphone",
+            "recording_environment": "Recording environment",
+            "recording_environment_placeholder": "Describe the recording environment (e.g. in a studio, at home with minor background noise etc.)",
+            "error_name_required": "Project name is required.",
+            "error_sampling_rate_required": "Please select a sampling rate.",
+            "error_microphone_required": "Please select a microphone.",
+            "error_corpus_required": "Please select a corpus.",
+            "section_speaker": "Speaker Info",
+            "label_age": "Age",
+            "label_speaker_name": "Name",
+            "label_gender": "Gender",
+            "label_speech_description": "Speech Characteristics",
+            "placeholder_speech_description": "Describe your dialect, accent, or any speech characteristics (e.g. regional accent, stutter, lisp) ..."
         }
-    }
+    },
+    "gender": {
+        "male": "Male",
+        "female": "Female",
+        "other": "Other"
+    },
+    "microphone_select": {
+        "placeholder": "Select a microphone",
+        "unknown_device": "Unknown Microphone",
+        "default_label": "Microphone"
+    },
+    "you": "You"
 }

@@ -38,7 +38,7 @@ const HEADLINE_FONT = "'Space Grotesk', sans-serif";
 const NAV_ITEMS = [
   { key: "nav_dashboard", icon: <GridView />, path: "/" },
   { key: "nav_library", icon: <ReceiptLong />, path: "/library" },
-  { key: "nav_recorders", icon: <Mic />, path: "/record" },
+  { key: "nav_projects", icon: <Mic />, path: "/projects" },
   { key: "nav_archive", icon: <History />, path: "/archive" },
 ];
 

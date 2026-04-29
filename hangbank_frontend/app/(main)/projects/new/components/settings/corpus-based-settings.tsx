@@ -8,6 +8,7 @@ import {
   DialogContent,
   DialogTitle,
   Divider,
+  FormHelperText,
   IconButton,
   MenuItem,
   Paper,
@@ -18,8 +19,6 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import AlbumIcon from "@mui/icons-material/Album";
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import LibraryMusicOutlinedIcon from "@mui/icons-material/LibraryMusicOutlined";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -27,260 +26,35 @@ import api from "@/app/axios";
 import { CorpusDto } from "@/app/components/types/corpus.dto";
 import { useRouter } from "next/navigation";
 import { useSnackbar, Severity } from "@/app/contexts/SnackbarProvider";
+import { getMicrophones, MicrophoneDetail } from "@/app/components/helpers/get-mics";
+import { CorpusRow } from "./components/corpus-row";
+import { CorpusPickerDialog } from "./components/corpus-picker-dialog";
+import { useAuth } from "@/app/contexts/auth-context";
+import { computeAge } from "@/app/components/helpers/compute-age";
 
-const HEADLINE = "'Space Grotesk', sans-serif";
-const LABEL = "'Manrope', sans-serif";
-const BODY = "'Inter', sans-serif";
+export const HEADLINE = "'Space Grotesk', sans-serif";
+export const LABEL = "'Manrope', sans-serif";
+export const BODY = "'Inter', sans-serif";
 
-const SAMPLING_RATES: { value: number; label: string }[] = [
-  { value: 8000,  label: "8,000 Hz" },
-  { value: 16000, label: "16,000 Hz" },
-  { value: 24000, label: "24,000 Hz" },
-  { value: 32000, label: "32,000 Hz" },
-  { value: 44100, label: "44,100 Hz" },
-  { value: 48000, label: "48,000 Hz" },
+const SAMPLING_RATES: { value: number; label: string, recommended: boolean }[] = [
+  { value: 8000, label: "8,000 Hz", recommended: false },
+  { value: 16000, label: "16,000 Hz", recommended: false },
+  { value: 24000, label: "24,000 Hz", recommended: false },
+  { value: 32000, label: "32,000 Hz", recommended: false },
+  { value: 44100, label: "44,100 Hz", recommended: false },
+  { value: 48000, label: "48,000 Hz", recommended: true },
 ];
-
-// ── Corpus dialog row ─────────────────────────────────────────────────────────
-
-function CorpusRow({
-  corpus,
-  selected,
-  onSelect,
-  onPreview,
-  t,
-}: {
-  corpus: CorpusDto;
-  selected: boolean;
-  onSelect: () => void;
-  onPreview: () => void;
-  t: (k: string) => string;
-}) {
-  return (
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        gap: 2,
-        px: 2,
-        py: 1.75,
-        borderRadius: 3,
-        border: "1.5px solid",
-        borderColor: selected ? "#191c1d" : "transparent",
-        bgcolor: selected ? "#f0f0f0" : "transparent",
-        transition: "all 0.15s",
-        "&:hover": { bgcolor: selected ? "#f0f0f0" : "#f4f4f5" },
-      }}
-    >
-      {/* Icon */}
-      <Box
-        sx={{
-          width: 40,
-          height: 40,
-          borderRadius: 2,
-          bgcolor: selected ? "#191c1d" : "#e7e8e9",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-          transition: "background-color 0.15s",
-        }}
-      >
-        <AlbumIcon sx={{ fontSize: "1.2rem", color: selected ? "#fff" : "#94a3b8" }} />
-      </Box>
-
-      {/* Info */}
-      <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography
-          sx={{
-            fontFamily: LABEL,
-            fontWeight: 700,
-            fontSize: "0.875rem",
-            color: "#0f172a",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {corpus.name}
-        </Typography>
-        <Typography sx={{ fontFamily: BODY, fontSize: "0.75rem", color: "#64748b" }}>
-          {t(`language.${corpus.language.name}`)}
-          {corpus.domain ? ` · ${corpus.domain.name}` : ""}
-        </Typography>
-      </Box>
-
-      {/* Actions */}
-      <Box sx={{ display: "flex", gap: 1, flexShrink: 0 }}>
-        <Button
-          size="small"
-          variant="text"
-          startIcon={<OpenInNewIcon sx={{ fontSize: "0.875rem !important" }} />}
-          onClick={(e) => { e.stopPropagation(); onPreview(); }}
-          sx={{
-            fontFamily: LABEL,
-            fontWeight: 600,
-            fontSize: "0.75rem",
-            textTransform: "none",
-            color: "#64748b",
-            "&:hover": { color: "#0f172a", bgcolor: "transparent" },
-          }}
-        >
-          {t("new_project.corpus_based.dialog_preview")}
-        </Button>
-
-        <Button
-          size="small"
-          variant={selected ? "contained" : "outlined"}
-          startIcon={selected ? <CheckCircleOutlineIcon sx={{ fontSize: "0.875rem !important" }} /> : undefined}
-          onClick={(e) => { e.stopPropagation(); onSelect(); }}
-          sx={
-            selected
-              ? {
-                  fontFamily: LABEL,
-                  fontWeight: 700,
-                  fontSize: "0.75rem",
-                  textTransform: "none",
-                  bgcolor: "#191c1d",
-                  color: "#fff",
-                  borderRadius: 2,
-                  "&:hover": { bgcolor: "#0f172a" },
-                }
-              : {
-                  fontFamily: LABEL,
-                  fontWeight: 700,
-                  fontSize: "0.75rem",
-                  textTransform: "none",
-                  borderColor: "#cbd5e1",
-                  color: "#334155",
-                  borderRadius: 2,
-                  "&:hover": { borderColor: "#191c1d", color: "#191c1d", bgcolor: "transparent" },
-                }
-          }
-        >
-          {selected
-            ? t("new_project.corpus_based.dialog_selected")
-            : t("new_project.corpus_based.dialog_select")}
-        </Button>
-      </Box>
-    </Box>
-  );
-}
-
-// ── Corpus picker dialog ──────────────────────────────────────────────────────
-
-function CorpusPickerDialog({
-  open,
-  corpora,
-  loading,
-  selectedCorpusId,
-  onSelect,
-  onClose,
-  onUpload,
-  t,
-  router,
-}: {
-  open: boolean;
-  corpora: CorpusDto[];
-  loading: boolean;
-  selectedCorpusId: string | null;
-  onSelect: (id: string) => void;
-  onClose: () => void;
-  onUpload: () => void;
-  t: (k: string) => string;
-  router: ReturnType<typeof useRouter>;
-}) {
-  return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      fullWidth
-      maxWidth="sm"
-      PaperProps={{ sx: { borderRadius: 4, overflow: "hidden" } }}
-    >
-      <DialogTitle
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          py: 2.5,
-          px: 3,
-          fontFamily: HEADLINE,
-          fontWeight: 700,
-          fontSize: "1.125rem",
-          color: "#0f172a",
-        }}
-      >
-        {t("new_project.corpus_based.dialog_title")}
-        <IconButton onClick={onClose} size="small" sx={{ color: "#94a3b8" }}>
-          <CloseIcon fontSize="small" />
-        </IconButton>
-      </DialogTitle>
-
-      <Divider />
-
-      <DialogContent sx={{ px: 3, py: 2.5 }}>
-        {loading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-            <CircularProgress size={28} />
-          </Box>
-        ) : corpora.length === 0 ? (
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 1.5,
-              py: 6,
-              border: "2px dashed #e2e8f0",
-              borderRadius: 3,
-            }}
-          >
-            <AlbumIcon sx={{ fontSize: "2.5rem", color: "#cbd5e1" }} />
-            <Typography sx={{ fontFamily: BODY, fontSize: "0.875rem", color: "#94a3b8" }}>
-              {t("new_project.corpus_based.no_corpora")}
-            </Typography>
-            <Button
-              size="small"
-              variant="text"
-              onClick={onUpload}
-              sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.75rem", textTransform: "none", color: "#191c1d" }}
-            >
-              {t("new_project.corpus_based.upload_corpus_link")}
-            </Button>
-          </Box>
-        ) : (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-            {corpora.map((corpus) => (
-              <CorpusRow
-                key={corpus.id}
-                corpus={corpus}
-                selected={selectedCorpusId === corpus.id}
-                onSelect={() => {
-                  onSelect(corpus.id);
-                  onClose();
-                }}
-                onPreview={() => router.push(`/library/${corpus.id}`)}
-                t={t}
-              />
-            ))}
-          </Box>
-        )}
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-// ── Main component ────────────────────────────────────────────────────────────
 
 export default function CorpusBasedSettings() {
   const { t } = useTranslation("common");
   const { showMessage } = useSnackbar();
   const router = useRouter();
+  const { user } = useAuth();
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [samplingRate, setSamplingRate] = useState<number | "">("");
+  const [speechDescription, setSpeechDescription] = useState("");
 
   const [corpora, setCorpora] = useState<CorpusDto[]>([]);
   const [corporaLoading, setCorporaLoading] = useState(true);
@@ -288,8 +62,35 @@ export default function CorpusBasedSettings() {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   const selectedCorpus = corpora.find((c) => c.id === selectedCorpusId) ?? null;
+
+  const [availableMics, setAvailableMics] = useState<MediaDeviceInfo[] | null>(null);
+  const [selectedMic, setSelectedMic] = useState<MediaDeviceInfo | null>(null);
+
+  const [recordingEnvorinment, setRecordingEnvironment] = useState<string | null>(null);
+
+  const errors = {
+    name: !name.trim(),
+    samplingRate: samplingRate === "",
+    microphone: !selectedMic,
+    corpus: !selectedCorpusId,
+  };
+  const hasErrors = Object.values(errors).some(Boolean);
+
+  useEffect(() => {
+    async function getMics() {
+      const mics = await getMicrophones();
+      setAvailableMics(mics); // console.log(availableMics);
+
+      if (mics.length > 0 && !selectedMic) {
+        setSelectedMic(mics[0]);
+      }
+    }
+
+    getMics();
+  }, []);
 
   useEffect(() => {
     api
@@ -300,7 +101,8 @@ export default function CorpusBasedSettings() {
   }, []);
 
   const handleCreate = async () => {
-    if (!name.trim() || !selectedCorpusId) return;
+    setSubmitted(true);
+    if (hasErrors) return;
     setSubmitting(true);
     try {
       await api.post("/project", {
@@ -308,6 +110,7 @@ export default function CorpusBasedSettings() {
         description: description.trim(),
         samplingRate: samplingRate || undefined,
         corpusId: selectedCorpusId,
+        speechDescription: speechDescription.trim() || undefined,
         type: "corpus",
       });
       showMessage(t("new_project.corpus_based.success"), Severity.success);
@@ -380,6 +183,8 @@ export default function CorpusBasedSettings() {
             onChange={(e) => setName(e.target.value)}
             placeholder={t("new_project.corpus_based.placeholder_name")}
             fullWidth
+            error={submitted && errors.name}
+            helperText={submitted && errors.name ? t("new_project.corpus_based.error_name_required") : undefined}
             sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px", bgcolor: "#fff" } }}
           />
         </Box>
@@ -395,7 +200,7 @@ export default function CorpusBasedSettings() {
             placeholder={t("new_project.corpus_based.placeholder_description")}
             fullWidth
             multiline
-            minRows={3}
+            rows={3}
             sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px", bgcolor: "#fff" } }}
           />
         </Box>
@@ -412,28 +217,202 @@ export default function CorpusBasedSettings() {
             }
             fullWidth
             displayEmpty
+            error={submitted && errors.samplingRate}
             sx={{ borderRadius: "8px", bgcolor: "#fff" }}
             renderValue={(val) =>
               val === ""
                 ? <em style={{ color: "#aaa", fontStyle: "normal" }}>
-                    {t("new_project.corpus_based.placeholder_sampling_rate")}
-                  </em>
+                  {t("new_project.corpus_based.placeholder_sampling_rate")}
+                </em>
                 : SAMPLING_RATES.find((r) => r.value === val)?.label ?? String(val)
             }
           >
             {SAMPLING_RATES.map((rate) => (
               <MenuItem key={rate.value} value={rate.value}>
-                {rate.label}
+                {rate.label}{rate.recommended && ` (${t("recommended")})`}
               </MenuItem>
             ))}
           </Select>
+          {submitted && errors.samplingRate
+            ? <FormHelperText error sx={{ mx: "14px" }}>{t("new_project.corpus_based.error_sampling_rate_required")}</FormHelperText>
+            : <Typography sx={{ mt: 1, ml: 1 }} variant="subtitle2" color="#47607e">{t("sampling_rate_explanation")}</Typography>
+          }
+        </Box>
+
+        {/* Mics */}
+        <Box>
+          <Typography variant="h6" sx={{ fontFamily: LABEL, textTransform: "capitalize", mb: 0.75 }} color="primary">
+            {t("new_project.corpus_based.label_microphone")}
+          </Typography>
+          <Select
+            value={selectedMic?.deviceId || ""}
+            onChange={(e: SelectChangeEvent<string>) => {
+              const mic = availableMics?.find((m) => m.deviceId === e.target.value);
+              if (mic) setSelectedMic(mic);
+            }}
+            fullWidth
+            displayEmpty
+            error={submitted && errors.microphone}
+            sx={{ borderRadius: "8px", bgcolor: "#fff" }}
+            renderValue={(selectedId) => {
+              if (!selectedId) {
+                return (
+                  <em style={{ color: "#aaa", fontStyle: "normal" }}>
+                    {t("microphone_select.placeholder")}
+                  </em>
+                );
+              }
+              const mic = availableMics?.find((m) => m.deviceId === selectedId);
+              return mic?.label || t("microphone_select.unknown_device");
+            }}
+          >
+            {/* Disabled placeholder option */}
+            <MenuItem disabled value="">
+              <em>{t("microphone_select.placeholder")}</em>
+            </MenuItem>
+
+            {/* Mic List */}
+            {availableMics?.map((mic) => (
+              <MenuItem key={mic.deviceId} value={mic.deviceId}>
+                {mic.label || `${t("microphone_select.default_label")} ${mic.deviceId.substring(0, 5)}`}
+              </MenuItem>
+            ))}
+          </Select>
+          {submitted && errors.microphone && (
+            <FormHelperText error sx={{ mx: "14px" }}>{t("new_project.corpus_based.error_microphone_required")}</FormHelperText>
+          )}
+        </Box>
+
+        {/* Recording environment */}
+        <Box>
+          <Typography variant="h6" sx={{ fontFamily: LABEL, textTransform: "capitalize", mb: 0.75 }} color="primary">
+            {t("new_project.corpus_based.recording_environment")}
+          </Typography>
+          <TextField
+            value={recordingEnvorinment ?? ""}
+            onChange={(e) => setRecordingEnvironment(e.target.value)}
+            multiline
+            rows={3}
+            placeholder={t("new_project.corpus_based.recording_environment_placeholder")}
+            fullWidth
+            sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px", bgcolor: "#fff" } }}
+          />
+        </Box>
+
+      </Paper>
+
+      {/* Speaker info */}
+      <Paper
+        elevation={0}
+        sx={{
+          bgcolor: "#f3f4f5",
+          borderRadius: 4,
+          py: 4,
+          px: 4,
+          mb: 3,
+          display: "flex",
+          flexDirection: "column",
+          gap: 2.5,
+        }}
+      >
+        <Typography
+          variant="overline"
+          sx={{ fontFamily: LABEL, fontWeight: 700, letterSpacing: "0.12em", color: "text.secondary" }}
+        >
+          {t("new_project.corpus_based.section_speaker")}
+        </Typography>
+
+        <Box sx={{
+          flex: "1 1",
+          bgcolor: "#fff",
+          borderRadius: 3,
+          px: 2.5,
+          py: 2,
+        }}>
+          <Typography
+            sx={{ fontFamily: LABEL, fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "#94a3b8", mb: 0.5 }}
+          >
+            {t("new_project.corpus_based.label_speaker_name")}
+          </Typography>
+          <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "1.25rem", color: "#0f172a" }}>
+            {user ? `${user.firstName} ${user.lastName} (${t("you")})` : "—"}
+          </Typography>
+        </Box>
+
+        {/* Identity row */}
+        <Box sx={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
+          {/* Age */}
+          <Box
+            sx={{
+              flex: "1 1 120px",
+              bgcolor: "#fff",
+              borderRadius: 3,
+              px: 2.5,
+              py: 2,
+            }}
+          >
+            <Typography
+              sx={{ fontFamily: LABEL, fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "#94a3b8", mb: 0.5 }}
+            >
+              {t("new_project.corpus_based.label_age")}
+            </Typography>
+            <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "1.25rem", color: "#0f172a" }}>
+              {user?.birthDate ? computeAge(user.birthDate) : "—"}
+            </Typography>
+          </Box>
+
+          {/* Gender */}
+          <Box
+            sx={{
+              flex: "1 1 120px",
+              bgcolor: "#fff",
+              borderRadius: 3,
+              px: 2.5,
+              py: 2,
+            }}
+          >
+            <Typography
+              sx={{ fontFamily: LABEL, fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "#94a3b8", mb: 0.5 }}
+            >
+              {t("new_project.corpus_based.label_gender")}
+            </Typography>
+            <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "1.25rem", color: "#0f172a", textTransform: "capitalize" }}>
+              {user?.gender
+                ? t(`gender.${user.gender.toLowerCase()}`)
+                : "—"}
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* Speech description */}
+        <Box>
+          <Typography variant="h6" sx={{ fontFamily: LABEL, textTransform: "capitalize", mb: 0.75 }} color="primary">
+            {t("new_project.corpus_based.label_speech_description")}
+          </Typography>
+          <TextField
+            value={speechDescription}
+            onChange={(e) => setSpeechDescription(e.target.value)}
+            placeholder={t("new_project.corpus_based.placeholder_speech_description")}
+            fullWidth
+            multiline
+            rows={3}
+            sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px", bgcolor: "#fff" } }}
+          />
         </Box>
       </Paper>
 
       {/* Corpus selection */}
       <Paper
         elevation={0}
-        sx={{ bgcolor: "#f3f4f5", borderRadius: 4, py: 4, px: 4, mb: 4 }}
+        sx={{
+          bgcolor: "#f3f4f5",
+          borderRadius: 4,
+          py: 4,
+          px: 4,
+          mb: submitted && errors.corpus ? 0.5 : 4,
+          outline: submitted && errors.corpus ? "2px solid #d32f2f" : "none",
+          outlineOffset: "0px",
+        }}
       >
         <Box
           sx={{
@@ -524,12 +503,17 @@ export default function CorpusBasedSettings() {
           </Box>
         )}
       </Paper>
+      {submitted && errors.corpus && (
+        <FormHelperText error sx={{ mx: "14px", mb: 3 }}>
+          {t("new_project.corpus_based.error_corpus_required")}
+        </FormHelperText>
+      )}
 
       {/* Submit */}
       <Box sx={{ display: "flex", justifyContent: "center" }}>
         <Button
           variant="contained"
-          disabled={!name.trim() || !selectedCorpusId || submitting}
+          disabled={submitting}
           onClick={handleCreate}
           sx={{
             bgcolor: "#191c1d",
@@ -563,7 +547,6 @@ export default function CorpusBasedSettings() {
         onClose={() => setDialogOpen(false)}
         onUpload={() => { setDialogOpen(false); router.push("/library/upload"); }}
         t={t}
-        router={router}
       />
     </Box>
   );

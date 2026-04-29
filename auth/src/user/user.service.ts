@@ -9,7 +9,6 @@ import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
 import { UserRole } from 'src/user-role/entity/user-role.entity';
 import { UserRoleService } from 'src/user-role/entity/user-role.service';
-import { RelationIdMetadataToAttributeTransformer } from 'typeorm/browser/query-builder/relation-id/RelationIdMetadataToAttributeTransformer.js';
 
 @Injectable()
 export class UserService {
@@ -116,6 +115,20 @@ export class UserService {
       updated = true;
     }
 
+    if (updateUserDto.gender !== undefined && updateUserDto.gender !== user.gender) {
+      user.gender = updateUserDto.gender;
+      updated = true;
+    }
+
+    if (updateUserDto.birthDate !== undefined) {
+      const incoming = new Date(updateUserDto.birthDate).toISOString();
+      const existing = user.birthDate ? new Date(user.birthDate).toISOString() : null;
+      if (incoming !== existing) {
+        user.birthDate = new Date(updateUserDto.birthDate);
+        updated = true;
+      }
+    }
+
     //Changing password endpoint
     if(updateUserDto.password && !(await bcrypt.compare(updateUserDto.password, user.password))) {
       user.password = await bcrypt.hash(updateUserDto.password, 10);
@@ -173,6 +186,9 @@ export class UserService {
       firstName: user.firstName,
       lastName: user.lastName,
       profilePictureUrl: user.profilePictureUrl,
-    }
+      roles: user.roles,
+      gender: user.gender ?? null,
+      birthDate: user.birthDate ?? null,
+    };
   }
 }

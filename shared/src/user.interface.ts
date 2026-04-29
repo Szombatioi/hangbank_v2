@@ -7,5 +7,7 @@ export interface IUser {
   firstName?: string;
   lastName?: string;
   profilePictureUrl?: string;
+  gender?: string | null;
+  birthDate?: Date | string | null;
   roles: IUserRole[];
 }

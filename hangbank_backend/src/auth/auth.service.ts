@@ -35,4 +35,11 @@ export class AuthService {
     );
     return data;
   }
+
+  async getProfile(userId: string) {
+    const { data } = await firstValueFrom(
+      this.httpService.get(`${this.authUrl}/profile/${userId}`),
+    );
+    return data;
+  }
 }

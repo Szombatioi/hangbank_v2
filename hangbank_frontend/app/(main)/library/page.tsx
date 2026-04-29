@@ -133,7 +133,7 @@ function FeaturedCard({ corpus, t, router }: { corpus: CorpusDto; t: (k: string)
         <Button
           variant="contained"
           endIcon={<ArrowForwardIcon />}
-          onClick={() => router.push(`/library/${corpus.id}`)}
+          onClick={() => window.open((`/library/${corpus.id}`), '_blank')}
           sx={{ bgcolor: "#191c1d", color: "#fff", borderRadius: 2, fontFamily: LABEL, fontWeight: 700, fontSize: "0.875rem", px: 3, py: 1.25, "&:hover": { bgcolor: "#0f172a" }, textTransform: "none" }}
         >
           {t("library_page.view_corpus")}

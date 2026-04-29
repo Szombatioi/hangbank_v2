@@ -1,6 +1,7 @@
 import { UserRole } from "src/user-role/entity/user-role.entity";
-import { Column, Entity, JoinTable, ManyToMany, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
 import type { IUser } from "@hangbank/shared";
+import { Gender } from "./gender.enum";
 
 @Entity()
 export class User implements IUser {
@@ -13,7 +14,7 @@ export class User implements IUser {
     @Column({ nullable: false })
     password: string; //Hash
 
-    @Column({ unique: true })
+    @Column({ unique: true, nullable: true })
     username?: string;
 
     @Column({ nullable: true })
@@ -24,6 +25,12 @@ export class User implements IUser {
 
     @Column({ nullable: true })
     profilePictureUrl?: string;
+
+    @Column({ type: 'enum', enum: Gender, nullable: true })
+    gender?: Gender;
+
+    @Column({ type: 'date', nullable: true })
+    birthDate?: Date;
 
     @ManyToMany(() => UserRole)
     @JoinTable()

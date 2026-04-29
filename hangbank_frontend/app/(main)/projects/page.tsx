@@ -1,9 +1,10 @@
 "use client";
 import { Button } from "@mui/material";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 export default function ProjectsOverviewPage() {
     const router = useRouter();
+    const pathname = usePathname();
     return (
         <>
             TODO: itt fognak megjelenni a user projektjei
@@ -22,7 +23,7 @@ export default function ProjectsOverviewPage() {
                         backgroundColor: '#bb350c',
                     }
                 }}
-                onClick={() => { router.push("/archive/new") }}
+                onClick={() => { router.push(`${pathname}/new`) }}
             >
                 Create new
             </Button>
