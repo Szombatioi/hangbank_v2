@@ -184,8 +184,37 @@
         "speaker": "Speaker",
         "speakers": "Speakers"
     },
+    "project_detail": {
+        "title": "Project Details",
+        "basic_info": "Basic Information",
+        "technical_info": "Technical Info",
+        "blocks": "Blocks",
+        "project_title": "Project Title",
+        "description": "Description",
+        "corpus_name": "Corpus",
+        "language": "Language",
+        "speaker_count": "Speakers",
+        "updated_at": "Last Updated",
+        "sampling_rate": "Sampling Rate",
+        "type": "Type",
+        "created_at": "Created At",
+        "progress": "Progress",
+        "block": "Block",
+        "recorded": "Recorded",
+        "pending": "Pending",
+        "start_recording": "Start Recording",
+        "error_load": "Failed to load project. Please try again.",
+        "error_load_blocks": "Failed to load blocks. Please try again.",
+        "load_more": "Load more"
+    },
     "projects": {
         "active_projects": "Active projects",
         "subtitle": "Ongoing Collections & Datasets"
+    },
+    "project_types": {
+        "corpus": "Corpus-based",
+        "ai_chat": "AI Chat",
+        "multi_speaker_conversation": "Multi-speaker Conversation",
+        "existing_files": "Existing Files"
     }
 }

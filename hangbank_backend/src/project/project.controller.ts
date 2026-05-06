@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { ProjectService } from './project.service';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { CreateCorpusProjectDto } from './dto/create-corpus-project.dto';
@@ -24,5 +24,15 @@ export class ProjectController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.projectService.findOne(id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get(':id/blocks')
+  getBlocks(
+    @Param('id') id: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return this.projectService.getBlocks(id, from ? +from : 0, to ? +to : 50);
   }
 }

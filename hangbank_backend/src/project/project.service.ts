@@ -77,6 +77,24 @@ export class ProjectService {
     }
   }
 
+  async getBlocks(projectId: string, from: number = 0, to: number = 50) {
+    const [blocks, total] = await this.corpusBlockRepository.findAndCount({
+      where: { corpusProject: { id: projectId } },
+      relations: ['audioFile'],
+      order: { blockIndex: 'ASC' },
+      skip: from,
+      take: to - from,
+    });
+    return {
+      data: blocks.map(b => ({
+        id: b.id,
+        blockIndex: b.blockIndex,
+        isRecorded: !!b.audioFile,
+      })),
+      total,
+    };
+  }
+
   async findAll(requesterId: string) {
     const projects = await this.corpusBasedProjectRepository.find({
       where: { roles: { userId: requesterId } },

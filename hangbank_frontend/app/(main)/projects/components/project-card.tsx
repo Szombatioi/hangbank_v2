@@ -10,27 +10,30 @@ import GetColorFromProgress, { ProjectProgress } from "@/app/components/helpers/
 import { ProjectDto } from "@/app/components/types/project.dto";
 import { formatUpdatedAt } from "@/app/components/helpers/format-update-date";
 import { MenuBook } from "@mui/icons-material";
+import { useRouter } from "next/navigation";
 
 const LABEL = "'Manrope', sans-serif";
 const HEADLINE = "'Space Grotesk', sans-serif";
 const BODY = "'Inter', sans-serif";
 
 export interface ProjectCardProps {
-    project?: ProjectDto;
+    project: ProjectDto;
     featured?: boolean;
 }
 
 export default function ProjectCard({ project, featured = false }: ProjectCardProps) {
     const { t } = useTranslation("common");
+    const router = useRouter();
 
-    const type = project?.type ?? ProjectType.CORPUS;
-    const name = project?.name ?? "Untitled Project";
-    const description = project?.description ?? "Test description";
-    const corpusProgress = project?.corpusProgress ?? 12;
-    const corpusName = project?.corpusName ?? "Test Corpus";
-    const language = project?.language ?? "en-US";
-    const speakerCount = project?.speakerCount ?? 1;
-    const updatedAt = formatUpdatedAt(project?.updatedAt ?? project?.createdAt);
+    //TODO: remove these mock values
+    const type = project.type ?? ProjectType.CORPUS;
+    const name = project.name ?? "Untitled Project";
+    const description = project.description ?? "Test description";
+    const corpusProgress = project.corpusProgress ?? 12;
+    const corpusName = project.corpusName ?? "Test Corpus";
+    const language = project.language ?? "en-US";
+    const speakerCount = project.speakerCount ?? 1;
+    const updatedAt = formatUpdatedAt(project.updatedAt ?? project.createdAt);
 
     const progress = corpusProgress > 0 ?
         corpusProgress === 100 ? ProjectProgress.FINISHED : ProjectProgress.IN_PROGRESS :
@@ -41,6 +44,7 @@ export default function ProjectCard({ project, featured = false }: ProjectCardPr
     return (
         <Paper
             elevation={0}
+            onClick={() => { router.push(`/projects/${project.id}`) }}
             sx={{
                 width: "100%",
                 minHeight: 300,
