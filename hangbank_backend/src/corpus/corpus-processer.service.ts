@@ -13,7 +13,8 @@ export class CorpusProcesserService {
     'kb', 'ill', 'stb', 'ún', 'db', 'sz', 'pl', 'tk', 'un', 'ld',
   ];
 
-  public async processCorpusFile(file: Express.Multer.File): Promise<Buffer> {
+  public async processCorpusFile(file: Express.Multer.File, skipPages: number = 0,
+  ): Promise<Buffer> {
     const ext = file.originalname.split('.').pop()?.toLowerCase();
     let rawText: string;
 
@@ -23,10 +24,9 @@ export class CorpusProcesserService {
       const result = await mammoth.extractRawText({ buffer: file.buffer });
       rawText = result.value;
     } else if (ext === 'pdf') {
-      const parser = new PDFParse({ data: new Uint8Array(file.buffer) });
-      rawText = (await parser.getText()).text;
-      // const data = await PDFParse(file.buffer);
-      // rawText = data.text;
+      const parser = new PDFParse({ data: file.buffer });
+      const result = await parser.getText();
+      rawText = result.pages.slice(skipPages).map(p => p.text).join(' ');
     } else {
       throw new BadRequestException('Unsupported file format. Use .txt, .docx, or .pdf');
     }

@@ -92,7 +92,7 @@ export class S3StorageService implements OnModuleInit {
       // for (const key in stat.metaData) {
       //   console.log(`  ${key}: ${stat.metaData[key]}`);
       // }
-      return await this.minioClient.getObject(bucket, objectName);
+      return await this.minioClient.getObject(bucket, path.basename(objectName));
     } catch (err) {
       this.logger.error('Failed to download file', err);
       throw new InternalServerErrorException('Failed to download file');

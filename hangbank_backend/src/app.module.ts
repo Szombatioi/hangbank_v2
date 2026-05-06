@@ -15,6 +15,9 @@ import { CorpusDomainModule } from './corpus-domain/corpus-domain.module';
 import { S3StorageModule } from './s3-storage/s3-storage.module';
 import { SeederModule } from './seeder/seeder.module';
 import { ProjectModule } from './project/project.module';
+import { AudioFileModule } from './audio-file/audio-file.module';
+import { AudioQualityModule } from './audio-quality/audio-quality.module';
+import { AudioModificationModule } from './audio-modification/audio-modification.module';
 
 @Module({
   imports: [
@@ -51,6 +54,9 @@ import { ProjectModule } from './project/project.module';
     S3StorageModule,
     SeederModule,
     ProjectModule,
+    AudioFileModule,
+    AudioQualityModule,
+    AudioModificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

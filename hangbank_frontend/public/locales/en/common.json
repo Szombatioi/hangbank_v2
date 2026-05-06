@@ -61,6 +61,7 @@
         "corpus_domain_placeholder": "Set a domain (e.g., medical, legal, technical)",
         "submit_button": "Upload Corpus",
         "domain": "Domain",
+        "skip_pages": "Skip Pages",
         "visibility": {
             "title": "Visibility Settings",
             "private": "Private",

@@ -20,7 +20,7 @@ import {
 } from "@mui/material";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import CloseIcon from "@mui/icons-material/Close";
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { LanguageDto } from "@/app/components/types/language.dto";
 import api from "@/app/axios";
@@ -68,6 +68,14 @@ export default function CorpusUploadPage() {
   const [collaborators, setCollaborators] = useState<string[]>([]);
 
   const [file, setFile] = useState<File | null>(null);
+
+  const [pageSkips, setPageSkips] = useState("0");
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    setPageSkips(raw);
+    // setError(raw !== "" && (isNaN(raw) || Number(raw) < 0));
+  };
 
   useEffect(() => {
     async function fetchLanguages() {
@@ -134,7 +142,6 @@ export default function CorpusUploadPage() {
 
   //TODO: handle collaborators
   const handleUpload = async () => {
-    debugger;
     if (!file || !corpusLanguage || !corpusTitle || !corpusDomain) {
       //TODO: snackbar
       return;
@@ -147,6 +154,9 @@ export default function CorpusUploadPage() {
     formData.append("languageCode", corpusLanguage?.code);
     formData.append("domainName", corpusDomain);
     formData.append("visibility", visibility);
+    if (parseInt(pageSkips) > 0) {
+      formData.append("pageSkips", pageSkips);
+    }
     try {
       await api.post("/corpus", formData, {
         headers: { "Content-Type": "multipart/form-data" }
@@ -156,7 +166,7 @@ export default function CorpusUploadPage() {
     } catch (ex) {
       //TODO: snackbar
       console.error("Upload failed:", ex);
-      showMessage(t("corpus_upload.error"), Severity.error);
+      showMessage(t("corpus_upload.failure"), Severity.error);
     }
   };
 
@@ -182,13 +192,17 @@ export default function CorpusUploadPage() {
               setFile(file);
               console.log(file.name);
             }}
+            onFileRemoved={() => {
+              setFile(null);
+              setPageSkips("0");
+            }}
           />
 
           <Paper
             elevation={0}
             sx={{ backgroundColor: "#f3f4f5", py: 4, px: 4, borderRadius: 4, display: "flex", flexDirection: "column", gap: 2 }}
           >
-            <div style={{ }}>
+            <div style={{}}>
               <Typography
                 variant="h6"
                 sx={{ textTransform: "capitalize" }}
@@ -470,6 +484,33 @@ export default function CorpusUploadPage() {
                 ))}
               </Box>
             </Paper>
+          )}
+
+          {file && file.name.split('.').pop()?.toLowerCase() === "pdf" && (
+            <>
+              <Paper elevation={0}
+                sx={{ backgroundColor: "#f3f4f5", py: 3, px: 3, borderRadius: 4 }}>
+                <Typography
+                  variant="h6"
+                  sx={{ textTransform: "capitalize" }}
+                  gutterBottom
+                  color="primary"
+                >
+                  {t("upload_corpus_page.skip_pages")}
+                </Typography>
+                <TextField
+                  fullWidth
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px" } }}
+                  type="number"
+                  value={pageSkips}
+                  onChange={handleChange}
+                  inputProps={{ min: 0, step: 1 }}
+                  onKeyDown={(e) => {
+                    if (e.key === "-" || e.key === "e") e.preventDefault();
+                  }}
+                />
+              </Paper>
+            </>
           )}
         </Grid>
       </Grid>

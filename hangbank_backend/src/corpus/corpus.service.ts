@@ -10,6 +10,8 @@ import { CorpusDomain } from 'src/corpus-domain/entities/corpus-domain.entity';
 import type { IJwtPayload } from '@hangbank/shared';
 import { S3StorageService } from 'src/s3-storage/s3-storage.service';
 import { CorpusProcesserService } from './corpus-processer.service';
+import * as readline from 'readline';
+import Stream from 'stream';
 
 @Injectable()
 export class CorpusService {
@@ -19,7 +21,7 @@ export class CorpusService {
     @Inject() private readonly corpusDomainService: CorpusDomainService,
     @Inject() private readonly s3StorageService: S3StorageService,
     @Inject() private readonly corpusProcesserService: CorpusProcesserService,
-  ) {}
+  ) { }
 
   async findOne(id: string): Promise<Corpus> {
     const corpus = await this.corpusRepository.findOne({
@@ -60,7 +62,7 @@ export class CorpusService {
 
     // Split and processed the file (e.g. create blocks of sentences, remove hyphenation, etc.)
     console.log("Before split")
-    const txtBuffer = await this.corpusProcesserService.processCorpusFile(file); //No catch, if processing fails, the whole process should fail and throw an error
+    const txtBuffer = await this.corpusProcesserService.processCorpusFile(file, createCorpusDto.pageSkips); //No catch, if processing fails, the whole process should fail and throw an error
     console.log("After split")
     const txtFile = {
       ...file,
@@ -82,6 +84,8 @@ export class CorpusService {
     // Calculate phonetical coverage
     //     calculate phoneticalCoverage!: number;
 
+    const blockCount = txtBuffer.toString('utf-8').split('\n').filter(l => l.trim().length > 0).length;
+
     console.log("Create corpus entity")
     const corpus = this.corpusRepository.create({
       name,
@@ -90,9 +94,33 @@ export class CorpusService {
       domain,
       uploaderId: uploader.id,
       s3Link: uploadResult.url,
+      blockCount,
     });
 
     console.log("Save")
     return this.corpusRepository.save(corpus);
+  }
+
+  async getCorpusBlocks(corpusId: string, from: number, to: number): Promise<string[]> {
+    const corpus = await this.findOne(corpusId);
+    //TODO: check access rights based on corpus.visibility and user role (admin, uploader, etc.)
+    //Download object
+    const fileStream = await this.s3StorageService.downloadObject(
+      corpus.s3Link,
+      this.s3StorageService.corpusBucket,
+    );
+    //Convert stream to string
+    const lines = await this.streamToLines(fileStream);
+    return lines.slice(from, to); //TO = exclusive, FROM = inclusive
+  }
+
+  async streamToLines(stream: Stream.Readable): Promise<string[]> {
+    const rl = readline.createInterface({ input: stream, crlfDelay: Infinity });
+    const lines: string[] = [];
+    for await (const line of rl) {
+      const trimmed = line.trim();
+      if (trimmed.length > 0) lines.push(trimmed);
+    }
+    return lines;
   }
 }

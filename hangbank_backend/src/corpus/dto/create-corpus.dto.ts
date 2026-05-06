@@ -5,5 +5,6 @@ export class CreateCorpusDto {
     languageCode!: string;
     visibility!: CorpusVisibility;
     domainName!: string;
+    pageSkips?: number; // optional, only include if > 0
     // uploaderId!: string; végülis nem kell, mert a guard megadja majd
 }

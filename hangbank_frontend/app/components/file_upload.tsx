@@ -3,14 +3,17 @@ import React, { useState } from "react";
 import { Box, Button, Typography } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { useTranslation } from "react-i18next";
+import FileCard from "./file-card";
 
 interface FileUploadProps {
   onFileSelected: (file: File) => void;
+  onFileRemoved: () => void;
 }
 
-const FileUpload = ({ onFileSelected }: FileUploadProps) => {
-    const { t } = useTranslation("common");
+const FileUpload = ({ onFileSelected, onFileRemoved }: FileUploadProps) => {
+  const { t } = useTranslation("common");
   const [isDragging, setIsDragging] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -23,12 +26,18 @@ const FileUpload = ({ onFileSelected }: FileUploadProps) => {
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files[0];
-    if (file) onFileSelected(file);
+    if (file) {
+      onFileSelected(file);
+      setFile(file);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) onFileSelected(file);
+    if (file) {
+      onFileSelected(file);
+      setFile(file);
+    }
   };
 
   return (
@@ -43,7 +52,7 @@ const FileUpload = ({ onFileSelected }: FileUploadProps) => {
         justifyContent: "center",
         gap: 2,
         px: 6,
-        py: 8,
+        py: 4,
         bgcolor: isDragging ? "#e8f0fe" : "#f5f5f5",
         border: "2px dashed",
         borderColor: isDragging ? "#4285f4" : "#d0d0d0",
@@ -101,6 +110,10 @@ const FileUpload = ({ onFileSelected }: FileUploadProps) => {
           {t("file_upload.browse_files")}
         </Button>
       </label>
+
+      {file && (
+        <FileCard fileName={file.name} fileSize={file.size} onDelete={() => {setFile(null); onFileRemoved()}} />
+      )}
     </Box>
   );
 };

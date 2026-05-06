@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import { ProjectDto } from "@/app/components/types/project.dto";
 import { motion } from "framer-motion";
-import { ProjectType } from "./new/components/project-type-selector";
+import api from "@/app/axios";
 
 const CARD_HEIGHT = 220;
 const FEATURED_HEIGHT = 220;
@@ -20,35 +20,13 @@ export default function ProjectsOverviewPage() {
 
     useEffect(() => {
         async function getActiveProjects() {
-            //TODO: fetch from db, mock for now
-            setProjects([
-                {
-                    id: "1",
-                    name: "Test project name",
-                    description: "Test project description",
-                    samplingRate: 48000,
-                    createdAt: "2026-01-01 00:00:00",
-                    updatedAt: "2026-01-01 00:00:00",
-                    type: ProjectType.CORPUS,
-                    corpusProgress: 24,
-                    corpusName: "Corpus name",
-                    language: "en-US",
-                    speakerCount: 1
-                },
-                {
-                    id: "2",
-                    name: "Tüskevár felolvasás",
-                    description: "Mesekönyvek generálásához felolvasom Fekete István Tüskevár c. művét",
-                    samplingRate: 48000,
-                    createdAt: "2025-04-01 12:00:00",
-                    updatedAt: "2025-07-01 12:00:00",
-                    type: ProjectType.CORPUS,
-                    corpusProgress: 0,
-                    corpusName: "Fekete István - Tüskevár",
-                    language: "hu-HU",
-                    speakerCount: 1
-                },
-            ]);
+            try {
+                const { data } = await api.get<ProjectDto[]>("/project");
+                setProjects(data);
+            } catch (err) {
+                console.error("Failed to load projects", err);
+                setProjects([]);
+            }
         }
 
         getActiveProjects();

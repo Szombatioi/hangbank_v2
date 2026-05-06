@@ -1,5 +1,5 @@
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, TableInheritance, UpdateDateColumn } from 'typeorm';
-import { AudioFile } from './audio-file.entity';
+import { AudioFile } from 'src/audio-file/entities/audio-file.entity';
 import { ProjectRole } from './project-role.entity';
 
 @Entity()

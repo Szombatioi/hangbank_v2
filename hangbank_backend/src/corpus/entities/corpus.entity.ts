@@ -57,5 +57,8 @@ export class Corpus {
   @CreateDateColumn()
   createdAt!: Date;
 
+  @Column({ nullable: false })
+  blockCount!: number;
+  
   // forrás??
 }

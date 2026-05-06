@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { ProjectService } from './project.service';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { CreateCorpusProjectDto } from './dto/create-corpus-project.dto';
@@ -12,5 +12,17 @@ export class ProjectController {
   @Post()
   create(@Req() req: { user: IJwtPayload }, @Body() dto: CreateCorpusProjectDto) {
     return this.projectService.create(req.user, dto);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get()
+  findAll(@Req() req: { user: IJwtPayload }) {
+    return this.projectService.findAll(req.user.id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.projectService.findOne(id);
   }
 }

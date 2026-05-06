@@ -1,0 +1,7 @@
+docker run -d \
+  --name hangbank-postgres \
+  -e POSTGRES_USER=hangbank \
+  -e POSTGRES_PASSWORD=hangbank \
+  -e POSTGRES_DB=hangbank_dev \
+  -p 5433:5432 \
+  postgres:latest
