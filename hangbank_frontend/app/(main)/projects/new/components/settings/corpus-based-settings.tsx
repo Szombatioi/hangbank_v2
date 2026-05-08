@@ -1,5 +1,6 @@
 "use client";
-
+//TODO: add bitdepth settings
+//TODO: recommend max OS sample rate for mic
 import {
   Box,
   Button,
@@ -86,6 +87,19 @@ export default function CorpusBasedSettings() {
 
       if (mics.length > 0 && !selectedMic) {
         setSelectedMic(mics[0]);
+
+        //Set recommended sample rate (max of this OS/Mic)
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: { deviceId: { exact: mics[0].deviceId } }
+        });
+        const nativeRate = stream.getAudioTracks()[0].getSettings().sampleRate;
+        if(!nativeRate) return; //should not happen, but just in case
+
+        const recommendedRate = SAMPLING_RATES.slice().reverse().find(r => r.value <= nativeRate);
+        if(recommendedRate) {
+          SAMPLING_RATES.find(r => r.value === recommendedRate.value)!.recommended = true;
+          setSamplingRate(recommendedRate.value);
+        }
       }
     }
 
@@ -211,40 +225,6 @@ export default function CorpusBasedSettings() {
           />
         </Box>
 
-        {/* Sampling rate */}
-        <Box>
-          <Typography variant="h6" sx={{ fontFamily: LABEL, textTransform: "capitalize", mb: 0.75 }} color="primary">
-            {t("new_project.corpus_based.label_sampling_rate")}
-          </Typography>
-          <Select
-            value={samplingRate}
-            onChange={(e: SelectChangeEvent<number | "">) =>
-              setSamplingRate(e.target.value as number | "")
-            }
-            fullWidth
-            displayEmpty
-            error={submitted && errors.samplingRate}
-            sx={{ borderRadius: "8px", bgcolor: "#fff" }}
-            renderValue={(val) =>
-              val === ""
-                ? <em style={{ color: "#aaa", fontStyle: "normal" }}>
-                  {t("new_project.corpus_based.placeholder_sampling_rate")}
-                </em>
-                : SAMPLING_RATES.find((r) => r.value === val)?.label ?? String(val)
-            }
-          >
-            {SAMPLING_RATES.map((rate) => (
-              <MenuItem key={rate.value} value={rate.value}>
-                {rate.label}{rate.recommended && ` (${t("recommended")})`}
-              </MenuItem>
-            ))}
-          </Select>
-          {submitted && errors.samplingRate
-            ? <FormHelperText error sx={{ mx: "14px" }}>{t("new_project.corpus_based.error_sampling_rate_required")}</FormHelperText>
-            : <Typography sx={{ mt: 1, ml: 1 }} variant="subtitle2" color="#47607e">{t("sampling_rate_explanation")}</Typography>
-          }
-        </Box>
-
         {/* Mics */}
         <Box>
           <Typography variant="h6" sx={{ fontFamily: LABEL, textTransform: "capitalize", mb: 0.75 }} color="primary">
@@ -287,6 +267,40 @@ export default function CorpusBasedSettings() {
           {submitted && errors.microphone && (
             <FormHelperText error sx={{ mx: "14px" }}>{t("new_project.corpus_based.error_microphone_required")}</FormHelperText>
           )}
+        </Box>
+        {/* Sampling rate */}
+        <Box>
+          <Typography variant="h6" sx={{ fontFamily: LABEL, textTransform: "capitalize", mb: 0.75 }} color="primary">
+            {t("new_project.corpus_based.label_sampling_rate")}
+          </Typography>
+          <Select
+            value={samplingRate}
+            disabled={selectedMic === null}
+            onChange={(e: SelectChangeEvent<number | "">) =>
+              setSamplingRate(e.target.value as number | "")
+            }
+            fullWidth
+            displayEmpty
+            error={submitted && errors.samplingRate}
+            sx={{ borderRadius: "8px", bgcolor: "#fff" }}
+            renderValue={(val) =>
+              val === ""
+                ? <em style={{ color: "#aaa", fontStyle: "normal" }}>
+                  {t("new_project.corpus_based.placeholder_sampling_rate")}
+                </em>
+                : SAMPLING_RATES.find((r) => r.value === val)?.label ?? String(val)
+            }
+          >
+            {SAMPLING_RATES.map((rate) => (
+              <MenuItem key={rate.value} value={rate.value}>
+                {rate.label}{rate.recommended && ` (${t("recommended")})`}
+              </MenuItem>
+            ))}
+          </Select>
+          {submitted && errors.samplingRate
+            ? <FormHelperText error sx={{ mx: "14px" }}>{t("new_project.corpus_based.error_sampling_rate_required")}</FormHelperText>
+            : <Typography sx={{ mt: 1, ml: 1 }} variant="subtitle2" color="#47607e">{t("sampling_rate_explanation")}</Typography>
+          }
         </Box>
 
         {/* Recording environment */}

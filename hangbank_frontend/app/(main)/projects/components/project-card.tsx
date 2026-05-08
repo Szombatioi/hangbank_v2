@@ -148,7 +148,7 @@ export default function ProjectCard({ project, featured = false }: ProjectCardPr
                                 <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                                     <LanguageIcon sx={{ fontSize: "0.9rem", color: featured ? "#475569" : "#94a3b8" }} />
                                     <Typography sx={{ fontFamily: LABEL, fontSize: "0.72rem", fontWeight: 600, color: "#64748b" }}>
-                                        {language}
+                                        {t(`language.${language}`)}
                                     </Typography>
                                 </Box>
                             )}

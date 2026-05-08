@@ -205,7 +205,8 @@
         "start_recording": "Start Recording",
         "error_load": "Failed to load project. Please try again.",
         "error_load_blocks": "Failed to load blocks. Please try again.",
-        "load_more": "Load more"
+        "load_more": "Load more",
+        "bit_depth": "Bit Depth"
     },
     "projects": {
         "active_projects": "Active projects",
@@ -216,5 +217,10 @@
         "ai_chat": "AI Chat",
         "multi_speaker_conversation": "Multi-speaker Conversation",
         "existing_files": "Existing Files"
+    },
+    "project_page": {
+        "fetch_error": "Could not fetch project.",
+        "not_found": "Project not found.",
+        "access_denied": "You do not have access to this project."
     }
 }

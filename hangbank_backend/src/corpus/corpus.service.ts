@@ -44,10 +44,8 @@ export class CorpusService {
 
   async create(uploader: IJwtPayload, createCorpusDto: CreateCorpusDto, file: Express.Multer.File): Promise<Corpus> {
     const { name, languageCode, visibility, domainName } = createCorpusDto;
-    console.log("Language")
     const language = await this.languageService.findOne(languageCode);
 
-    console.log("Domain")
     let domain: CorpusDomain;
     try {
       domain = await this.corpusDomainService.findOne(domainName);
@@ -57,13 +55,10 @@ export class CorpusService {
 
     //TODO: necessary?
     // Upload original file to the object storage
-    console.log("Upload original")
     await this.s3StorageService.uploadObject(file, this.s3StorageService.originalCorpusBucket); //No catch, if upload fails, the whole process should fail and throw an error
 
     // Split and processed the file (e.g. create blocks of sentences, remove hyphenation, etc.)
-    console.log("Before split")
     const txtBuffer = await this.corpusProcesserService.processCorpusFile(file, createCorpusDto.pageSkips); //No catch, if processing fails, the whole process should fail and throw an error
-    console.log("After split")
     const txtFile = {
       ...file,
       buffer: txtBuffer,

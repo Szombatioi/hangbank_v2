@@ -117,7 +117,13 @@ export default function ProjectDetailPage() {
                                 <Grid size={{ xs: 12, sm: 6 }}>
                                     <InfoField label={t("project_detail.speaker_count")} value={project.speakerCount} />
                                 </Grid>
-                                <Grid size={{ xs: 12, sm: 6 }}>
+                                <Grid size={{ xs: 12, sm: 3 }}>
+                                    <InfoField
+                                        label={t("project_detail.created_at")}
+                                        value={new Date(project.createdAt).toLocaleDateString()}
+                                    />
+                                </Grid>
+                                <Grid size={{ xs: 12, sm: 3 }}>
                                     <InfoField
                                         label={t("project_detail.updated_at")}
                                         value={project.updatedAt ? new Date(project.updatedAt).toLocaleDateString() : undefined}
@@ -142,8 +148,8 @@ export default function ProjectDetailPage() {
                             </Grid>
                             <Grid size={{ xs: 12, sm: 6 }}>
                                 <InfoField
-                                    label={t("project_detail.created_at")}
-                                    value={new Date(project.createdAt).toLocaleDateString()}
+                                    label={t("project_detail.bit_depth")}
+                                    value={"32 bit float"} //Fixed value, best for TTS
                                 />
                             </Grid>
                             <Grid size={{ xs: 12, sm: 6 }}>

@@ -1,5 +1,4 @@
 "use client";
-
 import { motion } from "framer-motion";
 import ProjectTypeSelector, { ProjectType } from "./components/project-type-selector";
 import { useState } from "react";
