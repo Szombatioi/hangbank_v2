@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Gender } from './gender.enum';
 import { CorpusBasedProject } from './corpus-based-project.entity';
 
@@ -22,6 +22,8 @@ export class Speaker {
   @Column({ nullable: true })
   microphoneDeviceId?: string; // device ID string, e.g. "default", "communications"
 
-  @ManyToOne(() => CorpusBasedProject, (p) => p.speakers, { onDelete: 'CASCADE' })
+  // @ManyToOne(() => CorpusBasedProject, (p) => p.speakers, { onDelete: 'CASCADE' })
+  @OneToOne(() => CorpusBasedProject, (p) => p.speaker, { onDelete: 'CASCADE' })
+  @JoinColumn()
   project!: CorpusBasedProject;
 }

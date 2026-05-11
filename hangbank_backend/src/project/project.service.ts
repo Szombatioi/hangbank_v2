@@ -13,6 +13,9 @@ import { ProjectRoleType } from './entities/project-role.enum';
 import type { IJwtPayload } from '@hangbank/shared';
 import { computeAge } from 'src/helpers/compute-age';
 import { AudioFile } from './entities/audio-file.entity';
+import { Readable } from 'stream';
+import { S3StorageService } from 'src/s3-storage/s3-storage.service';
+import { CorpusProjectDetailDto } from './dto/corpus-project-detail.dto';
 
 
 
@@ -26,6 +29,7 @@ export class ProjectService {
     @Inject() private readonly authService: AuthService,
     @Inject() private readonly corpusService: CorpusService,
     @Inject() private readonly projectRoleService: ProjectRoleService,
+    @Inject() private readonly s3StorageService: S3StorageService,
   ) {}
 
   //TODO: handle project roles from DTO parameters (who owns it, who can record (if multi-person recording), who can work with it by e.g. exporting it)
@@ -98,7 +102,7 @@ export class ProjectService {
   async findAll(requesterId: string) {
     const projects = await this.corpusBasedProjectRepository.find({
       where: { roles: { userId: requesterId } },
-      relations: ['corpus', 'corpus.language', 'speakers', 'roles'],
+      relations: ['corpus', 'corpus.language', 'speaker', 'roles'],
     });
 
     return Promise.all(projects.map(async (project) => {
@@ -117,7 +121,7 @@ export class ProjectService {
         corpusProgress: total > 0 ? Math.round((recordedCount / total) * 100) : 0,
         corpusName: project.corpus.name,
         language: project.corpus.language?.name,
-        speakerCount: project.speakers.length,
+        speakerCount: 1,
       };
     }));
   }
@@ -125,7 +129,7 @@ export class ProjectService {
   async findOne(id: string) {
     const project = await this.corpusBasedProjectRepository.findOne({
       where: { id },
-      relations: ['corpus', 'corpus.language', 'speakers', 'roles'],
+      relations: ['corpus', 'corpus.language', 'speaker', 'roles'],
     });
     //TODO: add access right checks here based on project roles and requester user id (e.g. only allow if requester is in project.roles with a valid role, or if the project is public, etc.)
 
@@ -150,7 +154,54 @@ export class ProjectService {
       corpusProgress: progress, //how much blocks are recorded vs total blocks in the corpus, e.g. 0–100
       corpusName: project.corpus.name,
       language: project.corpus.language.name,
-      speakerCount: project.speakers.length,
+      speakerCount: 1,
     };
   }
+
+  async findCorpusDetail(id: string): Promise<CorpusProjectDetailDto> {
+    const project = await this.corpusBasedProjectRepository.findOne({
+      where: { id },
+      relations: ['speaker', 'blocks', 'blocks.audioFile'],
+    });
+
+    if (!project) {
+      throw new NotFoundException(`Project with id '${id}' not found`);
+    }
+
+    const blocks = await Promise.all(
+      project.blocks
+        .sort((a, b) => a.blockIndex - b.blockIndex)
+        .map(async (block) => {
+          if (!block.audioFile) {
+            return { id: block.id, blockIndex: block.blockIndex, isRecorded: false };
+          }
+          const stream = await this.s3StorageService.downloadObject(
+            block.audioFile.s3Link,
+            this.s3StorageService.audioBucket,
+          );
+          const audioData = (await streamToBuffer(stream)).toString('base64');
+          return { id: block.id, blockIndex: block.blockIndex, isRecorded: true, audioData };
+        }),
+    );
+
+    return {
+      id: project.id,
+      name: project.name,
+      description: project.description,
+      samplingRate: project.samplingRate,
+      speaker: {
+        id: project.speaker.id,
+        microphoneDeviceId: project.speaker.microphoneDeviceId,
+      },
+      blocks,
+    };
+  }
+}
+
+async function streamToBuffer(stream: Readable): Promise<Buffer> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks);
 }

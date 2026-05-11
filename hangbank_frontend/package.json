@@ -14,6 +14,8 @@
     "@mui/icons-material": "^7.3.9",
     "@mui/material": "^7.3.7",
     "axios": "^1.13.5",
+    "extendable-media-recorder": "^9.2.37",
+    "extendable-media-recorder-wav-encoder": "^7.0.137",
     "framer-motion": "^12.38.0",
     "i18next": "^25.8.4",
     "i18next-browser-languagedetector": "^8.2.0",
@@ -21,7 +23,8 @@
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "react-i18next": "^16.5.4"
+    "react-i18next": "^16.5.4",
+    "wavesurfer.js": "^7.12.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

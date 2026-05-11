@@ -27,6 +27,12 @@ export class ProjectController {
   }
 
   @UseGuards(AuthGuard)
+  @Get(':id/detail')
+  findCorpusDetail(@Param('id') id: string) {
+    return this.projectService.findCorpusDetail(id);
+  }
+
+  @UseGuards(AuthGuard)
   @Get(':id/blocks')
   getBlocks(
     @Param('id') id: string,
