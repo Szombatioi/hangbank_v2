@@ -1,6 +1,7 @@
 export class SpeakerDetailDto {
     id!: string;
     microphoneDeviceId?: string;
+    microphoneLabel?: string;
   }
   
   export class BlockDetailDto {

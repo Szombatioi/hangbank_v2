@@ -84,13 +84,12 @@ export default function Recorder({
         onAudioBlobRef.current(blob);
         await startRecordingInternal();
       }
-      if (e.code === "Escape" && isRecordingRef.current) {
+      if ((e.code === "Escape" || e.code === "Enter") && isRecordingRef.current) {
         e.preventDefault();
-        const blob = buildBlob();
         cleanupRecording();
         setIsRecording(false);
         setIsPaused(false);
-        onAudioBlobRef.current(blob);
+        // Cancel: do NOT send audio data back
       }
     };
     window.addEventListener("keydown", handleKeyDown);

@@ -57,7 +57,7 @@ export class ProjectService {
             ? [data.speaker.speechCharacteristics]
             : [],
           gender: (user.gender as Gender) ?? Gender.PREFER_NOT_TO_SAY,
-          microphoneDeviceId: data.microphoneDeviceId,
+          microphoneLabel: data.microphoneLabel,
           project,
         })
       );
@@ -82,6 +82,12 @@ export class ProjectService {
   }
 
   async getBlocks(projectId: string, from: number = 0, to: number = 50) {
+    const project = await this.corpusBasedProjectRepository.findOne({
+      where: { id: projectId },
+      relations: ['corpus'],
+    });
+    if (!project) throw new NotFoundException(`Project with id '${projectId}' not found`);
+
     const [blocks, total] = await this.corpusBlockRepository.findAndCount({
       where: { corpusProject: { id: projectId } },
       relations: ['audioFile'],
@@ -89,11 +95,21 @@ export class ProjectService {
       skip: from,
       take: to - from,
     });
+
+    if (blocks.length === 0) return { data: [], total };
+
+    // blockIndex maps 1-to-1 to corpus line numbers, so slice the corpus text
+    // for exactly this page of blocks in a single S3 download.
+    const firstIdx = blocks[0].blockIndex;
+    const lastIdx  = blocks[blocks.length - 1].blockIndex;
+    const texts = await this.corpusService.getCorpusBlocks(project.corpus.id, firstIdx, lastIdx + 1);
+
     return {
       data: blocks.map(b => ({
         id: b.id,
         blockIndex: b.blockIndex,
         isRecorded: !!b.audioFile,
+        text: texts[b.blockIndex - firstIdx] ?? null,
       })),
       total,
     };
@@ -191,7 +207,7 @@ export class ProjectService {
       samplingRate: project.samplingRate,
       speaker: {
         id: project.speaker.id,
-        microphoneDeviceId: project.speaker.microphoneDeviceId,
+        microphoneLabel: project.speaker.microphoneLabel,
       },
       blocks,
     };

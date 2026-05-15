@@ -128,7 +128,7 @@ export default function CorpusBasedSettings() {
         speaker: {
           speechCharacteristics: speechDescription.trim() || undefined,
         },
-        microphoneDeviceId: selectedMic?.deviceId,
+        microphoneLabel: selectedMic?.label,
       });
       showMessage(t("new_project.corpus_based.success"), Severity.success);
       
