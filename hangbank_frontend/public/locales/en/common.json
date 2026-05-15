@@ -110,7 +110,14 @@
             "public": "Public",
             "protected": "Protected",
             "private": "Private"
-        }
+        },
+        "delete_corpus_title": "Delete Corpus",
+        "delete_corpus_description": "Are you sure you want to permanently delete \"{{name}}\"? This action cannot be undone.",
+        "delete_corpus_in_use_warning": "⚠ This corpus cannot be deleted while it is referenced by one or more projects.",
+        "delete_corpus_in_use": "Cannot delete: this corpus is still in use by one or more projects.",
+        "delete_corpus_confirm_button": "Delete Corpus",
+        "delete_success": "Corpus deleted.",
+        "delete_error": "Failed to delete corpus. Please try again."
     },
     "error":{
         "language_load": "Could not load available languages."
@@ -222,5 +229,26 @@
         "fetch_error": "Could not fetch project.",
         "not_found": "Project not found.",
         "access_denied": "You do not have access to this project."
+    },
+    "confirm_dialog": {
+        "cancel": "Cancel",
+        "proceed": "Proceed"
+    },
+    "record": {
+        "block": "Block",
+        "loading": "Loading…",
+        "session_complete": "Session Complete",
+        "all_blocks_done": "All blocks in this session have been recorded.",
+        "start_from_out_of_range": "The start position exceeds the total number of blocks in this project.",
+        "mic_not_found": "The configured microphone was not found. Please check your device connection.",
+        "mic_permission_denied": "Microphone permission was denied. Please allow microphone access and reload.",
+        "mic_not_configured": "No microphone is configured for this project.",
+        "blocks": "Blocks",
+        "buffered": "Buffered",
+        "pending_save_label": "Unsaved Recordings",
+        "recordings_unsaved": "recordings pending",
+        "save": "Save",
+        "hint_space": "Save & next",
+        "hint_escape": "Cancel recording"
     }
 }

@@ -1,4 +1,5 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { QueryFailedError } from 'typeorm';
 import { CreateCorpusDto } from './dto/create-corpus.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Corpus } from './entities/corpus.entity';
@@ -94,6 +95,23 @@ export class CorpusService {
 
     console.log("Save")
     return this.corpusRepository.save(corpus);
+  }
+
+  async remove(id: string): Promise<void> {
+    const corpus = await this.findOne(id); // throws 404 if not found
+
+    try {
+      await this.corpusRepository.delete(id);
+    } catch (err) {
+      // Postgres FK violation (23503): corpus is still referenced by one or more projects
+      if (err instanceof QueryFailedError && (err as any).code === '23503') {
+        throw new ConflictException('corpus_in_use');
+      }
+      throw err;
+    }
+
+    // Only delete from S3 once the DB row is gone — keeps storage consistent on DB failure
+    await this.s3StorageService.deleteObject(corpus.s3Link, this.s3StorageService.corpusBucket);
   }
 
   async getCorpusBlocks(corpusId: string, from: number, to: number): Promise<string[]> {

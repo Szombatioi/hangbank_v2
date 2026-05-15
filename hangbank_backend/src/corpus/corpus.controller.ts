@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, ParseIntPipe, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { Request } from 'express';
 import { AuthGuard } from 'src/guards/auth.guard';
 import type { IJwtPayload } from '@hangbank/shared';
@@ -29,6 +29,13 @@ export class CorpusController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     return this.corpusService.create(req.user, createCorpusDto, file);
+  }
+
+  @UseGuards(AuthGuard)
+  @Delete(':id')
+  @HttpCode(204)
+  remove(@Param('id') id: string) {
+    return this.corpusService.remove(id);
   }
 
   @Get(':id/blocks')

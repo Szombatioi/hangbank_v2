@@ -12,9 +12,12 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
 import AlbumIcon from "@mui/icons-material/Album";
 import { useRouter } from "next/navigation";
+import { AxiosError } from "axios";
 import api from "@/app/axios";
 import { CorpusDto, CorpusVisibility } from "@/app/components/types/corpus.dto";
 import { LanguageDto } from "@/app/components/types/language.dto";
+import ConfirmDialog from "@/app/components/confirm-dialog";
+import { useSnackbar, Severity } from "@/app/contexts/SnackbarProvider";
 
 const HEADLINE = "'Space Grotesk', sans-serif";
 const LABEL = "'Manrope', sans-serif";
@@ -83,7 +86,7 @@ function VisibilityBadge({ visibility, t }: { visibility: string; t: (k: string)
   );
 }
 
-function FeaturedCard({ corpus, t, router }: { corpus: CorpusDto; t: (k: string) => string; router: ReturnType<typeof useRouter> }) {
+function FeaturedCard({ corpus, t, router, onArchive }: { corpus: CorpusDto; t: (k: string) => string; router: ReturnType<typeof useRouter>; onArchive: () => void }) {
   const date = corpus.createdAt
     ? new Date(corpus.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
     : "—";
@@ -141,6 +144,7 @@ function FeaturedCard({ corpus, t, router }: { corpus: CorpusDto; t: (k: string)
         <Button
           variant="text"
           startIcon={<ArchiveOutlinedIcon />}
+          onClick={onArchive}
           sx={{ color: "#64748b", fontFamily: LABEL, fontWeight: 700, fontSize: "0.875rem", textTransform: "none", "&:hover": { color: "#0f172a", bgcolor: "transparent" } }}
         >
           {t("library_page.archive_button")}
@@ -155,7 +159,7 @@ function FeaturedCard({ corpus, t, router }: { corpus: CorpusDto; t: (k: string)
   );
 }
 
-function RegularCard({ corpus, t, router }: { corpus: CorpusDto; t: (k: string) => string; router: ReturnType<typeof useRouter> }) {
+function RegularCard({ corpus, t, router, onArchive }: { corpus: CorpusDto; t: (k: string) => string; router: ReturnType<typeof useRouter>; onArchive: () => void }) {
   return (
     <Box
       sx={{
@@ -205,6 +209,7 @@ function RegularCard({ corpus, t, router }: { corpus: CorpusDto; t: (k: string) 
         </Button>
         <Button
           variant="text"
+          onClick={onArchive}
           sx={{ color: "#94a3b8", minWidth: 0, p: 0.5, "&:hover": { color: "#ef4444", bgcolor: "transparent" } }}
         >
           <ArchiveOutlinedIcon sx={{ fontSize: "1.25rem" }} />
@@ -256,6 +261,7 @@ function AddCard({ t, router }: { t: (k: string) => string; router: ReturnType<t
 
 export default function LibraryPage() {
   const { t } = useTranslation("common");
+  const { showMessage } = useSnackbar();
   const router = useRouter();
 
   const [corpora, setCorpora] = useState<CorpusDto[]>([]);
@@ -263,6 +269,38 @@ export default function LibraryPage() {
   const [loading, setLoading] = useState(true);
   const [langFilter, setLangFilter] = useState<string | null>(null);
   const [visFilter, setVisFilter] = useState<CorpusVisibility | null>(null);
+
+  // Delete flow
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [targetCorpus, setTargetCorpus] = useState<CorpusDto | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const openDeleteConfirm = (corpus: CorpusDto) => {
+    console.log("?????,")
+    setTargetCorpus(corpus);
+    setConfirmOpen(true);
+  };
+
+  const handleDeleteProceed = async () => {
+    if (!targetCorpus) return;
+    setDeleting(true);
+    try {
+      await api.delete(`/corpus/${targetCorpus.id}`);
+      setCorpora(prev => prev.filter(c => c.id !== targetCorpus.id));
+      setConfirmOpen(false);
+      setTargetCorpus(null);
+      showMessage(t("library_page.delete_success"), Severity.success);
+    } catch (err) {
+      const status = (err as AxiosError).response?.status;
+      if (status === 409) {
+        showMessage(t("library_page.delete_corpus_in_use"), Severity.error);
+      } else {
+        showMessage(t("library_page.delete_error"), Severity.error);
+      }
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   useEffect(() => {
     Promise.all([
@@ -363,12 +401,31 @@ export default function LibraryPage() {
           )}
           {filtered.map((corpus, i) =>
             i === 0
-              ? <FeaturedCard key={corpus.id} corpus={corpus} t={t} router={router} />
-              : <RegularCard key={corpus.id} corpus={corpus} t={t} router={router} />
+              ? <FeaturedCard key={corpus.id} corpus={corpus} t={t} router={router} onArchive={() => openDeleteConfirm(corpus)} />
+              : <RegularCard key={corpus.id} corpus={corpus} t={t} router={router} onArchive={() => openDeleteConfirm(corpus)} />
           )}
           <AddCard t={t} router={router} />
         </Box>
       )}
+
+      {/* Delete confirmation dialog */}
+      <ConfirmDialog
+        open={confirmOpen}
+        title={t("library_page.delete_corpus_title")}
+        description={
+          <>
+            {t("library_page.delete_corpus_description", { name: targetCorpus?.name ?? "" })}
+            <Box component="span" sx={{ display: "block", mt: 1.5, color: "#f59e0b", fontSize: "0.8rem" }}>
+              {t("library_page.delete_corpus_in_use_warning")}
+            </Box>
+          </>
+        }
+        proceedLabel={t("library_page.delete_corpus_confirm_button")}
+        loading={deleting}
+        dangerous
+        onProceed={handleDeleteProceed}
+        onCancel={() => { if (!deleting) { setConfirmOpen(false); setTargetCorpus(null); } }}
+      />
     </Box>
   );
 }
