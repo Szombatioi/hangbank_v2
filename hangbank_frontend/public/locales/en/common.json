@@ -238,6 +238,18 @@
         "recordings_unsaved": "recordings pending",
         "save": "Save",
         "hint_space": "Save & next",
-        "hint_escape": "Cancel recording"
+        "hint_escape": "Cancel recording",
+        "current_prompt": "Current Prompt",
+        "status_recording": "Recording",
+        "status_idle": "Idle",
+        "status_paused": "Paused",
+        "live": "Live",
+        "session_details": "Session Details",
+        "sample_rate": "Sample Rate",
+        "bit_depth": "Bit Depth",
+        "file_type": "File Type",
+        "source": "Source",
+        "transcription": "Transcription",
+        "transcription_placeholder": "The quick brown fox jumps over the lazy dog."
     }
 }

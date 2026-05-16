@@ -20,6 +20,8 @@ export class CorpusProcesserService {
 
     if (ext === 'txt') {
       rawText = file.buffer.toString('utf-8');
+      // Promote every line break to a paragraph break to match pdf/docx structure
+      rawText = rawText.replace(/\r\n?/g, '\n').replace(/\n+/g, '\n\n');
     } else if (ext === 'docx') {
       const result = await mammoth.extractRawText({ buffer: file.buffer });
       rawText = result.value;
@@ -47,6 +49,7 @@ export class CorpusProcesserService {
     // This preserves intentional structure before we flatten each block into sentences.
     const blocks = text
       .split(/\n{2,}/)
+      // .split(/\n/)
       .flatMap(block => block.split(/(?=\n\s*[-•*\u2022\u2013]\s)/))
       .map(block =>
         block

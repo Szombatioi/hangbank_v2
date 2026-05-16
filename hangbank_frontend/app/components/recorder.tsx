@@ -8,9 +8,17 @@ import { Severity, useSnackbar } from "@/app/contexts/SnackbarProvider";
 
 interface RecorderProps {
   deviceId: string;
-  onAudioBlob: (blob: Blob) => void;
+  onAudioBlob: (blob: Blob, durationSeconds: number) => void;
   sampleRate?: number;
   bitDepth?: number;
+}
+
+function formatDuration(seconds: number): string {
+  const safe = Number.isFinite(seconds) && seconds > 0 ? seconds : 0;
+  const mm = Math.floor(safe / 60);
+  const ss = Math.floor(safe % 60);
+  const cs = Math.floor((safe * 100) % 100);
+  return `${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}.${String(cs).padStart(2, "0")}`;
 }
 
 export default function Recorder({
@@ -23,6 +31,7 @@ export default function Recorder({
 
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [durationSeconds, setDurationSeconds] = useState(0);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const pcmChunksRef = useRef<Float32Array[]>([]);
@@ -66,6 +75,16 @@ export default function Recorder({
     return () => clearInterval(interval);
   }, [isRecording, isPaused]);
 
+  // Tick a sample-derived duration; immune to startup latency, pause, and tab throttling
+  useEffect(() => {
+    if (!isRecording || isPaused) return;
+    const interval = setInterval(() => {
+      const total = pcmChunksRef.current.reduce((s, c) => s + c.length, 0);
+      setDurationSeconds(total / sampleRate);
+    }, 100);
+    return () => clearInterval(interval);
+  }, [isRecording, isPaused, sampleRate]);
+
   useEffect(() => {
     return () => {
       audioContextRef.current?.close();
@@ -77,11 +96,11 @@ export default function Recorder({
     const handleKeyDown = async (e: KeyboardEvent) => {
       if (e.code === "Space" && isRecordingRef.current) {
         e.preventDefault();
-        const blob = buildBlob();
+        const { blob, durationSeconds: dur } = buildBlob();
         cleanupRecording();
         setIsRecording(false);
         setIsPaused(false);
-        onAudioBlobRef.current(blob);
+        onAudioBlobRef.current(blob, dur);
         await startRecordingInternal();
       }
       if ((e.code === "Escape" || e.code === "Enter") && isRecordingRef.current) {
@@ -109,7 +128,7 @@ export default function Recorder({
     waveSurferRef.current.loadBlob(encodeWav(merged, sampleRate, bitDepth));
   }
 
-  function buildBlob(): Blob {
+  function buildBlob(): { blob: Blob; durationSeconds: number } {
     const totalLength = pcmChunksRef.current.reduce((sum, c) => sum + c.length, 0);
     const merged = new Float32Array(totalLength);
     let offset = 0;
@@ -117,7 +136,10 @@ export default function Recorder({
       merged.set(chunk, offset);
       offset += chunk.length;
     }
-    return encodeWav(merged, sampleRate, bitDepth);
+    return {
+      blob: encodeWav(merged, sampleRate, bitDepth),
+      durationSeconds: totalLength / sampleRate,
+    };
   }
 
   function cleanupRecording() {
@@ -128,6 +150,7 @@ export default function Recorder({
 
   async function startRecordingInternal() {
     pcmChunksRef.current = [];
+    setDurationSeconds(0);
 
     let stream: MediaStream;
     try {
@@ -174,11 +197,11 @@ export default function Recorder({
 
   function handleStop() {
     if (!isRecordingRef.current) return;
-    const blob = buildBlob();
+    const { blob, durationSeconds: dur } = buildBlob();
     cleanupRecording();
     setIsRecording(false);
     setIsPaused(false);
-    onAudioBlob(blob);
+    onAudioBlob(blob, dur);
   }
 
   return (
@@ -194,33 +217,69 @@ export default function Recorder({
       }}
     >
       <div ref={waveformRef} />
-      <div style={{ display: "flex", justifyContent: "center", gap: 8 }}>
-        {!isRecording ? (
-          <IconButton
-            onClick={handleStart}
-            size="medium"
-            sx={{ boxShadow: "0px 0px 10px rgba(0,0,0,0.2)" }}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr auto 1fr",
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
+        <div style={{ display: "flex", flexDirection: "column", justifySelf: "start" }}>
+          <span
+            style={{
+              fontFamily: "'Space Grotesk', sans-serif",
+              fontWeight: 900,
+              fontSize: "1.25rem",
+              fontVariantNumeric: "tabular-nums",
+              letterSpacing: "-0.025em",
+              color: "#191c1d",
+            }}
           >
-            <PlayArrow />
-          </IconButton>
-        ) : (
-          <>
+            {formatDuration(durationSeconds)}
+          </span>
+          <span
+            style={{
+              fontFamily: "'Manrope', sans-serif",
+              fontSize: "0.625rem",
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: "0.12em",
+              color: "rgba(68,71,76,0.6)",
+            }}
+          >
+            Duration
+          </span>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          {!isRecording ? (
             <IconButton
-              onClick={isPaused ? handleResume : handlePause}
+              onClick={handleStart}
               size="medium"
               sx={{ boxShadow: "0px 0px 10px rgba(0,0,0,0.2)" }}
             >
-              {isPaused ? <PlayArrow /> : <Pause />}
+              <PlayArrow />
             </IconButton>
-            <IconButton
-              onClick={handleStop}
-              size="medium"
-              sx={{ boxShadow: "0px 0px 10px rgba(0,0,0,0.2)" }}
-            >
-              <Stop />
-            </IconButton>
-          </>
-        )}
+          ) : (
+            <>
+              <IconButton
+                onClick={isPaused ? handleResume : handlePause}
+                size="medium"
+                sx={{ boxShadow: "0px 0px 10px rgba(0,0,0,0.2)" }}
+              >
+                {isPaused ? <PlayArrow /> : <Pause />}
+              </IconButton>
+              <IconButton
+                onClick={handleStop}
+                size="medium"
+                sx={{ boxShadow: "0px 0px 10px rgba(0,0,0,0.2)" }}
+              >
+                <Stop />
+              </IconButton>
+            </>
+          )}
+        </div>
+        <div />
       </div>
     </Paper>
   );

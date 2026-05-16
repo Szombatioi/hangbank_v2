@@ -118,4 +118,10 @@ export class CorpusService {
     }
     return lines;
   }
+
+  //Save recordings for the specified corpus blocks
+  //If the block already has a recording, it should be overwritten
+  async saveRecordings(){
+
+  }
 }
