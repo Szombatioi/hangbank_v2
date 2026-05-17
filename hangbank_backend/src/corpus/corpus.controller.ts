@@ -1,4 +1,16 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Query,
+  Req,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { Request } from 'express';
 import { AuthGuard } from 'src/guards/auth.guard';
 import type { IJwtPayload } from '@hangbank/shared';
@@ -12,7 +24,7 @@ export class CorpusController {
   constructor(
     private readonly corpusService: CorpusService,
     private readonly corpusProcesserService: CorpusProcesserService,
-  ) { }
+  ) {}
 
   @UseGuards(AuthGuard)
   @Get()
@@ -32,8 +44,7 @@ export class CorpusController {
   }
 
   @Get(':id/blocks')
-    @UseGuards(AuthGuard)
-
+  @UseGuards(AuthGuard)
   async getCorpusBlocks(
     @Req() req: Request & { user?: IJwtPayload },
     @Param('id') id: string,

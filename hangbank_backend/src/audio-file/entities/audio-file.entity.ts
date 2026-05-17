@@ -17,6 +17,12 @@ export class AudioFile {
   @CreateDateColumn()
   createdAt!: Date;
 
+  @Column({ type: 'float' })
+  durationSeconds!: number; //The duration of the file
+
+  @Column({ type: 'text' })
+  transcription!: string; //The actual transcription of the recording
+
   @ManyToOne(() => Project, (p) => p.audioFiles, { onDelete: 'CASCADE' })
   project!: Project;
 

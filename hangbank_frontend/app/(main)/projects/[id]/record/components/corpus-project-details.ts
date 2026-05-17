@@ -2,14 +2,21 @@ export class SpeakerDetailDto {
     id!: string;
     microphoneLabel?: string;
   }
-  
+
   export class BlockDetailDto {
     id!: string;
     blockIndex!: number;
     isRecorded!: boolean;
     audioData?: string; // base64-encoded WAV
   }
-  
+
+  export class MasterRecordingDto {
+    id!: string;
+    name!: string;
+    createdAt!: string;
+    audioData!: string; // base64-encoded WAV
+  }
+
   export class CorpusProjectDetailDto {
     id!: string;
     name!: string;
@@ -17,5 +24,6 @@ export class SpeakerDetailDto {
     samplingRate?: number;
     speaker!: SpeakerDetailDto;
     blocks!: BlockDetailDto[];
+    masterRecording?: MasterRecordingDto | null;
   }
   

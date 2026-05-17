@@ -1,8 +1,14 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateCorpusDto } from './dto/create-corpus.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Corpus } from './entities/corpus.entity';
-import { Repository } from 'typeorm';
+import { CorpusBlock } from './entities/corpus-block.entity';
+import { In, Repository } from 'typeorm';
 import { CorpusVisibility } from './entities/corpus-visibility';
 import { CorpusDomainService } from 'src/corpus-domain/corpus-domain.service';
 import { LanguageService } from 'src/language/language.service';
@@ -12,16 +18,21 @@ import { S3StorageService } from 'src/s3-storage/s3-storage.service';
 import { CorpusProcesserService } from './corpus-processer.service';
 import * as readline from 'readline';
 import Stream from 'stream';
+import { AudioFileService } from 'src/audio-file/audio-file.service';
 
 @Injectable()
 export class CorpusService {
   constructor(
-    @InjectRepository(Corpus) private readonly corpusRepository: Repository<Corpus>,
+    @InjectRepository(Corpus)
+    private readonly corpusRepository: Repository<Corpus>,
+    @InjectRepository(CorpusBlock)
+    private readonly corpusBlockRepository: Repository<CorpusBlock>,
     @Inject() private readonly languageService: LanguageService,
     @Inject() private readonly corpusDomainService: CorpusDomainService,
     @Inject() private readonly s3StorageService: S3StorageService,
     @Inject() private readonly corpusProcesserService: CorpusProcesserService,
-  ) { }
+    @Inject() private readonly audioFileService: AudioFileService,
+  ) {}
 
   async findOne(id: string): Promise<Corpus> {
     const corpus = await this.corpusRepository.findOne({
@@ -42,7 +53,11 @@ export class CorpusService {
     });
   }
 
-  async create(uploader: IJwtPayload, createCorpusDto: CreateCorpusDto, file: Express.Multer.File): Promise<Corpus> {
+  async create(
+    uploader: IJwtPayload,
+    createCorpusDto: CreateCorpusDto,
+    file: Express.Multer.File,
+  ): Promise<Corpus> {
     const { name, languageCode, visibility, domainName } = createCorpusDto;
     const language = await this.languageService.findOne(languageCode);
 
@@ -55,10 +70,16 @@ export class CorpusService {
 
     //TODO: necessary?
     // Upload original file to the object storage
-    await this.s3StorageService.uploadObject(file, this.s3StorageService.originalCorpusBucket); //No catch, if upload fails, the whole process should fail and throw an error
+    await this.s3StorageService.uploadObject(
+      file,
+      this.s3StorageService.originalCorpusBucket,
+    ); //No catch, if upload fails, the whole process should fail and throw an error
 
     // Split and processed the file (e.g. create blocks of sentences, remove hyphenation, etc.)
-    const txtBuffer = await this.corpusProcesserService.processCorpusFile(file, createCorpusDto.pageSkips); //No catch, if processing fails, the whole process should fail and throw an error
+    const txtBuffer = await this.corpusProcesserService.processCorpusFile(
+      file,
+      createCorpusDto.pageSkips,
+    ); //No catch, if processing fails, the whole process should fail and throw an error
     const txtFile = {
       ...file,
       buffer: txtBuffer,
@@ -66,10 +87,10 @@ export class CorpusService {
       mimetype: 'text/plain',
       size: txtBuffer.length,
     } as Express.Multer.File;
-    console.log("Txt file created")
+    console.log('Txt file created');
 
     // Upload the splitted and processed file to the object storage
-    console.log("Upload txt")
+    console.log('Upload txt');
     const uploadResult = await this.s3StorageService.uploadObject(
       txtFile,
       this.s3StorageService.corpusBucket,
@@ -79,9 +100,12 @@ export class CorpusService {
     // Calculate phonetical coverage
     //     calculate phoneticalCoverage!: number;
 
-    const blockCount = txtBuffer.toString('utf-8').split('\n').filter(l => l.trim().length > 0).length;
+    const blockCount = txtBuffer
+      .toString('utf-8')
+      .split('\n')
+      .filter((l) => l.trim().length > 0).length;
 
-    console.log("Create corpus entity")
+    console.log('Create corpus entity');
     const corpus = this.corpusRepository.create({
       name,
       visibility,
@@ -92,11 +116,15 @@ export class CorpusService {
       blockCount,
     });
 
-    console.log("Save")
+    console.log('Save');
     return this.corpusRepository.save(corpus);
   }
 
-  async getCorpusBlocks(corpusId: string, from: number, to: number): Promise<string[]> {
+  async getCorpusBlocks(
+    corpusId: string,
+    from: number,
+    to: number,
+  ): Promise<string[]> {
     const corpus = await this.findOne(corpusId);
     //TODO: check access rights based on corpus.visibility and user role (admin, uploader, etc.)
     //Download object
@@ -121,7 +149,50 @@ export class CorpusService {
 
   //Save recordings for the specified corpus blocks
   //If the block already has a recording, it should be overwritten
-  async saveRecordings(){
+  async saveRecordings(recordings: BufferedRecording[]): Promise<void> {
+    if (recordings.length === 0) return;
 
+    // Load all referenced blocks
+    const blockIds = recordings.map((r) => r.blockId);
+    const blocks = await this.corpusBlockRepository.find({
+      where: { id: In(blockIds) },
+      relations: ['corpus', 'corpusProject'],
+    });
+
+    if (blocks.length !== blockIds.length) {
+      const found = new Set(blocks.map((b) => b.id));
+      const missing = blockIds.filter((id) => !found.has(id));
+      throw new BadRequestException(
+        `CorpusBlock(s) not found: ${missing.join(', ')}`,
+      );
+    }
+
+    // 3. Create an AudioFile per recording (S3 upload + DB row), then point the
+    //    block at it. Overwrites prior recordings via the OneToOne FK.
+    const blockById = new Map(blocks.map((b) => [b.id, b]));
+    for (const recording of recordings) {
+      const block = blockById.get(recording.blockId)!;
+      const audioFile = await this.audioFileService.create({
+        blob: recording.blob,
+        name: `${block.corpusProject.name}-${block.blockIndex}.wav`,
+        durationSeconds: recording.durationSeconds,
+        transcription: recording.transcription,
+        projectId: block.corpusProject.id,
+      });
+
+      block.audioFile = audioFile;
+      await this.corpusBlockRepository.save(block);
+
+      // TODO: run quality checks here (noise, clipping, level, transcript-match …)
+      //       and upsert AudioQuality rows for the new audioFile.
+    }
   }
+}
+
+export interface BufferedRecording {
+  blob: Blob;
+  blockId: string;
+  blockIndex: number; //not needed in this code part
+  durationSeconds: number;
+  transcription: string; //From WebSpeech API or Whisper
 }

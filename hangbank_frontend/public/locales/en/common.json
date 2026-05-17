@@ -237,6 +237,9 @@
         "pending_save_label": "Unsaved Recordings",
         "recordings_unsaved": "recordings pending",
         "save": "Save",
+        "saving": "Saving…",
+        "save_success": "Recordings saved.",
+        "save_error": "Could not save recordings. Please try again.",
         "hint_space": "Save & next",
         "hint_escape": "Cancel recording",
         "current_prompt": "Current Prompt",
@@ -251,5 +254,17 @@
         "source": "Source",
         "transcription": "Transcription",
         "transcription_placeholder": "The quick brown fox jumps over the lazy dog."
+    },
+    "master_recording": {
+        "title": "Record Master Sample",
+        "subtitle": "Before recording the corpus, capture a short reference sample of your voice. We use this as a baseline for quality checks throughout the project.",
+        "prompt_label": "Please read aloud (example)",
+        "loading_prompt": "Loading prompt…",
+        "save": "Save Master Recording",
+        "saving": "Saving…",
+        "no_recording_yet": "Record a take above, then save to continue.",
+        "duration_label": "Recorded length",
+        "save_error": "Could not save the master recording. Please try again.",
+        "save_not_implemented": "The backend endpoint isn't ready yet — your recording is held locally."
     }
 }
