@@ -28,8 +28,6 @@ function visibilityChipStyle(v: string) {
   return { bgcolor: "#e2e8f0", color: "#475569" };
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
-
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <Box>
@@ -251,8 +249,6 @@ function AddCard({ t, router }: { t: (k: string) => string; router: ReturnType<t
     </Box>
   );
 }
-
-// ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function LibraryPage() {
   const { t } = useTranslation("common");

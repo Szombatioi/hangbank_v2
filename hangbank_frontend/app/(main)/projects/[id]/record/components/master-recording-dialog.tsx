@@ -10,7 +10,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import { AxiosError } from "axios";
 import api from "@/app/axios";
 import Recorder from "@/app/components/recorder";
-import { Severity, useSnackbar } from "@/app/contexts/SnackbarProvider";
+import { Severity, useSnackbar } from "@/app/providers/SnackbarProvider";
 import { BODY, HEADLINE, LABEL, ORANGE } from "@/app/components/style-constants";
 
 interface MasterRecordingDialogProps {

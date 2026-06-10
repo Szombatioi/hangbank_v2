@@ -1,4 +1,5 @@
 export interface QualityMeasure {
+  //TODO: redesign this by the database schema
     name: string; //This is a translatable name for the quality issue e.g. "quality_quietness", "quality_loudness", "quality_noise" (you can use i18 translate with this key)
     // value: number;
     // threshold: number;

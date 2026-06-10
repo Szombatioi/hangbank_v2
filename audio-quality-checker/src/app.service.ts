@@ -28,7 +28,7 @@ export class AppService implements AudioQualityChecker {
     }
 
     audioFiles.forEach(file => {
-      if(!['audio/wav', 'audio/x-wav', 'audio/wave'].includes(file.mimetype)) {
+      if(!['audio/wav', 'audio/x-wav', 'audio/wave'].includes(file.mimetype)) { //TODO: extend file types to any audio file (because of mode 4 files)
         throw new BadRequestException("file_must_be_wav");
       }
     });

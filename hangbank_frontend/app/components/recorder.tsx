@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { IconButton, Paper } from "@mui/material";
 import { Pause, PlayArrow, Stop } from "@mui/icons-material";
 import WaveSurfer from "wavesurfer.js";
-import { Severity, useSnackbar } from "@/app/contexts/SnackbarProvider";
+import { Severity, useSnackbar } from "@/app/providers/SnackbarProvider";
 
 interface RecorderProps {
   deviceId: string;
@@ -103,7 +103,16 @@ export default function Recorder({
         onAudioBlobRef.current(blob, dur);
         await startRecordingInternal();
       }
-      if ((e.code === "Escape" || e.code === "Enter") && isRecordingRef.current) {
+      if (e.code === "Enter" && isRecordingRef.current) {
+        e.preventDefault();
+        const { blob, durationSeconds: dur } = buildBlob();
+        cleanupRecording();
+        setIsRecording(false);
+        setIsPaused(false);
+        onAudioBlobRef.current(blob, dur);
+        //Stop recording, but sending back the blob
+      }
+      if ((e.code === "Escape") && isRecordingRef.current) {
         e.preventDefault();
         cleanupRecording();
         setIsRecording(false);

@@ -81,7 +81,7 @@ export class ProjectService {
 
       //TODO: add role creation here for the provided people
       //Create Owner role for requester user
-      await this.projectRoleService.create(
+      await this.projectRoleService.assignToRole(
         requester.id,
         project.id,
         ProjectRoleType.OWNER,

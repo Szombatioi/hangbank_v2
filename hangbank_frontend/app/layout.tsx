@@ -3,7 +3,7 @@ import { CssBaseline } from "@mui/material";
 import { AuthProvider } from "./contexts/auth-context";
 import { ThemeProvider } from "./contexts/theme-context";
 import { LanguageProvider } from "./providers/language-provider";
-import { SnackbarProvider } from "./contexts/SnackbarProvider";
+import { SnackbarProvider } from "./providers/SnackbarProvider";
 
 export default function RootLayout({
   children,

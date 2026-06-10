@@ -24,7 +24,7 @@ import { ChangeEvent, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { LanguageDto } from "@/app/components/types/language.dto";
 import api from "@/app/axios";
-import { Severity, useSnackbar } from "@/app/contexts/SnackbarProvider";
+import { Severity, useSnackbar } from "@/app/providers/SnackbarProvider";
 import { useRouter } from "next/navigation";
 
 type Visibility = "private" | "public" | "protected";

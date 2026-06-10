@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import api from "@/app/axios";
-import { useSnackbar, Severity } from "@/app/contexts/SnackbarProvider";
+import { useSnackbar, Severity } from "@/app/providers/SnackbarProvider";
 import { BODY } from "@/app/components/style-constants";
 import { CorpusProjectDetailDto } from "./corpus-project-details";
 import MasterRecordingDialog from "./master-recording-dialog";

@@ -10,7 +10,7 @@ export class ProjectRoleService {
     @InjectRepository(ProjectRole) private readonly projectRoleRepository: Repository<ProjectRole>,
   ) {}
 
-  async create(userId: string, projectId: string, role: ProjectRoleType): Promise<ProjectRole> {
+  async assignToRole(userId: string, projectId: string, role: ProjectRoleType): Promise<ProjectRole> {
     return this.projectRoleRepository.save(
       this.projectRoleRepository.create({ userId, projectId, role }),
     );

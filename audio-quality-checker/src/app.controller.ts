@@ -10,7 +10,7 @@ export class AppController {
   @Post()
   @UseInterceptors(FilesInterceptor('wavs', 2, {
     limits: {
-      fileSize: 50 * 1024 * 1024,
+      fileSize: 50 * 1024 * 1024, //TODO: a méret lehet állítandó, de egyelőre legyen 50MB
     },
     storage: memoryStorage()
   }))

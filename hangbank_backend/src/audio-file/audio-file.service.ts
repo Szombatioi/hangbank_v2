@@ -37,7 +37,7 @@ export class AudioFileService {
         s3Link: url,
         durationSeconds: dto.durationSeconds,
         transcription: dto.transcription,
-        project: { id: dto.projectId } as Project,
+        project: { id: dto.projectId } as Project, //TODO ez jó?
       }),
     );
   }
