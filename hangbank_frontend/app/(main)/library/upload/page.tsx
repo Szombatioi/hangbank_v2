@@ -331,7 +331,7 @@ export default function CorpusUploadPage() {
                 return (
                   <Box
                     key={option.value}
-                    onClick={() => setVisibility(option.value)}
+                    onClick={() => option.value !== "protected" && option.value !== "public" && setVisibility(option.value)} // TODO: Implement visibility
                     sx={{
                       display: "flex",
                       alignItems: "flex-start",
@@ -339,8 +339,8 @@ export default function CorpusUploadPage() {
                       px: 2,
                       py: 1.5,
                       borderRadius: 3,
-                      cursor: "pointer",
-                      border: "1.5px solid",
+                      cursor: option.value === "protected" || option.value === "public" ? "not-allowed" : "pointer", // TODO: Implement visibility
+                      border: "1.5px solid", 
                       borderColor: isSelected ? "#b8c8e8" : "transparent",
                       bgcolor: isSelected ? "#e8eef8" : "transparent",
                       transition: "all 0.15s",
@@ -349,6 +349,7 @@ export default function CorpusUploadPage() {
                     <Radio
                       checked={isSelected}
                       onChange={() => setVisibility(option.value)}
+                      disabled={option.value === "protected" || option.value === "public"}
                       size="small"
                       sx={{
                         p: 0,

@@ -70,12 +70,17 @@ export class ProjectService {
         }),
       );
 
-      //Create one block per corpus line
+      //Copy the corpus' master blocks into the project's own blocks
+      const corpusBlocks = await this.corpusBlockRepository.find({
+        where: { corpus: { id: corpus.id }, corpusProject: IsNull() },
+        order: { blockIndex: 'ASC' },
+      });
       await this.corpusBlockRepository.insert(
-        Array.from({ length: corpus.blockCount }, (_, index) => ({
+        corpusBlocks.map((b) => ({
           corpus,
           corpusProject: project,
-          blockIndex: index,
+          blockIndex: b.blockIndex,
+          text: b.text,
         })),
       );
 
@@ -94,13 +99,6 @@ export class ProjectService {
   }
 
   async getBlocks(projectId: string, from: number = 0, to: number = 50) {
-    const project = await this.corpusBasedProjectRepository.findOne({
-      where: { id: projectId },
-      relations: ['corpus'],
-    });
-    if (!project)
-      throw new NotFoundException(`Project with id '${projectId}' not found`);
-
     const [blocks, total] = await this.corpusBlockRepository.findAndCount({
       where: { corpusProject: { id: projectId } },
       relations: ['audioFile'],
@@ -109,24 +107,12 @@ export class ProjectService {
       take: to - from,
     });
 
-    if (blocks.length === 0) return { data: [], total };
-
-    // blockIndex maps 1-to-1 to corpus line numbers, so slice the corpus text
-    // for exactly this page of blocks in a single S3 download.
-    const firstIdx = blocks[0].blockIndex;
-    const lastIdx = blocks[blocks.length - 1].blockIndex;
-    const texts = await this.corpusService.getCorpusBlocks(
-      project.corpus.id,
-      firstIdx,
-      lastIdx + 1,
-    );
-
     return {
       data: blocks.map((b) => ({
         id: b.id,
         blockIndex: b.blockIndex,
         isRecorded: !!b.audioFile,
-        text: texts[b.blockIndex - firstIdx] ?? null,
+        text: b.text,
       })),
       total,
     };
@@ -350,7 +336,7 @@ export class ProjectService {
     });
 
     const blocksByProject = new Map(
-      blocks.map((b) => [b.id, b.corpusProject.id]),
+      blocks.map((b) => [b.id, b.corpusProject?.id]),
     );
     const foreign = blockIds.filter(
       (id) => blocksByProject.get(id) !== projectId,

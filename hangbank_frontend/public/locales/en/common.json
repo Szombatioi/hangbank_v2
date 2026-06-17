@@ -63,13 +63,13 @@
         "domain": "Domain",
         "skip_pages": "Skip Pages",
         "visibility": {
-            "title": "Visibility Settings",
+            "title": "Visibility Settings (only private for now)",
             "private": "Private",
-            "private_desc": "Only you can access and use this corpus for transcriptions.",
+            "private_desc": "Only you can access and use this corpus.",
             "public": "Public",
-            "public_desc": "Anyone in the Sonic Archive community can use this data.",
+            "public_desc": "Anyone in the Hangbank community can use this data.",
             "protected": "Protected",
-            "protected_desc": "Grant specific access to members via email address."
+            "protected_desc": "Grant specific access to members."
         },
         "access_control": {
             "title": "Access Control",
@@ -118,6 +118,14 @@
     "corpus_upload":{
         "success": "Corpus uploaded successfully!",
         "failure": "Failed to upload corpus. Please try again."
+    },
+    "corpus_view": {
+        "block_count": "{{count}} blocks",
+        "not_found": "Corpus not found.",
+        "access_denied": "You do not have access to this corpus.",
+        "error_load": "Failed to load corpus. Please try again.",
+        "error_load_blocks": "Failed to load blocks. Please try again.",
+        "load_more": "Load more"
     },
     "new_project": {
         "corpus_based_title": "Corpus based",

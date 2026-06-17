@@ -14,7 +14,7 @@ export class CorpusProcesserService {
   ];
 
   public async processCorpusFile(file: Express.Multer.File, skipPages: number = 0,
-  ): Promise<Buffer> {
+  ): Promise<string[]> {
     const ext = file.originalname.split('.').pop()?.toLowerCase();
     let rawText: string;
 
@@ -33,8 +33,7 @@ export class CorpusProcesserService {
       throw new BadRequestException('Unsupported file format. Use .txt, .docx, or .pdf');
     }
 
-    const sentences = this.extractSentences(rawText);
-    return Buffer.from(sentences.join('\n'), 'utf-8');
+    return this.extractSentences(rawText);
   }
 
   public extractSentences(text: string): string[] {

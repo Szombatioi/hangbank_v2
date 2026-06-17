@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
@@ -8,7 +9,7 @@ import { CreateCorpusDto } from './dto/create-corpus.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Corpus } from './entities/corpus.entity';
 import { CorpusBlock } from './entities/corpus-block.entity';
-import { In, Repository } from 'typeorm';
+import { In, IsNull, Repository } from 'typeorm';
 import { CorpusVisibility } from './entities/corpus-visibility';
 import { CorpusDomainService } from 'src/corpus-domain/corpus-domain.service';
 import { LanguageService } from 'src/language/language.service';
@@ -16,8 +17,6 @@ import { CorpusDomain } from 'src/corpus-domain/entities/corpus-domain.entity';
 import type { IJwtPayload } from '@hangbank/shared';
 import { S3StorageService } from 'src/s3-storage/s3-storage.service';
 import { CorpusProcesserService } from './corpus-processer.service';
-import * as readline from 'readline';
-import Stream from 'stream';
 import { AudioFileService } from 'src/audio-file/audio-file.service';
 
 @Injectable()
@@ -45,6 +44,18 @@ export class CorpusService {
     return corpus;
   }
 
+  //TODO: handle PROTECTED access via UserCorpusAccess once implemented
+  async findOneForUser(id: string, userId: string): Promise<Corpus> {
+    const corpus = await this.findOne(id);
+    if (
+      corpus.visibility === CorpusVisibility.PRIVATE &&
+      corpus.uploaderId !== userId
+    ) {
+      throw new ForbiddenException(`No access to corpus with id '${id}'`);
+    }
+    return corpus;
+  }
+
   async findAll(uploaderId: string): Promise<Corpus[]> {
     return this.corpusRepository.find({
       where: { uploaderId },
@@ -68,83 +79,60 @@ export class CorpusService {
       domain = await this.corpusDomainService.create({ name: domainName });
     }
 
-    //TODO: necessary?
-    // Upload original file to the object storage
-    await this.s3StorageService.uploadObject(
+    // Store the original file as-is for reference
+    const uploadResult = await this.s3StorageService.uploadObject(
       file,
       this.s3StorageService.originalCorpusBucket,
-    ); //No catch, if upload fails, the whole process should fail and throw an error
+    );
 
-    // Split and processed the file (e.g. create blocks of sentences, remove hyphenation, etc.)
-    const txtBuffer = await this.corpusProcesserService.processCorpusFile(
+    // Split into sentence blocks so the corpus can be viewed and copied later
+    const sentences = await this.corpusProcesserService.processCorpusFile(
       file,
       createCorpusDto.pageSkips,
-    ); //No catch, if processing fails, the whole process should fail and throw an error
-    const txtFile = {
-      ...file,
-      buffer: txtBuffer,
-      originalname: file.originalname.replace(/\.[^/.]+$/, '.txt'),
-      mimetype: 'text/plain',
-      size: txtBuffer.length,
-    } as Express.Multer.File;
-    console.log('Txt file created');
-
-    // Upload the splitted and processed file to the object storage
-    console.log('Upload txt');
-    const uploadResult = await this.s3StorageService.uploadObject(
-      txtFile,
-      this.s3StorageService.corpusBucket,
     );
 
     //TODO: use the specified method to calculate this (e.g. for HUN, the university will provide one that can be selected on the UI)
     // Calculate phonetical coverage
     //     calculate phoneticalCoverage!: number;
 
-    const blockCount = txtBuffer
-      .toString('utf-8')
-      .split('\n')
-      .filter((l) => l.trim().length > 0).length;
+    const corpus = await this.corpusRepository.save(
+      this.corpusRepository.create({
+        name,
+        visibility,
+        language,
+        domain,
+        uploaderId: uploader.id,
+        s3Link: uploadResult.url,
+        blockCount: sentences.length,
+      }),
+    );
 
-    console.log('Create corpus entity');
-    const corpus = this.corpusRepository.create({
-      name,
-      visibility,
-      language,
-      domain,
-      uploaderId: uploader.id,
-      s3Link: uploadResult.url,
-      blockCount,
-    });
+    await this.corpusBlockRepository.insert(
+      sentences.map((text, index) => ({
+        corpus,
+        blockIndex: index,
+        text,
+      })),
+    );
 
-    console.log('Save');
-    return this.corpusRepository.save(corpus);
+    return corpus;
   }
 
+  // Master blocks of the corpus itself (not bound to any project)
   async getCorpusBlocks(
     corpusId: string,
+    userId: string,
     from: number,
     to: number,
   ): Promise<string[]> {
-    const corpus = await this.findOne(corpusId);
-    //TODO: check access rights based on corpus.visibility and user role (admin, uploader, etc.)
-    //Download object
-    const fileStream = await this.s3StorageService.downloadObject(
-      corpus.s3Link,
-      this.s3StorageService.corpusBucket,
-    );
-    //Convert stream to string
-    const lines = await this.streamToLines(fileStream);
-    return lines.slice(from, to); //TO = exclusive, FROM = inclusive
-  }
-
-  async streamToLines(stream: Stream.Readable): Promise<string[]> {
-    const rl = readline.createInterface({ input: stream, crlfDelay: Infinity });
-    const lines: string[] = [];
-    for await (const line of rl) {
-      const trimmed = line.trim();
-      if (trimmed.length > 0) lines.push(trimmed);
-    }
-    return lines;
+    await this.findOneForUser(corpusId, userId);
+    const blocks = await this.corpusBlockRepository.find({
+      where: { corpus: { id: corpusId }, corpusProject: IsNull() },
+      order: { blockIndex: 'ASC' },
+      skip: from,
+      take: to - from,
+    });
+    return blocks.map((b) => b.text);
   }
 
   //Save recordings for the specified corpus blocks
@@ -174,10 +162,10 @@ export class CorpusService {
       const block = blockById.get(recording.blockId)!;
       const audioFile = await this.audioFileService.create({
         blob: recording.blob,
-        name: `${block.corpusProject.name}-${block.blockIndex}.wav`,
+        name: `${block.corpusProject!.name}-${block.blockIndex}.wav`,
         durationSeconds: recording.durationSeconds,
         transcription: recording.transcription,
-        projectId: block.corpusProject.id,
+        projectId: block.corpusProject!.id,
       });
 
       block.audioFile = audioFile;

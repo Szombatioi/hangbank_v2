@@ -43,15 +43,24 @@ export class CorpusController {
     return this.corpusService.create(req.user, createCorpusDto, file);
   }
 
+  @UseGuards(AuthGuard)
+  @Get(':id')
+  findOne(
+    @Req() req: Request & { user: IJwtPayload },
+    @Param('id') id: string,
+  ) {
+    return this.corpusService.findOneForUser(id, req.user.id);
+  }
+
   @Get(':id/blocks')
   @UseGuards(AuthGuard)
   async getCorpusBlocks(
-    @Req() req: Request & { user?: IJwtPayload },
+    @Req() req: Request & { user: IJwtPayload },
     @Param('id') id: string,
     @Query('from', ParseIntPipe) from: number,
     @Query('to', ParseIntPipe) to: number,
   ) {
-    return this.corpusService.getCorpusBlocks(id, from, to);
+    return this.corpusService.getCorpusBlocks(id, req.user.id, from, to);
   }
 
   // @Post("test")
