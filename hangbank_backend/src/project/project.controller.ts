@@ -2,7 +2,9 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
   Param,
   Post,
   Query,
@@ -42,6 +44,13 @@ export class ProjectController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.projectService.findOne(id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Delete(':id')
+  @HttpCode(204)
+  remove(@Req() req: { user: IJwtPayload }, @Param('id') id: string) {
+    return this.projectService.remove(req.user.id, id);
   }
 
   @UseGuards(AuthGuard)

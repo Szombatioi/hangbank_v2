@@ -6,15 +6,18 @@ import { useTranslation } from "react-i18next";
 import {
     Accordion, AccordionDetails, AccordionSummary,
     Alert, Box, Button, Chip, CircularProgress,
-    Grid, Paper, Snackbar, Typography,
+    Grid, IconButton, Paper, Snackbar, Typography,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import { AxiosError } from "axios";
 import api from "@/app/axios";
 import { ProjectDto } from "@/app/components/types/project.dto";
 import { BODY, HEADLINE, LABEL, ORANGE } from "@/app/components/style-constants";
 import SectionHeader from "./components/section-header";
 import BlockCard from "./components/block-card";
+import ConfirmDialog from "@/app/components/confirm-dialog";
 import FiberManualRecord from "@mui/icons-material/FiberManualRecord";
 
 
@@ -56,6 +59,8 @@ export default function ProjectDetailPage() {
     const [blocksLoading, setBlocksLoading] = useState(false);
     const [loadingMore, setLoadingMore] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
     useEffect(() => {
         api.get<ProjectDto>(`/project/${id}`)
@@ -88,11 +93,36 @@ export default function ProjectDetailPage() {
 
     const handleLoadMore = () => fetchBlocks(blocks.length, true);
 
+    const handleDelete = async () => {
+        setDeleting(true);
+        try {
+            await api.delete(`/project/${id}`);
+            router.push("/projects");
+        } catch (err) {
+            const status = (err as AxiosError).response?.status;
+            setError(status === 403 ? t("project_detail.delete_forbidden") : t("project_detail.delete_error"));
+            setConfirmOpen(false);
+        } finally {
+            setDeleting(false);
+        }
+    };
+
     return (
         <Box sx={{ p: { xs: 3, md: 5 }, maxWidth: 1200, mx: "auto" }}>
-            <Typography sx={{ fontFamily: HEADLINE, fontWeight: 700, fontSize: "1.5rem", color: "#0f172a", letterSpacing: "-0.02em", mb: 4 }}>
-                {t("project_detail.title")}
-            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 4 }}>
+                <Typography sx={{ fontFamily: HEADLINE, fontWeight: 700, fontSize: "1.5rem", color: "#0f172a", letterSpacing: "-0.02em" }}>
+                    {t("project_detail.title")}
+                </Typography>
+                {project && (
+                    <IconButton
+                        onClick={() => setConfirmOpen(true)}
+                        aria-label={t("project_detail.delete")}
+                        sx={{ color: "#94a3b8", "&:hover": { color: "#dc2626", bgcolor: "transparent" } }}
+                    >
+                        <DeleteOutlineIcon />
+                    </IconButton>
+                )}
+            </Box>
 
             {loading ? (
                 <Box sx={{ display: "flex", justifyContent: "center", mt: 8 }}>
@@ -251,6 +281,17 @@ export default function ProjectDetailPage() {
                     {error}
                 </Alert>
             </Snackbar>
+
+            <ConfirmDialog
+                open={confirmOpen}
+                title={t("project_detail.delete_title")}
+                description={t("project_detail.delete_description", { name: project?.name ?? "" })}
+                proceedLabel={t("project_detail.delete")}
+                loading={deleting}
+                dangerous
+                onProceed={handleDelete}
+                onCancel={() => { if (!deleting) setConfirmOpen(false); }}
+            />
         </Box>
     );
 }

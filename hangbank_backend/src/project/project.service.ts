@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CorpusBasedProject } from './entities/corpus-based-project.entity';
 import { Speaker } from './entities/speaker.entity';
@@ -96,6 +96,29 @@ export class ProjectService {
     } catch (ex) {
       throw ex;
     }
+  }
+
+  //Only the project owner may delete it; dependent rows (roles, speaker, blocks,
+  //audio files) are removed via their CASCADE foreign keys
+  async remove(requesterId: string, projectId: string): Promise<void> {
+    const project = await this.corpusBasedProjectRepository.findOne({
+      where: { id: projectId },
+      relations: ['roles'],
+    });
+    if (!project) {
+      throw new NotFoundException(`Project with id '${projectId}' not found`);
+    }
+
+    const isOwner = project.roles.some(
+      (r) => r.userId === requesterId && r.role === ProjectRoleType.OWNER,
+    );
+    if (!isOwner) {
+      throw new ForbiddenException(
+        'Only the project owner can delete this project',
+      );
+    }
+
+    await this.corpusBasedProjectRepository.delete(projectId);
   }
 
   async getBlocks(projectId: string, from: number = 0, to: number = 50) {

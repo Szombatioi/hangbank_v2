@@ -221,7 +221,12 @@
         "error_load": "Failed to load project. Please try again.",
         "error_load_blocks": "Failed to load blocks. Please try again.",
         "load_more": "Load more",
-        "bit_depth": "Bit Depth"
+        "bit_depth": "Bit Depth",
+        "delete": "Delete",
+        "delete_title": "Delete Project",
+        "delete_description": "Are you sure you want to permanently delete \"{{name}}\"? All recordings and blocks will be removed. This action cannot be undone.",
+        "delete_forbidden": "Only the project owner can delete this project.",
+        "delete_error": "Failed to delete project. Please try again."
     },
     "projects": {
         "active_projects": "Active projects",
