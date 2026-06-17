@@ -8,18 +8,11 @@ import { ArrowForward } from "@mui/icons-material";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { register } from "../../axios";
+import { COLORS, WAVEFORM_HEIGHTS } from "../login/page";
 
 const HEADLINE_FONT = "'Space Grotesk', sans-serif";
 const BODY_FONT = "'Inter', sans-serif";
 const LABEL_FONT = "'Manrope', sans-serif";
-
-const COLORS = {
-    primaryAccent: "#ed4a14",
-    secondaryText: "#47607e",
-    inputBg: "#f3f4f5",
-    borderColor: "#c4c6cc",
-    darkBg: "#1B263B",
-};
 
 export default function RegisterPage() {
     const { t } = useTranslation("common");
@@ -104,24 +97,133 @@ export default function RegisterPage() {
                     overflow: 'hidden'
                 }}
             >
-                {/* Left part: Sidebar */}
+                {/* Left Panel: Brand & Identity */}
                 <Box
                     sx={{
-                        width: { xs: '0%', md: '25%' },
-                        display: { xs: 'none', md: 'flex' },
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
+                        width: { xs: "0%", md: "45%" },
+                        display: { xs: "none", md: "flex" },
+                        flexDirection: "column",
+                        justifyContent: "space-between",
                         backgroundColor: COLORS.darkBg,
-                        color: 'white',
-                        p: 6
+                        color: "white",
+                        p: 6,
+                        position: "relative",
+                        overflow: "hidden",
                     }}
                 >
-                    <Box>
-                        <Typography variant="h4" sx={{ fontFamily: HEADLINE_FONT, fontWeight: 700, mb: 2 }}>
+                    {/* Decorative waveform background */}
+                    <Box
+                        sx={{
+                            position: "absolute",
+                            inset: 0,
+                            opacity: 0.08,
+                            pointerEvents: "none",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                        }}
+                    >
+                        <Box sx={{ display: "flex", alignItems: "flex-end", gap: "4px", height: "220px" }}>
+                            {WAVEFORM_HEIGHTS.map((h, i) => (
+                                <Box key={i} sx={{ width: "4px", height: `${h}%`, bgcolor: COLORS.waveBar }} />
+                            ))}
+                        </Box>
+                    </Box>
+
+                    {/* Top: Brand */}
+                    <Box sx={{ zIndex: 1 }}>
+                        <Typography
+                            sx={{
+                                fontFamily: HEADLINE_FONT,
+                                fontWeight: 700,
+                                fontSize: "1.25rem",
+                                textTransform: "uppercase",
+                                letterSpacing: "-0.02em",
+                                mb: 0.5,
+                            }}
+                        >
                             {t("brand_name")}
                         </Typography>
-                        <Typography variant="body1" sx={{ opacity: 0.7, fontFamily: BODY_FONT }}>
+                        <Typography
+                            sx={{
+                                fontFamily: LABEL_FONT,
+                                fontSize: "9px",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.2em",
+                                opacity: 0.7,
+                                color: COLORS.waveBar,
+                            }}
+                        >
                             {t("register_subtitle")}
+                        </Typography>
+                    </Box>
+
+                    {/* Middle: Tagline + Stats */}
+                    <Box sx={{ zIndex: 1 }}>
+                        <Typography
+                            variant="h3"
+                            sx={{
+                                fontFamily: HEADLINE_FONT,
+                                fontWeight: 700,
+                                fontSize: "2.8rem",
+                                lineHeight: 1.1,
+                                letterSpacing: "-0.03em",
+                                mb: 2,
+                                whiteSpace: "pre-line",
+                            }}
+                        >
+                            {t("login_hero")}
+                        </Typography>
+                        <Typography
+                            sx={{
+                                fontFamily: BODY_FONT,
+                                color: COLORS.waveBar,
+                                fontSize: "1rem",
+                                fontWeight: 300,
+                                lineHeight: 1.6,
+                                mb: 4,
+                                maxWidth: "300px",
+                            }}
+                        >
+                            {t("login_hero_sub")}
+                        </Typography>
+                        {/* <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
+                                            {[
+                                                { val: "24.8k", label: t("stat_archived_nodes") },
+                                                { val: "0.02ms", label: t("stat_signal_latency") },
+                                            ].map(({ val, label }) => (
+                                                <Box
+                                                    key={val}
+                                                    sx={{
+                                                        p: 2,
+                                                        borderRadius: "4px",
+                                                        border: "1px solid rgba(255,255,255,0.08)",
+                                                        bgcolor: "rgba(255,255,255,0.03)",
+                                                    }}
+                                                >
+                                                    <Typography sx={{ fontFamily: HEADLINE_FONT, fontWeight: 700, fontSize: "1.25rem", color: "white" }}>
+                                                        {val}
+                                                    </Typography>
+                                                    <Typography sx={{ fontFamily: LABEL_FONT, fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.15em", color: COLORS.waveBar }}>
+                                                        {label}
+                                                    </Typography>
+                                                </Box>
+                                            ))}
+                                        </Box> */}
+                    </Box>
+
+                    {/* Bottom: Footer meta */}
+                    <Box sx={{ zIndex: 1, pt: 3, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+                        <Typography
+                            sx={{
+                                fontFamily: LABEL_FONT,
+                                fontSize: "9px",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.15em",
+                                color: COLORS.waveBar,
+                            }}
+                        >
+                            {t("login_footer_meta")}
                         </Typography>
                     </Box>
                 </Box>
@@ -180,7 +282,7 @@ export default function RegisterPage() {
                             )}
 
                             {/* Profile Picture */}
-                            <Box>
+                            {/* <Box>
                                 <Typography sx={labelStyle}>{t("label_identity")}</Typography>
                                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                                     <Avatar sx={{ bgcolor: COLORS.inputBg, width: 56, height: 56, border: `1px dashed ${COLORS.borderColor}` }}>
@@ -190,7 +292,7 @@ export default function RegisterPage() {
                                         {t("button_upload_image")}
                                     </Button>
                                 </Box>
-                            </Box>
+                            </Box> */}
 
                             {/* Name Fields */}
                             <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
