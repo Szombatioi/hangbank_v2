@@ -136,6 +136,26 @@ export class CorpusService {
     return blocks.map((b) => b.text);
   }
 
+  async remove(id: string): Promise<void> {
+    const corpus = await this.findOne(id); // throws 404 if not found
+
+    try {
+      await this.corpusRepository.delete(id);
+    } catch (err) {
+      // Postgres FK violation (23503): corpus is still referenced by one or more projects
+      if (err instanceof QueryFailedError && (err as any).code === '23503') {
+        throw new ConflictException('corpus_in_use');
+      }
+      throw err;
+    }
+
+    // s3Link points to the original file; only delete it once the DB row is gone
+    await this.s3StorageService.deleteObject(
+      corpus.s3Link,
+      this.s3StorageService.originalCorpusBucket,
+    );
+  }
+
   //Save recordings for the specified corpus blocks
   //If the block already has a recording, it should be overwritten
   async saveRecordings(recordings: BufferedRecording[]): Promise<void> {

@@ -233,6 +233,9 @@
         "multi_speaker_conversation": "Multi-speaker Conversation",
         "existing_files": "Existing Files"
     },
+    "confirm_dialog":{
+        "cancel": "Cancel"
+    },
     "project_page": {
         "fetch_error": "Could not fetch project.",
         "not_found": "Project not found.",

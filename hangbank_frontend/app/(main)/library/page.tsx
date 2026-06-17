@@ -17,7 +17,7 @@ import api from "@/app/axios";
 import { CorpusDto, CorpusVisibility } from "@/app/components/types/corpus.dto";
 import { LanguageDto } from "@/app/components/types/language.dto";
 import ConfirmDialog from "@/app/components/confirm-dialog";
-import { useSnackbar, Severity } from "@/app/contexts/SnackbarProvider";
+import { useSnackbar, Severity } from "@/app/providers/SnackbarProvider";
 
 const HEADLINE = "'Space Grotesk', sans-serif";
 const LABEL = "'Manrope', sans-serif";
