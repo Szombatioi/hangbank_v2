@@ -276,7 +276,6 @@ export default function LibraryPage() {
   const [deleting, setDeleting] = useState(false);
 
   const openDeleteConfirm = (corpus: CorpusDto) => {
-    console.log("?????,")
     setTargetCorpus(corpus);
     setConfirmOpen(true);
   };
