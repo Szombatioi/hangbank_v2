@@ -110,7 +110,14 @@
             "public": "Public",
             "protected": "Protected",
             "private": "Private"
-        }
+        },
+        "delete_corpus_title": "Delete Corpus",
+        "delete_corpus_description": "Are you sure you want to permanently delete \"{{name}}\"? This action cannot be undone.",
+        "delete_corpus_in_use_warning": "⚠ This corpus cannot be deleted while it is referenced by one or more projects.",
+        "delete_corpus_in_use": "Cannot delete: this corpus is still in use by one or more projects.",
+        "delete_corpus_confirm_button": "Delete Corpus",
+        "delete_success": "Corpus deleted.",
+        "delete_error": "Failed to delete corpus. Please try again."
     },
     "error":{
         "language_load": "Could not load available languages."

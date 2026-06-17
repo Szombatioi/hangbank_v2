@@ -1,7 +1,7 @@
 import {
   Body,
-  Controller,
-  Get,
+  Controller, Delete,
+  Get, HttpCode,
   Param,
   ParseIntPipe,
   Post,
@@ -41,6 +41,13 @@ export class CorpusController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     return this.corpusService.create(req.user, createCorpusDto, file);
+  }
+
+  @UseGuards(AuthGuard)
+  @Delete(':id')
+  @HttpCode(204)
+  remove(@Param('id') id: string) {
+    return this.corpusService.remove(id);
   }
 
   @UseGuards(AuthGuard)

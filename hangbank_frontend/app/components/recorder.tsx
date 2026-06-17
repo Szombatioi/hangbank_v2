@@ -34,6 +34,7 @@ export default function Recorder({
   const [durationSeconds, setDurationSeconds] = useState(0);
 
   const audioContextRef = useRef<AudioContext | null>(null);
+  const actualSampleRateRef = useRef<number>(sampleRate);
   const pcmChunksRef = useRef<Float32Array[]>([]);
   const workletNodeRef = useRef<AudioWorkletNode | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
@@ -134,7 +135,9 @@ export default function Recorder({
       merged.set(c, offset);
       offset += c.length;
     }
-    waveSurferRef.current.loadBlob(encodeWav(merged, sampleRate, bitDepth));
+    // waveSurferRef.current.loadBlob(encodeWav(merged, sampleRate, bitDepth));
+    waveSurferRef.current.loadBlob(encodeWav(merged, actualSampleRateRef.current, bitDepth));
+
   }
 
   function buildBlob(): { blob: Blob; durationSeconds: number } {
@@ -164,7 +167,10 @@ export default function Recorder({
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({
-        audio: { deviceId: deviceId ? { exact: deviceId } : undefined },
+        audio: {
+          deviceId: deviceId ? { exact: deviceId } : undefined,
+          sampleRate: { ideal: sampleRate } //"exact" could throw OverconstrainedError
+        },
       });
     } catch {
       showMessage("Failed to access microphone device", Severity.error);
@@ -174,7 +180,16 @@ export default function Recorder({
     mediaStreamRef.current = stream;
     const audioContext = new AudioContext({ sampleRate });
     audioContextRef.current = audioContext;
+    actualSampleRateRef.current = audioContext.sampleRate;
 
+
+    //Checking if sample rate is supported by the AudioContext.
+    if (audioContext.sampleRate !== sampleRate) {
+      showMessage( //TODO add permanent warning
+        `Requested ${sampleRate} Hz but AudioContext runs at ${audioContext.sampleRate} Hz — audio will be resampled`,
+        Severity.error,
+      );
+    }
     await audioContext.audioWorklet.addModule("/recorder-worklet.js");
 
     const source = audioContext.createMediaStreamSource(stream);

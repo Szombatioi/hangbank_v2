@@ -1,10 +1,11 @@
-import {
+import { ConflictException,
   BadRequestException,
   ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { QueryFailedError } from 'typeorm';
 import { CreateCorpusDto } from './dto/create-corpus.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Corpus } from './entities/corpus.entity';
