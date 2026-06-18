@@ -49,6 +49,7 @@
     "nav_archive": "Archive",
     "nav_settings": "Settings",
     "nav_support": "Support",
+    "nav_logout": "Logout",
     "button_new_recording": "New Recording",
     "button_new_project": "New Project",
     "upload_corpus_page": {

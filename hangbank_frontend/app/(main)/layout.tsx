@@ -30,6 +30,7 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "@mui/material/styles";
 import { useAuth } from "../contexts/auth-context";
 import { useCustomTheme } from "../contexts/theme-context";
+import api, { removeAuthToken } from "../axios";
 
 const DRAWER_WIDTH = 256;
 const LABEL_FONT = "'Manrope', sans-serif";
@@ -47,6 +48,12 @@ const APPBAR_ITEMS = [
   // { key: "nav_notifications" },
   // { key: "nav_profile", icon: <AccountCircle /> },
   // { key: "nav_settings", icon: <Settings fontSize="small" /> },
+];
+
+const APPBAR_ITEMS_END = [
+  { key: "nav_logout", path: "/auth/login", onClick: () => {
+    removeAuthToken();
+  }},
 ];
 
 const FOOTER_ITEMS = [
@@ -268,7 +275,9 @@ export default function MainLayout({
             return (
               <Box
                 key={key}
-                onClick={() => router.push(path)}
+                onClick={() => {
+                  router.push(path);
+                }}
                 sx={{
                   cursor: "pointer",
                   fontFamily: LABEL_FONT,
@@ -293,9 +302,49 @@ export default function MainLayout({
               </Box>
             );
           })}
+
+          {/* Filler element */}
+          <Box sx={{ flex: 1 }} />
+
           <IconButton onClick={toggleTheme} color="inherit">
             {mode === "dark" ? <LightMode /> : <DarkMode />}
           </IconButton>
+
+          {/* Right side */}
+          {APPBAR_ITEMS_END.map(({ key, path, onClick }) => {
+            const active = pathname === path || pathname.startsWith(path + "/");
+            const textColor = isDark ? "#F0F1F2" : "#060a17";
+            return (
+              <Box
+                key={key}
+                onClick={() => {
+                  if(onClick) onClick();
+                  router.push(path);
+                }}
+                sx={{
+                  cursor: "pointer",
+                  fontFamily: LABEL_FONT,
+                  fontSize: "0.7rem",
+                  fontWeight: active ? 700 : 500,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.12em",
+                  color: active
+                    ? textColor
+                    : isDark
+                    ? "rgba(240,241,242,0.5)"
+                    : "rgba(6,10,23,0.45)",
+                  borderBottom: active
+                    ? `2px solid ${textColor}`
+                    : "2px solid transparent",
+                  pb: "2px",
+                  transition: "all 0.2s ease",
+                  "&:hover": { color: textColor },
+                }}
+              >
+                {t(key)}
+              </Box>
+            );
+          })}
         </Toolbar>
       </AppBar>
       <Box sx={{ display: "flex", flex: 1 }}>
