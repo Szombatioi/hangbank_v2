@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { IconButton, Paper } from "@mui/material";
-import { Pause, PlayArrow, Stop } from "@mui/icons-material";
+import { Pause, PlayArrow, Replay, Stop } from "@mui/icons-material";
 import WaveSurfer from "wavesurfer.js";
 import { Severity, useSnackbar } from "@/app/providers/SnackbarProvider";
 
@@ -32,6 +32,8 @@ export default function Recorder({
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [durationSeconds, setDurationSeconds] = useState(0);
+  const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const actualSampleRateRef = useRef<number>(sampleRate);
@@ -65,6 +67,10 @@ export default function Recorder({
       autoScroll: true,
       autoCenter: true,
     });
+    // Keep the playback toggle in sync with the recorded-audio playback
+    waveSurferRef.current.on("play", () => setIsPlaying(true));
+    waveSurferRef.current.on("pause", () => setIsPlaying(false));
+    waveSurferRef.current.on("finish", () => setIsPlaying(false));
     return () => {
       waveSurferRef.current?.destroy();
     };
@@ -106,11 +112,7 @@ export default function Recorder({
       }
       if (e.code === "Enter" && isRecordingRef.current) {
         e.preventDefault();
-        const { blob, durationSeconds: dur } = buildBlob();
-        cleanupRecording();
-        setIsRecording(false);
-        setIsPaused(false);
-        onAudioBlobRef.current(blob, dur);
+        stopAndEmit();
         //Stop recording, but sending back the blob
       }
       if ((e.code === "Escape") && isRecordingRef.current) {
@@ -161,6 +163,10 @@ export default function Recorder({
   }
 
   async function startRecordingInternal() {
+    // Drop any previously recorded playback when (re-)recording
+    waveSurferRef.current?.stop();
+    setIsPlaying(false);
+    setRecordedBlob(null);
     pcmChunksRef.current = [];
     setDurationSeconds(0);
 
@@ -219,13 +225,24 @@ export default function Recorder({
     setIsPaused(false);
   }
 
-  function handleStop() {
-    if (!isRecordingRef.current) return;
+  // Stop recording, keep the blob locally so it can be played back, and emit it
+  function stopAndEmit() {
     const { blob, durationSeconds: dur } = buildBlob();
     cleanupRecording();
     setIsRecording(false);
     setIsPaused(false);
-    onAudioBlob(blob, dur);
+    setRecordedBlob(blob);
+    waveSurferRef.current?.loadBlob(blob);
+    onAudioBlobRef.current(blob, dur);
+  }
+
+  function handleStop() {
+    if (!isRecordingRef.current) return;
+    stopAndEmit();
+  }
+
+  function handlePlayPause() {
+    waveSurferRef.current?.playPause();
   }
 
   return (
@@ -276,15 +293,7 @@ export default function Recorder({
           </span>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
-          {!isRecording ? (
-            <IconButton
-              onClick={handleStart}
-              size="medium"
-              sx={{ boxShadow: "0px 0px 10px rgba(0,0,0,0.2)" }}
-            >
-              <PlayArrow />
-            </IconButton>
-          ) : (
+          {isRecording ? (
             <>
               <IconButton
                 onClick={isPaused ? handleResume : handlePause}
@@ -301,6 +310,31 @@ export default function Recorder({
                 <Stop />
               </IconButton>
             </>
+          ) : recordedBlob ? (
+            <>
+              <IconButton
+                onClick={handlePlayPause}
+                size="medium"
+                sx={{ boxShadow: "0px 0px 10px rgba(0,0,0,0.2)" }}
+              >
+                {isPlaying ? <Pause /> : <PlayArrow />}
+              </IconButton>
+              <IconButton
+                onClick={handleStart}
+                size="medium"
+                sx={{ boxShadow: "0px 0px 10px rgba(0,0,0,0.2)" }}
+              >
+                <Replay />
+              </IconButton>
+            </>
+          ) : (
+            <IconButton
+              onClick={handleStart}
+              size="medium"
+              sx={{ boxShadow: "0px 0px 10px rgba(0,0,0,0.2)" }}
+            >
+              <PlayArrow />
+            </IconButton>
           )}
         </div>
         <div />

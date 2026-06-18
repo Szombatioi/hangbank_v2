@@ -16,7 +16,16 @@ export default function BlockCard({ block, projectId }: { block: BlockDto; proje
             elevation={0}
             sx={{ border: "1px solid #e2e8f0", borderRadius: 2, p: 2, display: "flex", flexDirection: "column", gap: 1.5, height: "100%" }}
         >
-            <Typography sx={{ fontFamily: HEADLINE, fontWeight: 700, fontSize: "0.9rem", color: "#0f172a" }}>
+            <Typography
+                sx={{ 
+                    fontFamily: HEADLINE, 
+                    fontWeight: 700, 
+                    fontSize: "0.9rem", 
+                    color: "#0f172a", 
+                    cursor: block.audioFile ? "pointer" : "default" }}
+                onClick={() => {
+                    if (block.audioFile) router.push(`/projects/${projectId}/block/${block.audioFile.id}`)
+                }}>
                 {t("project_detail.block")} #{block.blockIndex + 1}
             </Typography>
 
@@ -50,7 +59,7 @@ export default function BlockCard({ block, projectId }: { block: BlockDto; proje
                     fontSize: "0.72rem",
                     "&:hover": { bgcolor: "#0f172a" },
                 }}
-                onClick={() => router.push(`/projects/${projectId}/record`)}
+                onClick={() => router.push(`/projects/${projectId}/record?startFrom=${block.blockIndex}`)}
             >
                 {t("project_detail.start_recording")}
             </Button>

@@ -115,4 +115,24 @@ export class S3StorageService implements OnModuleInit {
       throw new InternalServerErrorException('Failed to delete file');
     }
   }
+
+  //Deletes multiple objects in a single call
+  async deleteBulk(objectNames: string[], bucket: string): Promise<void> {
+    if (objectNames.length === 0) return;
+
+    //Validating if bucket exists
+    if (!this.bucketNames.includes(bucket)) {
+      throw new InternalServerErrorException('Invalid bucket name');
+    }
+
+    try {
+      const sanitizedObjectNames = objectNames.map((name) =>
+        path.basename(name),
+      );
+      await this.minioClient.removeObjects(bucket, sanitizedObjectNames);
+    } catch (err) {
+      this.logger.error('Failed to delete files', err);
+      throw new InternalServerErrorException('Failed to delete files');
+    }
+  }
 }

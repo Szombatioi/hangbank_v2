@@ -19,6 +19,7 @@ import SectionHeader from "./components/section-header";
 import BlockCard from "./components/block-card";
 import ConfirmDialog from "@/app/components/confirm-dialog";
 import FiberManualRecord from "@mui/icons-material/FiberManualRecord";
+import { Severity, useSnackbar } from "@/app/providers/SnackbarProvider";
 
 
 
@@ -26,6 +27,11 @@ export interface BlockDto {
     id: string;
     blockIndex: number;
     isRecorded: boolean;
+    audioFile?: {
+        id: string;
+        s3Link: string;
+        transcription: string;
+    };
 }
 
 
@@ -44,10 +50,11 @@ function InfoField({ label, value }: { label: string; value?: string | number | 
 }
 
 export default function ProjectDetailPage() {
+    const { t } = useTranslation("common");
+    const { showMessage } = useSnackbar();
     const params = useParams();
     const router = useRouter();
     const id = params.id as string;
-    const { t } = useTranslation("common");
 
     const BLOCKS_PAGE_SIZE = 50;
 
@@ -98,6 +105,7 @@ export default function ProjectDetailPage() {
         try {
             await api.delete(`/project/${id}`);
             router.push("/projects");
+            showMessage(t("project_deleted"), Severity.info);
         } catch (err) {
             const status = (err as AxiosError).response?.status;
             setError(status === 403 ? t("project_detail.delete_forbidden") : t("project_detail.delete_error"));

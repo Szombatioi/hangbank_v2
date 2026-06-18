@@ -103,7 +103,7 @@ export class ProjectService {
   async remove(requesterId: string, projectId: string): Promise<void> {
     const project = await this.corpusBasedProjectRepository.findOne({
       where: { id: projectId },
-      relations: ['roles'],
+      relations: {roles: true, audioFiles: true} //['roles'],
     });
     if (!project) {
       throw new NotFoundException(`Project with id '${projectId}' not found`);
@@ -114,8 +114,24 @@ export class ProjectService {
     );
     if (!isOwner) {
       throw new ForbiddenException(
-        'Only the project owner can delete this project',
+        'Only the project owner can delete this project', //TODO: Translatable error message
       );
+    }
+
+    //Remove audio files from S3 storage + DB
+    await this.s3StorageService.deleteBulk(
+      project.audioFiles.map((a) => a.s3Link),
+      this.s3StorageService.audioBucket,
+    );
+    await this.audioFileRepository.delete({ project: { id: projectId } });
+    
+    //Remove master recording
+    if (project.masterRecording) {
+      await this.s3StorageService.deleteObject(
+        project.masterRecording.s3Link,
+        this.s3StorageService.audioBucket,
+      );
+      await this.audioFileRepository.delete({ id: project.masterRecording.id });
     }
 
     await this.corpusBasedProjectRepository.delete(projectId);
@@ -136,6 +152,13 @@ export class ProjectService {
         blockIndex: b.blockIndex,
         isRecorded: !!b.audioFile,
         text: b.text,
+        audioFile: b.audioFile
+          ? {
+              id: b.audioFile.id,
+              s3Link: b.audioFile.s3Link,
+              transcription: b.audioFile.transcription,
+            }
+          : undefined,
       })),
       total,
     };
@@ -375,6 +398,7 @@ export class ProjectService {
   }
 }
 
+//TODO: move these prompts to a DB table if we want editorial control over them later
 const MASTER_RECORDING_PROMPTS: Record<string, string> = {
   'en-US':
     'The quick brown fox jumps over the lazy dog. She sells seashells by the seashore, where the wild waves whisper of forgotten summers.',
