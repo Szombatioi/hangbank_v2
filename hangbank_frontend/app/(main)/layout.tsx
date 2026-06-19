@@ -306,9 +306,10 @@ export default function MainLayout({
           {/* Filler element */}
           <Box sx={{ flex: 1 }} />
 
-          <IconButton onClick={toggleTheme} color="inherit">
+          {/* TODO: theme later */}
+          {/* <IconButton onClick={toggleTheme} color="inherit">
             {mode === "dark" ? <LightMode /> : <DarkMode />}
-          </IconButton>
+          </IconButton> */}
 
           {/* Right side */}
           {APPBAR_ITEMS_END.map(({ key, path, onClick }) => {

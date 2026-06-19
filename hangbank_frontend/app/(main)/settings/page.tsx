@@ -138,7 +138,8 @@ export default function SettingsPage() {
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
 
                     {/* Appearance */}
-                    <SectionCard title={t("settings.appearance")}>
+                    {/* TODO: later */}
+                    {/* <SectionCard title={t("settings.appearance")}>
                         <FormControlLabel
                             control={<Switch checked={mode === "dark"} onChange={() => toggleTheme()} />}
                             label={
@@ -153,7 +154,7 @@ export default function SettingsPage() {
                             }
                             sx={{ ml: 0, gap: 1.5 }}
                         />
-                    </SectionCard>
+                    </SectionCard> */}
 
                     {/* Language */}
                     <SectionCard title={t("settings.language")}>
