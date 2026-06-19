@@ -162,19 +162,37 @@ export class ProjectService {
     return audioFile;
   }
 
-  //Returns the audio file's metadata (owner-checked)
+  //Returns the audio file's metadata (owner-checked), plus the block it belongs
+  //to and the project's recording settings — enough to re-record it in place
   async getAudioFile(requesterId: string, audioFileId: string) {
     const audioFile = await this.loadAuthorizedAudioFile(
       requesterId,
       audioFileId,
     );
+    const projectId = audioFile.project.id;
+
+    const [block, speaker] = await Promise.all([
+      this.corpusBlockRepository.findOne({
+        where: { audioFile: { id: audioFileId } },
+        select: { id: true },
+      }),
+      this.speakerRepository.findOne({
+        where: { project: { id: projectId } },
+        select: { id: true, microphoneLabel: true },
+      }),
+    ]);
+
     return {
       id: audioFile.id,
+      blockId: block?.id ?? null,
+      projectId,
       name: audioFile.name,
       s3Link: audioFile.s3Link,
       transcription: audioFile.transcription,
       durationSeconds: audioFile.durationSeconds,
       createdAt: audioFile.createdAt,
+      samplingRate: audioFile.project.samplingRate,
+      microphoneLabel: speaker?.microphoneLabel ?? null,
     };
   }
 

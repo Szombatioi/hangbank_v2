@@ -336,6 +336,15 @@
         "title": "Recording",
         "transcription": "Transcription",
         "not_found": "This recording was not found, or you don't have permission to view it.",
-        "transcription_label": "Transcription"
+        "transcription_label": "Transcription",
+        "mic_warning": "The project's microphone wasn't found — re-recording will use your default input device.",
+        "save_success": "Recording replaced.",
+        "save_error": "Could not save the recording. Please try again.",
+        "file_info": "File Info",
+        "label_name": "Name",
+        "label_format": "Format",
+        "label_length": "Length",
+        "label_sample_rate": "Sample Rate",
+        "label_created": "Created"
     }
 }

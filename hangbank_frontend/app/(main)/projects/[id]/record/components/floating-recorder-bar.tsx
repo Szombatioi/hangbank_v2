@@ -1,9 +1,9 @@
 "use client";
 
-import { Box, Button, CircularProgress, Grid, IconButton, Paper, Tooltip, Typography } from "@mui/material";
-import SaveIcon from "@mui/icons-material/Save";
+import { Box, Grid, IconButton, Paper, Tooltip, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import Recorder, { RecorderAudioFile } from "@/app/components/recorder";
+import SaveButton from "@/app/components/save-button";
 import { BODY, LABEL } from "@/app/components/style-constants";
 import { COLOR } from "../helpers/colors";
 import { ArrowLeft, ArrowRight } from "@mui/icons-material";
@@ -120,27 +120,12 @@ export default function FloatingRecorderBar({
                     </Grid>
 
                     <Grid size={4} sx={{ display: "flex", justifyContent: "end", alignItems: "center" }}>
-                        <Button
-                            variant="contained"
-                            startIcon={saving
-                                ? <CircularProgress size={14} sx={{ color: "inherit" }} />
-                                : <SaveIcon sx={{ fontSize: "0.85rem !important" }} />}
+                        <SaveButton
                             onClick={onSave}
-                            disabled={bufferSize === 0 || saving}
-                            sx={{
-                                bgcolor: COLOR.onSurface,
-                                borderRadius: 1.5,
-                                textTransform: "none",
-                                fontFamily: LABEL,
-                                fontWeight: 700,
-                                fontSize: "0.75rem",
-                                px: 2.5,
-                                "&:hover": { bgcolor: "#0f172a" },
-                                "&.Mui-disabled": { bgcolor: COLOR.surfaceContainerHighest, color: `${COLOR.onSurfaceVariant}80` },
-                            }}
-                        >
-                            {saving ? t("record.saving") : `${t("record.save")}${bufferSize > 0 ? ` (${bufferSize})` : ""}`}
-                        </Button>
+                            saving={saving}
+                            disabled={bufferSize === 0}
+                            count={bufferSize}
+                        />
                     </Grid>
                 </Grid>
             </Paper>
