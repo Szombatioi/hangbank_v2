@@ -351,11 +351,7 @@ export class ProjectService {
     };
   }
 
-  /**
-   * Returns the prompt text the speaker should read for the master recording,
-   * keyed by the project's corpus language. Hardcoded per language for now —
-   * move to DB if we need editorial control later.
-   */
+
   async getMasterRecordingPrompt(
     id: string,
   ): Promise<{ languageCode: string; text: string }> {
@@ -419,11 +415,8 @@ export class ProjectService {
    * handing off to the corpus service — otherwise a caller could overwrite
    * another project's blocks just by supplying their ids.
    */
-  async saveBlockRecordings(
-    projectId: string,
-    recordings: BufferedRecording[],
-  ): Promise<{ saved: number }> {
-    if (recordings.length === 0) return { saved: 0 };
+  async saveBlockRecordings(projectId: string, recordings: BufferedRecording[]) {
+    if (recordings.length === 0) return { saved: 0, results: [] };
 
     const projectExists = await this.corpusBasedProjectRepository.exists({
       where: { id: projectId },
@@ -451,8 +444,8 @@ export class ProjectService {
       );
     }
 
-    await this.corpusService.saveRecordings(recordings);
-    return { saved: recordings.length };
+    const results = await this.corpusService.saveRecordings(recordings);
+    return { saved: results.length, results };
   }
 }
 

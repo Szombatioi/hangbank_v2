@@ -3,6 +3,11 @@ export interface RecordingBlockDto {
     blockIndex: number;
     isRecorded: boolean;
     text?: string; // populated when backend provides corpus text per block
+    audioFile?: {
+        id: string;
+        s3Link: string;
+        transcription: string;
+    };
 }
 
 export interface BufferedRecording {

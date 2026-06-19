@@ -160,6 +160,30 @@ function CorpusRecordInner() {
         });
     }, [fetchBlocks, startFrom]);
 
+    // Move one block back/forward; fetch more blocks when nearing the loaded edge
+    const handlePrev = useCallback(() => {
+        setCurrentIdx(prev => Math.max(0, prev - 1));
+    }, []);
+
+    const handleNext = useCallback(() => {
+        setCurrentIdx(prev => {
+            const totalInSession = blocksTotalRef.current - startFrom;
+            const next = prev + 1;
+            if (next >= totalInSession) return prev; // already at the last block
+
+            const remaining = blocksRef.current.length - next;
+            const nextFetchFrom = startFrom + blocksRef.current.length;
+            if (
+                remaining <= LOAD_AHEAD_THRESHOLD &&
+                nextFetchFrom < blocksTotalRef.current &&
+                !loadingMoreRef.current
+            ) {
+                fetchBlocks(nextFetchFrom, true);
+            }
+            return next;
+        });
+    }, [fetchBlocks, startFrom]);
+
     const handleSave = async () => {
         const recordings = Array.from(blobBufferRef.current.values());
         if (recordings.length === 0 || saving) return;
@@ -177,13 +201,30 @@ function CorpusRecordInner() {
 
         setSaving(true);
         try {
-            await api.post(`/project/${id}/recordings`, form, {
+            const resp = await api.post<{
+                saved: number;
+                results: { blockId: string; audioFile: { id: string; s3Link: string; transcription: string } }[];
+            }>(`/project/${id}/recordings`, form, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
             // Only clear the records we just uploaded — any take captured during
             // the in-flight request stays in the buffer for the next save.
             for (const r of recordings) blobBufferRef.current.delete(r.blockId);
             setBlobBufferSize(blobBufferRef.current.size);
+
+            // Update each saved block with its newly created audio file, so going
+            // back to it loads the new recording (not the now-deleted old one).
+            const savedById = new Map(resp.data.results.map(r => [r.blockId, r.audioFile]));
+            setBlocks(prev => {
+                const next = prev.map(b =>
+                    savedById.has(b.id)
+                        ? { ...b, isRecorded: true, audioFile: savedById.get(b.id) }
+                        : b,
+                );
+                blocksRef.current = next;
+                return next;
+            });
+
             showMessage(t("record.save_success"), Severity.success);
             void reloadProjectDetail();
         } catch {
@@ -239,13 +280,18 @@ function CorpusRecordInner() {
     const bufferedRecordings = blobBufferRef.current;
     void blobBufferSize; // keep state hook to trigger re-render when buffer changes
 
+    // Load the current block's existing recording (if any) into the recorder
+    const recordedAudio = currentBlock?.audioFile ?? null;
+    const canPrev = currentIdx > 0;
+    const canNext = currentIdx < totalInSession - 1;
+
     return (
         <Box sx={{ position: "relative", height: "calc(100vh - 96px)", display: "flex", flexDirection: "column", bgcolor: COLOR.surface, overflow: "hidden" }}>
             <Box
                 sx={{
                     flex: 1,
                     display: "grid",
-                    gridTemplateColumns: "3fr 6fr 3fr",
+                    gridTemplateColumns: "1fr 8fr 3fr",
                     overflow: "hidden",
                     pb: 18, // leave room for the floating recorder
                 }}
@@ -288,6 +334,12 @@ function CorpusRecordInner() {
                 bufferSize={blobBufferSize}
                 saving={saving}
                 onSave={handleSave}
+                recordedAudio={recordedAudio}
+                recorderKey={currentBlock?.id}
+                onPrev={handlePrev}
+                onNext={handleNext}
+                canPrev={canPrev}
+                canNext={canNext}
             />
 
             {/* Blocking master-recording gate — only after mic is resolved so the dialog has a deviceId */}

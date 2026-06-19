@@ -2,6 +2,8 @@
 
 import { Box, Typography } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
+import { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { BODY, LABEL, ORANGE } from "@/app/components/style-constants";
 import { COLOR } from "../helpers/colors";
@@ -16,6 +18,32 @@ interface SurroundingBlocksProps {
     bufferedRecordings: Map<string, BufferedRecording>;
 }
 
+function BlockChip({ label, bg, color, icon }: { label: string; bg: string; color: string; icon?: ReactNode }) {
+    return (
+        <Box
+            component="span"
+            sx={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 0.5,
+                px: 0.75,
+                py: 0.25,
+                bgcolor: bg,
+                color,
+                borderRadius: 0.5,
+                fontSize: 9,
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: "-0.02em",
+                fontFamily: LABEL,
+            }}
+        >
+            {icon}
+            {label.toUpperCase()}
+        </Box>
+    );
+}
+
 export default function SurroundingBlocks({ blocks, currentIdx, bufferedRecordings }: SurroundingBlocksProps) {
     const { t } = useTranslation("common");
     const from = Math.max(0, currentIdx - BLOCK_WINDOW);
@@ -28,32 +56,73 @@ export default function SurroundingBlocks({ blocks, currentIdx, bufferedRecordin
                 const idx = blocks.indexOf(block);
                 const isCurrent = idx === currentIdx;
                 const buffered = bufferedRecordings.get(block.id);
-                const isRecorded = idx < currentIdx || !!buffered || block.isRecorded;
+                const isRecorded = block.isRecorded; // a previously recorded (saved) audio file
                 const text = block.text || `${t("record.block")} #${block.blockIndex + 1}`;
                 const durationLabel = buffered ? formatDuration(buffered.durationSeconds) : "";
+                const hasChip = isCurrent || isRecorded || !!buffered;
 
-                if (isCurrent) {
-                    return (
-                        <Box key={block.id} sx={{ display: "flex", alignItems: "flex-start", gap: 4 }}>
+                return (
+                    <Box
+                        key={block.id}
+                        sx={{
+                            display: "flex",
+                            alignItems: "flex-start",
+                            gap: 4,
+                            opacity: isCurrent ? 1 : isRecorded || buffered ? 0.55 : 0.35,
+                        }}
+                    >
+                        <Typography
+                            sx={{
+                                fontFamily: LABEL,
+                                fontSize: 10,
+                                fontWeight: isCurrent ? 700 : 400,
+                                color: isCurrent ? ORANGE : COLOR.onSurfaceVariant,
+                                fontVariantNumeric: "tabular-nums",
+                                pt: 1,
+                                width: 48,
+                                textAlign: "right",
+                            }}
+                        >
+                            {durationLabel}
+                        </Typography>
+
+                        <Box sx={{ position: "relative", flex: 1 }}>
+                            {/* Independent state chips — any combination may show */}
+                            {hasChip && (
+                                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75, mb: 1 }}>
+                                    {isCurrent && (
+                                        <BlockChip
+                                            label={t("record.live")}
+                                            bg="rgba(237,74,20,0.12)"
+                                            color={ORANGE}
+                                            icon={<FiberManualRecordIcon sx={{ fontSize: 10 }} />}
+                                        />
+                                    )}
+                                    {isRecorded && (
+                                        <BlockChip
+                                            label={t("project_detail.recorded")}
+                                            bg={COLOR.emeraldBg}
+                                            color={COLOR.emeraldText}
+                                            icon={<CheckCircleIcon sx={{ fontSize: 12 }} />}
+                                        />
+                                    )}
+                                    {buffered && (
+                                        <BlockChip
+                                            label={t("record.buffered")}
+                                            bg="#dbeafe"
+                                            color="#1d4ed8"
+                                        />
+                                    )}
+                                </Box>
+                            )}
+
                             <Typography
                                 sx={{
-                                    fontFamily: LABEL,
-                                    fontSize: 10,
-                                    fontWeight: 700,
-                                    color: ORANGE,
-                                    pt: 1,
-                                    width: 48,
-                                    textAlign: "right",
-                                }}
-                            >
-                                {t("record.live").toUpperCase()}
-                            </Typography>
-                            <Box sx={{ position: "relative", flex: 1 }}>
-                                <Typography
-                                    sx={{
-                                        fontFamily: BODY,
-                                        fontSize: 20,
-                                        lineHeight: 1.6,
+                                    fontFamily: BODY,
+                                    fontSize: 20,
+                                    lineHeight: 1.6,
+                                    flex: 1,
+                                    ...(isCurrent && {
                                         color: COLOR.onSurface,
                                         fontWeight: 500,
                                         fontStyle: "italic",
@@ -61,10 +130,13 @@ export default function SurroundingBlocks({ blocks, currentIdx, bufferedRecordin
                                         pl: 3,
                                         py: 1,
                                         bgcolor: "rgba(59,9,0,0.05)",
-                                    }}
-                                >
-                                    {text}
-                                </Typography>
+                                    }),
+                                }}
+                            >
+                                {text}
+                            </Typography>
+
+                            {isCurrent && (
                                 <Box
                                     sx={{
                                         position: "absolute",
@@ -79,57 +151,8 @@ export default function SurroundingBlocks({ blocks, currentIdx, bufferedRecordin
                                         },
                                     }}
                                 />
-                            </Box>
-                        </Box>
-                    );
-                }
-
-                return (
-                    <Box
-                        key={block.id}
-                        sx={{ display: "flex", alignItems: "flex-start", gap: 4, opacity: isRecorded ? 0.55 : 0.35 }}
-                    >
-                        <Typography
-                            sx={{
-                                fontFamily: LABEL,
-                                fontSize: 10,
-                                color: COLOR.onSurfaceVariant,
-                                fontVariantNumeric: "tabular-nums",
-                                pt: 1,
-                                width: 48,
-                                textAlign: "right",
-                            }}
-                        >
-                            {durationLabel}
-                        </Typography>
-                        <Typography sx={{ fontFamily: BODY, fontSize: 20, lineHeight: 1.6, flex: 1 }}>
-                            {isRecorded && (
-                                <Box
-                                    component="span"
-                                    sx={{
-                                        display: "inline-flex",
-                                        alignItems: "center",
-                                        gap: 0.5,
-                                        mr: 1.25,
-                                        px: 0.75,
-                                        py: 0.25,
-                                        bgcolor: COLOR.emeraldBg,
-                                        color: COLOR.emeraldText,
-                                        borderRadius: 0.5,
-                                        fontSize: 9,
-                                        fontWeight: 700,
-                                        textTransform: "uppercase",
-                                        letterSpacing: "-0.02em",
-                                        fontFamily: LABEL,
-                                        verticalAlign: "middle",
-                                    }}
-                                >
-                                    <CheckCircleIcon sx={{ fontSize: 12 }} />
-                                    {t("project_detail.recorded").toUpperCase()}
-                                </Box>
                             )}
-                            {text}
-                        </Typography>
+                        </Box>
                     </Box>
                 );
             })}

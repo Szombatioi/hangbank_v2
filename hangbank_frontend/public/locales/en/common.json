@@ -278,7 +278,12 @@
         "file_type": "File Type",
         "source": "Source",
         "transcription": "Transcription",
-        "transcription_placeholder": "The quick brown fox jumps over the lazy dog."
+        "transcription_placeholder": "The quick brown fox jumps over the lazy dog.",
+        "next_block_tooltip": "Go to the next block",
+        "prev_block_tooltip": "Go to the previous block",
+        "rerecord_confirm_title": "Re-record this block?",
+        "rerecord_confirm_message": "This will discard the existing recording for this block and replace it with a new take.",
+        "rerecord_confirm_proceed": "Re-record"
     },
     "master_recording": {
         "title": "Record Master Sample",

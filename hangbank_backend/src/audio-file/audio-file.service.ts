@@ -41,4 +41,13 @@ export class AudioFileService {
       }),
     );
   }
+
+  /** Removes the AudioFile row and its underlying S3 object. */
+  async remove(audioFile: AudioFile): Promise<void> {
+    await this.audioFileRepository.delete({ id: audioFile.id });
+    await this.s3StorageService.deleteObject(
+      audioFile.s3Link,
+      this.s3StorageService.audioBucket,
+    );
+  }
 }

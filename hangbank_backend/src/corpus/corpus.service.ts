@@ -158,14 +158,17 @@ export class CorpusService {
 
   //Save recordings for the specified corpus blocks
   //If the block already has a recording, it should be overwritten
-  async saveRecordings(recordings: BufferedRecording[]): Promise<void> {
-    if (recordings.length === 0) return;
+  //Returns the newly created audio file per block so the client can refresh it
+  async saveRecordings(
+    recordings: BufferedRecording[],
+  ): Promise<SavedRecording[]> {
+    if (recordings.length === 0) return [];
 
-    // Load all referenced blocks
+    // Load all referenced blocks (with any existing recording, so we can replace it)
     const blockIds = recordings.map((r) => r.blockId);
     const blocks = await this.corpusBlockRepository.find({
       where: { id: In(blockIds) },
-      relations: ['corpus', 'corpusProject'],
+      relations: ['corpus', 'corpusProject', 'audioFile'],
     });
 
     if (blocks.length !== blockIds.length) {
@@ -177,10 +180,14 @@ export class CorpusService {
     }
 
     // 3. Create an AudioFile per recording (S3 upload + DB row), then point the
-    //    block at it. Overwrites prior recordings via the OneToOne FK.
+    //    block at it. If the block already had a recording, delete the old one
+    //    (DB row + S3 object) after re-pointing so we don't leave orphans.
     const blockById = new Map(blocks.map((b) => [b.id, b]));
+    const saved: SavedRecording[] = [];
     for (const recording of recordings) {
       const block = blockById.get(recording.blockId)!;
+      const previousAudioFile = block.audioFile;
+
       const audioFile = await this.audioFileService.create({
         blob: recording.blob,
         name: `${block.corpusProject!.name}-${block.blockIndex}.wav`,
@@ -192,9 +199,23 @@ export class CorpusService {
       block.audioFile = audioFile;
       await this.corpusBlockRepository.save(block);
 
+      if (previousAudioFile) {
+        await this.audioFileService.remove(previousAudioFile);
+      }
+
+      saved.push({
+        blockId: block.id,
+        audioFile: {
+          id: audioFile.id,
+          s3Link: audioFile.s3Link,
+          transcription: audioFile.transcription,
+        },
+      });
+
       // TODO: run quality checks here (noise, clipping, level, transcript-match …)
       //       and upsert AudioQuality rows for the new audioFile.
     }
+    return saved;
   }
 }
 
@@ -204,4 +225,13 @@ export interface BufferedRecording {
   blockIndex: number; //not needed in this code part
   durationSeconds: number;
   transcription: string; //From WebSpeech API or Whisper
+}
+
+export interface SavedRecording {
+  blockId: string;
+  audioFile: {
+    id: string;
+    s3Link: string;
+    transcription: string;
+  };
 }

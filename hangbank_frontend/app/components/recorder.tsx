@@ -4,8 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { IconButton, Paper } from "@mui/material";
 import { Pause, PlayArrow, Replay, Stop } from "@mui/icons-material";
 import WaveSurfer from "wavesurfer.js";
+import { useTranslation } from "react-i18next";
 import api from "@/app/axios";
 import { Severity, useSnackbar } from "@/app/providers/SnackbarProvider";
+import ConfirmDialog from "@/app/components/confirm-dialog";
 
 // Same shape as BlockDto's audioFile
 export interface RecorderAudioFile {
@@ -21,6 +23,8 @@ interface RecorderProps {
   bitDepth?: number;
   /** When present, the recorder loads this existing audio and shows its waveform */
   recordedAudio?: RecorderAudioFile | null;
+  /** Changes when the active block changes, so the recorder resets/reloads per block */
+  sessionKey?: string;
 }
 
 function formatDuration(seconds: number): string {
@@ -37,8 +41,10 @@ export default function Recorder({
   sampleRate = 48000,
   bitDepth = 16,
   recordedAudio = null,
+  sessionKey,
 }: RecorderProps) {
   const { showMessage } = useSnackbar();
+  const { t } = useTranslation("common");
 
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -46,6 +52,7 @@ export default function Recorder({
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
   const [audioLoaded, setAudioLoaded] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [reRecordConfirmOpen, setReRecordConfirmOpen] = useState(false);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const actualSampleRateRef = useRef<number>(sampleRate);
@@ -94,11 +101,25 @@ export default function Recorder({
     };
   }, []);
 
-  // Load an existing audio file: ask the backend for a presigned URL (which also
-  // checks access permission), then render its waveform for playback
+  // When the active block changes (or its saved audio changes), reset playback
+  // state and, if the block already has a recording, load it: ask the backend
+  // for a presigned URL (which also checks access permission) and render its
+  // waveform. NOTE: this must NOT remount the recorder — that would interrupt
+  // the Space "save & continue recording" flow — so we reset imperatively here.
   useEffect(() => {
-    if (!recordedAudio) return;
     let cancelled = false;
+
+    waveSurferRef.current?.stop();
+    setIsPlaying(false);
+    setRecordedBlob(null);
+    setAudioLoaded(false);
+    setDurationSeconds(0);
+
+    if (!recordedAudio) {
+      waveSurferRef.current?.empty();
+      return;
+    }
+
     (async () => {
       try {
         const { data } = await api.get<{ url: string }>(
@@ -115,7 +136,7 @@ export default function Recorder({
     return () => {
       cancelled = true;
     };
-  }, [recordedAudio?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [recordedAudio?.id, sessionKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!isRecording || isPaused) return;
@@ -287,6 +308,16 @@ export default function Recorder({
     waveSurferRef.current?.playPause();
   }
 
+  // Re-record: confirm first when an existing audio file is loaded, so we don't
+  // discard a saved recording by accident
+  function handleReRecord() {
+    if (audioLoaded) {
+      setReRecordConfirmOpen(true);
+      return;
+    }
+    handleStart();
+  }
+
   return (
     <Paper
       elevation={0}
@@ -362,7 +393,7 @@ export default function Recorder({
                 {isPlaying ? <Pause /> : <PlayArrow />}
               </IconButton>
               <IconButton
-                onClick={handleStart}
+                onClick={handleReRecord}
                 size="medium"
                 sx={{ boxShadow: "0px 0px 10px rgba(0,0,0,0.2)" }}
               >
@@ -381,6 +412,19 @@ export default function Recorder({
         </div>
         <div />
       </div>
+
+      <ConfirmDialog
+        open={reRecordConfirmOpen}
+        title={t("record.rerecord_confirm_title")}
+        description={t("record.rerecord_confirm_message")}
+        proceedLabel={t("record.rerecord_confirm_proceed")}
+        dangerous
+        onProceed={() => {
+          setReRecordConfirmOpen(false);
+          handleStart();
+        }}
+        onCancel={() => setReRecordConfirmOpen(false)}
+      />
     </Paper>
   );
 }

@@ -1,11 +1,12 @@
 "use client";
 
-import { Box, Button, CircularProgress, Paper, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, Grid, IconButton, Paper, Tooltip, Typography } from "@mui/material";
 import SaveIcon from "@mui/icons-material/Save";
 import { useTranslation } from "react-i18next";
-import Recorder from "@/app/components/recorder";
+import Recorder, { RecorderAudioFile } from "@/app/components/recorder";
 import { BODY, LABEL } from "@/app/components/style-constants";
 import { COLOR } from "../helpers/colors";
+import { ArrowLeft, ArrowRight } from "@mui/icons-material";
 
 interface FloatingRecorderBarProps {
     showRecorder: boolean;
@@ -15,10 +16,19 @@ interface FloatingRecorderBarProps {
     bufferSize: number;
     saving: boolean;
     onSave: () => void;
+    /** Pre-recorded audio for the current block, if it was already recorded */
+    recordedAudio: RecorderAudioFile | null;
+    /** Remounts the recorder per block so the right audio loads (and state resets) */
+    recorderKey?: string;
+    onPrev: () => void;
+    onNext: () => void;
+    canPrev: boolean;
+    canNext: boolean;
 }
 
 export default function FloatingRecorderBar({
     showRecorder, deviceId, sampleRate, onAudioBlob, bufferSize, saving, onSave,
+    recordedAudio, recorderKey, onPrev, onNext, canPrev, canNext,
 }: FloatingRecorderBarProps) {
     const { t } = useTranslation("common");
 
@@ -53,11 +63,13 @@ export default function FloatingRecorderBar({
                         onAudioBlob={onAudioBlob}
                         sampleRate={sampleRate}
                         bitDepth={16}
+                        recordedAudio={recordedAudio}
+                        sessionKey={recorderKey}
                     />
                 )}
 
-                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2 }}>
-                    <Box>
+                <Grid container>
+                    <Grid size={4}>
                         <Typography
                             sx={{
                                 fontFamily: LABEL,
@@ -80,30 +92,57 @@ export default function FloatingRecorderBar({
                         >
                             {bufferSize} {t("record.recordings_unsaved")}
                         </Typography>
-                    </Box>
+                    </Grid>
 
-                    <Button
-                        variant="contained"
-                        startIcon={saving
-                            ? <CircularProgress size={14} sx={{ color: "inherit" }} />
-                            : <SaveIcon sx={{ fontSize: "0.85rem !important" }} />}
-                        onClick={onSave}
-                        disabled={bufferSize === 0 || saving}
-                        sx={{
-                            bgcolor: COLOR.onSurface,
-                            borderRadius: 1.5,
-                            textTransform: "none",
-                            fontFamily: LABEL,
-                            fontWeight: 700,
-                            fontSize: "0.75rem",
-                            px: 2.5,
-                            "&:hover": { bgcolor: "#0f172a" },
-                            "&.Mui-disabled": { bgcolor: COLOR.surfaceContainerHighest, color: `${COLOR.onSurfaceVariant}80` },
-                        }}
-                    >
-                        {saving ? t("record.saving") : `${t("record.save")}${bufferSize > 0 ? ` (${bufferSize})` : ""}`}
-                    </Button>
-                </Box>
+                    <Grid size={4} sx={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center", gap: 1 }}>
+                        <Tooltip title={t("record.prev_block_tooltip")}>
+                            <span>
+                                <IconButton onClick={onPrev} disabled={!canPrev}>
+                                    <ArrowLeft />
+                                </IconButton>
+                            </span>
+                        </Tooltip>
+                        <span style={{
+                            WebkitTouchCallout: "none",
+                            WebkitUserSelect: "none",
+                            KhtmlUserSelect: "none",
+                            MozUserSelect: "none",
+                            msUserSelect: "none",
+                            userSelect: "none",
+                        }}>|</span>
+                        <Tooltip title={t("record.next_block_tooltip")}>
+                            <span>
+                                <IconButton onClick={onNext} disabled={!canNext}>
+                                    <ArrowRight />
+                                </IconButton>
+                            </span>
+                        </Tooltip>
+                    </Grid>
+
+                    <Grid size={4} sx={{ display: "flex", justifyContent: "end", alignItems: "center" }}>
+                        <Button
+                            variant="contained"
+                            startIcon={saving
+                                ? <CircularProgress size={14} sx={{ color: "inherit" }} />
+                                : <SaveIcon sx={{ fontSize: "0.85rem !important" }} />}
+                            onClick={onSave}
+                            disabled={bufferSize === 0 || saving}
+                            sx={{
+                                bgcolor: COLOR.onSurface,
+                                borderRadius: 1.5,
+                                textTransform: "none",
+                                fontFamily: LABEL,
+                                fontWeight: 700,
+                                fontSize: "0.75rem",
+                                px: 2.5,
+                                "&:hover": { bgcolor: "#0f172a" },
+                                "&.Mui-disabled": { bgcolor: COLOR.surfaceContainerHighest, color: `${COLOR.onSurfaceVariant}80` },
+                            }}
+                        >
+                            {saving ? t("record.saving") : `${t("record.save")}${bufferSize > 0 ? ` (${bufferSize})` : ""}`}
+                        </Button>
+                    </Grid>
+                </Grid>
             </Paper>
         </Box>
     );
