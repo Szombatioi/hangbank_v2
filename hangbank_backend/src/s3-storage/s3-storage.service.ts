@@ -99,6 +99,29 @@ export class S3StorageService implements OnModuleInit {
     }
   }
 
+  //Generates a presigned GET URL so a client can fetch the object directly
+  async getPresignedUrl(
+    objectName: string,
+    bucket: string,
+    expirySeconds: number,
+  ): Promise<string> {
+    //Validating if bucket exists
+    if (!this.bucketNames.includes(bucket)) {
+      throw new InternalServerErrorException('Invalid bucket name');
+    }
+
+    try {
+      return await this.minioClient.presignedGetObject(
+        bucket,
+        path.basename(objectName),
+        expirySeconds,
+      );
+    } catch (err) {
+      this.logger.error('Failed to generate presigned URL', err);
+      throw new InternalServerErrorException('Failed to generate presigned URL');
+    }
+  }
+
   //Deletes a specific object
   async deleteObject(objectName: string, bucket: string): Promise<void> {
     //Validating if bucket exists

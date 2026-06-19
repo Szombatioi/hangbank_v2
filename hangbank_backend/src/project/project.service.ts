@@ -137,6 +137,64 @@ export class ProjectService {
     await this.corpusBasedProjectRepository.delete(projectId);
   }
 
+  //Loads an audio file and verifies the requester owns the file's project
+  private async loadAuthorizedAudioFile(
+    requesterId: string,
+    audioFileId: string,
+  ): Promise<AudioFile> {
+    const audioFile = await this.audioFileRepository.findOne({
+      where: { id: audioFileId },
+      relations: ['project', 'project.roles'],
+    });
+    if (!audioFile) {
+      throw new NotFoundException(
+        `Audio file with id '${audioFileId}' not found`,
+      );
+    }
+
+    const isOwner = audioFile.project.roles.some(
+      (r) => r.userId === requesterId && r.role === ProjectRoleType.OWNER,
+    );
+    if (!isOwner) {
+      throw new ForbiddenException('No access to this audio file');
+    }
+
+    return audioFile;
+  }
+
+  //Returns the audio file's metadata (owner-checked)
+  async getAudioFile(requesterId: string, audioFileId: string) {
+    const audioFile = await this.loadAuthorizedAudioFile(
+      requesterId,
+      audioFileId,
+    );
+    return {
+      id: audioFile.id,
+      name: audioFile.name,
+      s3Link: audioFile.s3Link,
+      transcription: audioFile.transcription,
+      durationSeconds: audioFile.durationSeconds,
+      createdAt: audioFile.createdAt,
+    };
+  }
+
+  //Returns a short-lived presigned URL for an audio file (owner-checked)
+  async getAudioFileUrl(
+    requesterId: string,
+    audioFileId: string,
+  ): Promise<{ url: string }> {
+    const audioFile = await this.loadAuthorizedAudioFile(
+      requesterId,
+      audioFileId,
+    );
+    const url = await this.s3StorageService.getPresignedUrl(
+      audioFile.s3Link,
+      this.s3StorageService.audioBucket,
+      20 * 60, // 20 minutes
+    );
+    return { url };
+  }
+
   async getBlocks(projectId: string, from: number = 0, to: number = 50) {
     const [blocks, total] = await this.corpusBlockRepository.findAndCount({
       where: { corpusProject: { id: projectId } },

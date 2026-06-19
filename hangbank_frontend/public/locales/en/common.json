@@ -326,5 +326,11 @@
     "support": {
         "title": "Support",
         "subtitle": "Browse common topics. Click a card to read more."
+    },
+    "view_recording": {
+        "title": "Recording",
+        "transcription": "Transcription",
+        "not_found": "This recording was not found, or you don't have permission to view it.",
+        "transcription_label": "Transcription"
     }
 }

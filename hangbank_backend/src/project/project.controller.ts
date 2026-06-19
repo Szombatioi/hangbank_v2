@@ -54,6 +54,24 @@ export class ProjectController {
   }
 
   @UseGuards(AuthGuard)
+  @Get('audio-file/:audioFileId')
+  getAudioFile(
+    @Req() req: { user: IJwtPayload },
+    @Param('audioFileId') audioFileId: string,
+  ) {
+    return this.projectService.getAudioFile(req.user.id, audioFileId);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('audio-file/:audioFileId/url')
+  getAudioFileUrl(
+    @Req() req: { user: IJwtPayload },
+    @Param('audioFileId') audioFileId: string,
+  ) {
+    return this.projectService.getAudioFileUrl(req.user.id, audioFileId);
+  }
+
+  @UseGuards(AuthGuard)
   @Get(':id/detail')
   findCorpusDetail(@Param('id') id: string) {
     return this.projectService.findCorpusDetail(id);

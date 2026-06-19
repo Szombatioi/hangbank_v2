@@ -4,13 +4,23 @@ import { useEffect, useRef, useState } from "react";
 import { IconButton, Paper } from "@mui/material";
 import { Pause, PlayArrow, Replay, Stop } from "@mui/icons-material";
 import WaveSurfer from "wavesurfer.js";
+import api from "@/app/axios";
 import { Severity, useSnackbar } from "@/app/providers/SnackbarProvider";
+
+// Same shape as BlockDto's audioFile
+export interface RecorderAudioFile {
+  id: string;
+  s3Link: string;
+  transcription: string;
+}
 
 interface RecorderProps {
   deviceId: string;
   onAudioBlob: (blob: Blob, durationSeconds: number) => void;
   sampleRate?: number;
   bitDepth?: number;
+  /** When present, the recorder loads this existing audio and shows its waveform */
+  recordedAudio?: RecorderAudioFile | null;
 }
 
 function formatDuration(seconds: number): string {
@@ -26,6 +36,7 @@ export default function Recorder({
   onAudioBlob,
   sampleRate = 48000,
   bitDepth = 16,
+  recordedAudio = null,
 }: RecorderProps) {
   const { showMessage } = useSnackbar();
 
@@ -33,6 +44,7 @@ export default function Recorder({
   const [isPaused, setIsPaused] = useState(false);
   const [durationSeconds, setDurationSeconds] = useState(0);
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
+  const [audioLoaded, setAudioLoaded] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
 
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -71,10 +83,39 @@ export default function Recorder({
     waveSurferRef.current.on("play", () => setIsPlaying(true));
     waveSurferRef.current.on("pause", () => setIsPlaying(false));
     waveSurferRef.current.on("finish", () => setIsPlaying(false));
+    // Reflect the duration of a loaded audio file (not while recording)
+    waveSurferRef.current.on("ready", () => {
+      if (!isRecordingRef.current && waveSurferRef.current) {
+        setDurationSeconds(waveSurferRef.current.getDuration());
+      }
+    });
     return () => {
       waveSurferRef.current?.destroy();
     };
   }, []);
+
+  // Load an existing audio file: ask the backend for a presigned URL (which also
+  // checks access permission), then render its waveform for playback
+  useEffect(() => {
+    if (!recordedAudio) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await api.get<{ url: string }>(
+          `/project/audio-file/${recordedAudio.id}/url`,
+        );
+        if (cancelled) return;
+        await waveSurferRef.current?.load(data.url);
+        if (cancelled) return;
+        setAudioLoaded(true);
+      } catch {
+        if (!cancelled) showMessage("Failed to load the recording", Severity.error);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [recordedAudio?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!isRecording || isPaused) return;
@@ -167,6 +208,7 @@ export default function Recorder({
     waveSurferRef.current?.stop();
     setIsPlaying(false);
     setRecordedBlob(null);
+    setAudioLoaded(false);
     pcmChunksRef.current = [];
     setDurationSeconds(0);
 
@@ -310,7 +352,7 @@ export default function Recorder({
                 <Stop />
               </IconButton>
             </>
-          ) : recordedBlob ? (
+          ) : recordedBlob || audioLoaded ? (
             <>
               <IconButton
                 onClick={handlePlayPause}
