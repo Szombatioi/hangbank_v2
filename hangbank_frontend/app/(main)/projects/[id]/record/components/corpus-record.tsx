@@ -68,6 +68,17 @@ function CorpusRecordInner() {
     useEffect(() => { loadingMoreRef.current = loadingMoreBlocks; }, [loadingMoreBlocks]);
     useEffect(() => { transcriptionRef.current = transcription; }, [transcription]);
 
+    // Load the active block's transcription whenever it changes (navigation, auto-advance,
+    // or first load): prefer a buffered (unsaved) take's transcription, then the saved
+    // recording's, else empty. Keyed on the block id so it never fires mid-recording
+    // (same block) and won't be clobbered by load-ahead appends.
+    useEffect(() => {
+        const block = blocksRef.current[currentIdx];
+        const buffered = block ? blobBufferRef.current.get(block.id) : undefined;
+        setTranscription(buffered?.transcription ?? block?.audioFile?.transcription ?? "");
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentIdx, blocks[currentIdx]?.id]);
+
     const fetchBlocks = useCallback(async (from: number, isLoadMore: boolean) => {
         if (isLoadMore) {
             setLoadingMoreBlocks(true);

@@ -1,4 +1,5 @@
-import { ConflictException,
+import {
+  ConflictException,
   BadRequestException,
   ForbiddenException,
   Inject,
@@ -19,6 +20,8 @@ import type { IJwtPayload } from '@hangbank/shared';
 import { S3StorageService } from 'src/s3-storage/s3-storage.service';
 import { CorpusProcesserService } from './corpus-processer.service';
 import { AudioFileService } from 'src/audio-file/audio-file.service';
+import { AudioQualityService } from 'src/audio-quality/audio-quality.service';
+import { AudioQualityType } from 'src/audio-quality/entities/audio-quality.entity';
 
 @Injectable()
 export class CorpusService {
@@ -32,7 +35,8 @@ export class CorpusService {
     @Inject() private readonly s3StorageService: S3StorageService,
     @Inject() private readonly corpusProcesserService: CorpusProcesserService,
     @Inject() private readonly audioFileService: AudioFileService,
-  ) {}
+    @Inject() private readonly audioQualityService: AudioQualityService,
+  ) { }
 
   async findOne(id: string): Promise<Corpus> {
     const corpus = await this.corpusRepository.findOne({
@@ -160,6 +164,8 @@ export class CorpusService {
   //If the block already has a recording, it should be overwritten
   //Returns the newly created audio file per block so the client can refresh it
   async saveRecordings(
+    requesterId: string,
+    masterRecording: Blob,
     recordings: BufferedRecording[],
   ): Promise<SavedRecording[]> {
     if (recordings.length === 0) return [];
@@ -179,11 +185,12 @@ export class CorpusService {
       );
     }
 
-    // 3. Create an AudioFile per recording (S3 upload + DB row), then point the
-    //    block at it. If the block already had a recording, delete the old one
-    //    (DB row + S3 object) after re-pointing so we don't leave orphans.
+    // Create an AudioFile per recording (S3 upload + DB row), point the block at
+    // it, run the transcription check, and replace any previous recording.
     const blockById = new Map(blocks.map((b) => [b.id, b]));
     const saved: SavedRecording[] = [];
+    const aqcInputs: { id: string; blob: Blob }[] = [];
+
     for (const recording of recordings) {
       const block = blockById.get(recording.blockId)!;
       const previousAudioFile = block.audioFile;
@@ -195,8 +202,19 @@ export class CorpusService {
         transcription: recording.transcription,
         projectId: block.corpusProject!.id,
       });
-
       block.audioFile = audioFile;
+
+      // Transcription check: normalize prompt + recognized text, then compare.
+      const matches =
+        normalizeTranscript(block.text) ===
+        normalizeTranscript(recording.transcription);
+      await this.audioQualityService.setAudioQuality(
+        audioFile.id,
+        AudioQualityType.TranscriptionCheck,
+        { values: [matches ? 1 : 0] },
+        requesterId,
+      );
+
       await this.corpusBlockRepository.save(block);
 
       if (previousAudioFile) {
@@ -211,12 +229,40 @@ export class CorpusService {
           transcription: audioFile.transcription,
         },
       });
-
-      // TODO: run quality checks here (noise, clipping, level, transcript-match …)
-      //       and upsert AudioQuality rows for the new audioFile.
+      // Tag each recording with its new audio-file id for the quality checker.
+      aqcInputs.push({ id: audioFile.id, blob: recording.blob });
     }
+
+    // Run the audio quality checker once for all recordings, then persist each
+    // audio file's measures — keyed by the audio id the checker reports back.
+    const qualityMeasures = await this.audioQualityService.callAqcService(
+      masterRecording,
+      aqcInputs,
+    );
+    for (const qm of qualityMeasures) {
+      for (const measure of qm.measures) {
+        const type = measure.name as AudioQualityType;
+        if (!Object.values(AudioQualityType).includes(type)) continue;
+        await this.audioQualityService.setAudioQuality(
+          qm.audioFileId,
+          type,
+          measure,
+          requesterId,
+        );
+      }
+    }
+
     return saved;
   }
+}
+
+function normalizeTranscript(text: string): string {
+  const t = text
+    .toLowerCase()
+    .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '')
+    .trim();
+  console.log(t);
+  return t;
 }
 
 export interface BufferedRecording {

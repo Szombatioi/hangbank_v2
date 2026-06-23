@@ -24,9 +24,7 @@ export class VolumeCheck implements AudioQualityCheckerStrategy {
         this.silenceTrimThreshold = process.env.VOLUME_CHECK_SILENCE_TRIM_THRESHOLD ? parseFloat(process.env.VOLUME_CHECK_SILENCE_TRIM_THRESHOLD) : -75;
     }
 
-    async checkQuality(wavs: WavDecodeResult[]): Promise<QualityMeasure> {
-        const wav = wavs[0];
-
+    async checkQuality(_master: WavDecodeResult, wav: WavDecodeResult): Promise<QualityMeasure> {
         //Window size (in Samples)
         const windowSize = Math.floor(wav.sampleRate * (this.windowMs / 1000));
         const stepSize = Math.floor(wav.sampleRate * (this.stepMs / 1000));
@@ -64,6 +62,9 @@ export class VolumeCheck implements AudioQualityCheckerStrategy {
         }
         // const trimmedSamples = samples.slice(start, end + 1);
 
+
+        var values: number[] = [];
+
         //Sliding window with overlap
         for (let i = 0; i + windowSize <= samples.length; i += stepSize) {
             const end = i + windowSize; //End of window
@@ -91,14 +92,33 @@ export class VolumeCheck implements AudioQualityCheckerStrategy {
                 `Eredmény: ${volumeResult}`
             );
 
+            values.push(dbfs);
+
             //TODO: add start, end and dbfs to a structure
             //TODO: make this a volume variance check instead: if the volume is too quiet or too loud for a significant portion of the audio, then we can flag it as a quality issue
         }
 
-        return { //TODO
-            name: "volume_check",
-            result: false, //TODO
-            message: "Hangerő ellenőrzés (TODO)"
+        return {
+            name: "VolumeCheck",
+            displayName: "aqc.volume_check.name",
+            values: values,//TODO
+            ranges: [
+                {
+                    min: -200, //arbitrary low value
+                    max: this.tooQuietThreshold,
+                    displayName: "aqc.volume_check.ranges.too_quiet"
+                },
+                {
+                    min: this.tooQuietThreshold,
+                    max: this.tooLoudThreshold,
+                    displayName: "aqc.volume_check.ranges.acceptable"
+                },
+                {
+                    min: this.tooLoudThreshold,
+                    max: 0,
+                    displayName: "aqc.volume_check.ranges.too_loud"
+                }
+            ]
         };
     }
 

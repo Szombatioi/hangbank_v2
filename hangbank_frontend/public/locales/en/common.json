@@ -83,8 +83,7 @@
         "supported_formats": "Support for .txt, .docx, and .pdf files (Max 50MB per file)",
         "browse_files": "BROWSE FILES"
     },
-    "language":
-    {
+    "language": {
         "lang_en-US": "English (US)",
         "lang_hu-HU": "Hungarian (HU)",
         "lang_de-DE": "German (DE)"
@@ -120,10 +119,10 @@
         "delete_success": "Corpus deleted.",
         "delete_error": "Failed to delete corpus. Please try again."
     },
-    "error":{
+    "error": {
         "language_load": "Could not load available languages."
     },
-    "corpus_upload":{
+    "corpus_upload": {
         "success": "Corpus uploaded successfully!",
         "failure": "Failed to upload corpus. Please try again."
     },
@@ -239,7 +238,7 @@
         "multi_speaker_conversation": "Multi-speaker Conversation",
         "existing_files": "Existing Files"
     },
-    "confirm_dialog":{
+    "confirm_dialog": {
         "cancel": "Cancel"
     },
     "project_page": {
@@ -345,6 +344,48 @@
         "label_format": "Format",
         "label_length": "Length",
         "label_sample_rate": "Sample Rate",
-        "label_created": "Created"
+        "label_created": "Created",
+        "quality_checks": "Quality Checks",
+        "no_quality_checks": "No quality checks have run yet.",
+        "current_prompt": "Current Prompt"
+    },
+    "aqc": {
+        "errors": {
+            "two_files_needed": "Two audio files are required for this check.",
+            "file_must_be_wav": "The files must be in WAV format.",
+            "not_enough_files_for_strategy": "Not enough audio files for the selected strategy."
+        },
+        "noise_check": {
+            "name": "Noise Check",
+            "snr": {
+                "bad": "Bad",
+                "acceptable": "Acceptable",
+                "excellent": "Excellent"
+            }
+        },
+        "speaker_check": {
+            "name": "Speaker Check",
+            "ranges": {
+                "different_speaker": "Different Speaker",
+                "same_speaker": "Same Speaker"
+            }
+        },
+        "volume_check": {
+            "name": "Volume Check",
+            "ranges": {
+                "too_quiet": "Too Quiet",
+                "acceptable": "Acceptable",
+                "too_loud": "Too Loud"
+            }
+        },
+        "transcription_check": {
+            "name": "Transcription Check",
+            "ranges": {
+                "mismatch": "Doesn't match prompt",
+                "match": "Matches prompt",
+                "transcription_mismatch": "Transcription mismatch",
+                "matching_transcription": "Matching transcription"
+            }
+        }
     }
 }

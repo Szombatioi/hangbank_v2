@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 // import { QuietnessCheck } from './strategy/quietness_check';
 // import { LoudnessCheck } from './strategy/loudness_check';
-import { AudioQualityChecker, AudioQualityCheckerStrategy, QualityMeasure, WavDecodeResult } from './strategy/audio_quality_checker';
+import { AudioFileQuality, AudioQualityChecker, AudioQualityCheckerStrategy, QualityMeasure, WavDecodeResult } from './strategy/audio_quality_checker';
 import * as wav from "node-wav";
 import { VolumeCheck } from './strategy/volume_check';
 import { NoiseCheck } from './strategy/noise_check';
@@ -9,9 +9,9 @@ import { SpeakerCheck } from './strategy/speaker_check';
 
 @Injectable()
 export class AppService implements AudioQualityChecker {
-  
+
   //Returns the list of used strategies for audio quality check
-  async collectStrategies(){
+  async collectStrategies() {
     //TODO: In a real implementation, you would dynamically load strategies from a folder or database
     return [
       // new QuietnessCheck(),
@@ -22,47 +22,37 @@ export class AppService implements AudioQualityChecker {
     ]
   }
 
-  async checkAudioQuality(audioFiles: Express.Multer.File[]): Promise<QualityMeasure[]> {
-    if(!audioFiles || audioFiles.length === 0) {
+  async checkAudioQuality(
+    master: Express.Multer.File,
+    wavs: Express.Multer.File[],
+    ids: string[],
+  ): Promise<AudioFileQuality[]> {
+    if (!master || wavs.length === 0) {
       throw new BadRequestException("No audio files provided");
     }
-
-    audioFiles.forEach(file => {
-      if(!['audio/wav', 'audio/x-wav', 'audio/wave'].includes(file.mimetype)) { //TODO: extend file types to any audio file (because of mode 4 files)
-        throw new BadRequestException("file_must_be_wav");
-      }
-    });
-
-
-    const strategies = this.collectStrategies();
-    let results: QualityMeasure[] = [];
-
-    const decoded_wavs = audioFiles.map(f => wav.decode(f.buffer));
-
-    // console.log("Sample rate:", decoded.sampleRate);
-    // console.log("Number of channels:", decoded.channelData.length);
-    // console.log("Length of first channel:", decoded.channelData[0].length);
-    // console.log("Duration (seconds):", decoded.channelData[0].length / decoded.sampleRate);
-
-
-    // const samples: number[][] = decoded.channelData;
-    
-    //Collecting the strategies and executing them in parallel
-    const tasks: Array<(wavs: WavDecodeResult[]) => Promise<QualityMeasure>> = [];
-    for(const strategy of await strategies) {
-      tasks.push(async (wavs) => {
-        if(wavs.length < strategy.requiredWavCount){
-          throw new Error("not_enough_files_for_strategy");
-        }
-
-        return await strategy.checkQuality(wavs.slice(0, strategy.requiredWavCount));
-      });
+    // Each wav must carry its audio-file id (parallel arrays), so we can report
+    // back which audio each set of quality measures belongs to.
+    if (ids.length !== wavs.length) {
+      throw new BadRequestException(
+        `ids length (${ids.length}) must match wavs length (${wavs.length})`,
+      );
     }
 
-    const resultsPromises = tasks.map(task => task(decoded_wavs));
-    results = await Promise.all(resultsPromises);
+    const strategies = await this.collectStrategies();
 
-    return results;
+    const masterWav = wav.decode(master.buffer);
+    const additionalWavs = wavs.map(f => wav.decode(f.buffer));
+
+    // For each target recording, run every strategy against the master and group
+    // the resulting measures under that recording's audio-file id.
+    return Promise.all(
+      additionalWavs.map(async (targetWav, i): Promise<AudioFileQuality> => {
+        const measures = await Promise.all(
+          strategies.map(strategy => strategy.checkQuality(masterWav, targetWav)),
+        );
+        return { audioFileId: ids[i], measures };
+      }),
+    );
   }
 
 }

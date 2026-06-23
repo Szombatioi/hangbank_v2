@@ -14,13 +14,14 @@ import type { IJwtPayload } from '@hangbank/shared';
 import { computeAge } from 'src/helpers/compute-age';
 import { AudioFile } from './entities/audio-file.entity';
 import { Readable } from 'stream';
-import { Blob } from 'buffer';
+// import { Blob } from 'buffer';
 import { S3StorageService } from 'src/s3-storage/s3-storage.service';
 import { AudioFileService } from 'src/audio-file/audio-file.service';
 import { CorpusProjectDetailDto } from './dto/corpus-project-detail.dto';
 import { BadRequestException } from '@nestjs/common';
 import { In } from 'typeorm';
 import type { BufferedRecording } from 'src/corpus/corpus.service';
+import { blob } from 'stream/consumers';
 
 @Injectable()
 export class ProjectService {
@@ -174,7 +175,7 @@ export class ProjectService {
     const [block, speaker] = await Promise.all([
       this.corpusBlockRepository.findOne({
         where: { audioFile: { id: audioFileId } },
-        select: { id: true },
+        relations: ['corpus', 'corpus.language'],
       }),
       this.speakerRepository.findOne({
         where: { project: { id: projectId } },
@@ -193,6 +194,8 @@ export class ProjectService {
       createdAt: audioFile.createdAt,
       samplingRate: audioFile.project.samplingRate,
       microphoneLabel: speaker?.microphoneLabel ?? null,
+      languageCode: block?.corpus?.language?.code ?? null, // for live transcription
+      prompt: block?.text ?? null, // the expected text for this block
     };
   }
 
@@ -410,7 +413,7 @@ export class ProjectService {
     const transcription =
       MASTER_RECORDING_PROMPTS[code] ?? MASTER_RECORDING_PROMPTS['en-US'];
 
-    const blob = new Blob([file.buffer], {
+    const blob = new Blob([new Uint8Array(file.buffer)], {
       type: file.mimetype || 'audio/wav',
     });
 
@@ -434,13 +437,18 @@ export class ProjectService {
    * handing off to the corpus service — otherwise a caller could overwrite
    * another project's blocks just by supplying their ids.
    */
-  async saveBlockRecordings(projectId: string, recordings: BufferedRecording[]) {
+  async saveBlockRecordings(
+    requesterId: string,
+    projectId: string,
+    recordings: BufferedRecording[],
+  ) {
     if (recordings.length === 0) return { saved: 0, results: [] };
 
-    const projectExists = await this.corpusBasedProjectRepository.exists({
+    const project = await this.corpusBasedProjectRepository.findOne({
       where: { id: projectId },
+      relations: ['masterRecording'],
     });
-    if (!projectExists) {
+    if(!project) {
       throw new NotFoundException(`Project with id '${projectId}' not found`);
     }
 
@@ -463,7 +471,21 @@ export class ProjectService {
       );
     }
 
-    const results = await this.corpusService.saveRecordings(recordings);
+    //pass master recording too
+    if(!project.masterRecording) {
+      throw new BadRequestException(
+        `Project ${projectId} does not have a master recording`,
+      );
+    }
+    
+    const masterStream = await this.s3StorageService.downloadObject(project.masterRecording.s3Link, this.s3StorageService.audioBucket);
+    const masterBuffer = await blob(masterStream);
+
+    const results = await this.corpusService.saveRecordings(
+      requesterId,
+      masterBuffer as unknown as Blob,
+      recordings,
+    );
     return { saved: results.length, results };
   }
 }

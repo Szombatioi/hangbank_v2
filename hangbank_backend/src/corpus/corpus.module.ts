@@ -11,6 +11,8 @@ import { AuthModule } from 'src/auth/auth.module';
 import { S3StorageModule } from 'src/s3-storage/s3-storage.module';
 import { AudioFileService } from 'src/audio-file/audio-file.service';
 import { AudioFileModule } from 'src/audio-file/audio-file.module';
+import { AudioQualityModule } from 'src/audio-quality/audio-quality.module';
+import { HttpModule } from '@nestjs/axios/dist/http.module';
 
 @Module({
   imports: [
@@ -20,6 +22,7 @@ import { AudioFileModule } from 'src/audio-file/audio-file.module';
     // AuthModule
     S3StorageModule,
     AudioFileModule,
+    AudioQualityModule,
   ],
   controllers: [CorpusController],
   providers: [CorpusService, CorpusProcesserService],

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AudioFile } from './entities/audio-file.entity';
 import { AudioQualityModule } from 'src/audio-quality/audio-quality.module';
@@ -9,7 +9,7 @@ import { AudioFileService } from './audio-file.service';
 @Module({
   imports: [
     TypeOrmModule.forFeature([AudioFile]),
-    AudioQualityModule,
+    forwardRef(() =>AudioQualityModule),
     AudioModificationModule,
     S3StorageModule
   ],

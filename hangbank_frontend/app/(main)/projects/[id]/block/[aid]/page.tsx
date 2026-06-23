@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { Box, CircularProgress, Paper, Typography } from "@mui/material";
+import { Box, CircularProgress, Paper, TextField, Typography } from "@mui/material";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import api from "@/app/axios";
 import Recorder, { RecorderAudioFile } from "@/app/components/recorder";
@@ -12,9 +12,11 @@ import { resolveMicrophone } from "../../record/helpers/mic-resolver";
 import { formatDuration } from "../../record/helpers/format-duration";
 import { BODY, HEADLINE, LABEL, ORANGE } from "@/app/components/style-constants";
 import SaveButton from "@/app/components/save-button";
-
-//TODO:
-// list of AQC elements
+import {
+    AudioQualityMeasure,
+    QualityRangesByType,
+} from "@/app/components/helpers/audio-quality";
+import QualityCheckCard from "./components/quality-check-card";
 
 interface AudioFileDetail extends RecorderAudioFile {
     blockId: string | null;
@@ -23,6 +25,19 @@ interface AudioFileDetail extends RecorderAudioFile {
     createdAt?: string;
     samplingRate?: number;
     microphoneLabel?: string | null;
+    languageCode?: string | null;
+    prompt?: string | null;
+}
+
+function SectionHeader({ label }: { label: string }) {
+    return (
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
+            <Box sx={{ width: 4, height: 20, bgcolor: ORANGE, borderRadius: "2px" }} />
+            <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "#475569" }}>
+                {label}
+            </Typography>
+        </Box>
+    );
 }
 
 function InfoRow({ label, value }: { label: string; value?: string | null }) {
@@ -59,6 +74,11 @@ export default function ViewRecording() {
     const [newRecording, setNewRecording] = useState<{ blob: Blob; durationSeconds: number } | null>(null);
     const [saving, setSaving] = useState(false);
 
+    // Editable transcription (seeded from the saved value, updated live on re-record)
+    const [transcription, setTranscription] = useState("");
+    const [qualities, setQualities] = useState<AudioQualityMeasure[]>([]);
+    const [ranges, setRanges] = useState<QualityRangesByType>({});
+
     useEffect(() => {
         let cancelled = false;
         async function load() {
@@ -66,6 +86,7 @@ export default function ViewRecording() {
                 const { data } = await api.get<AudioFileDetail>(`/project/audio-file/${aid}`);
                 if (cancelled) return;
                 setAudioFile(data);
+                setTranscription(data.transcription ?? "");
 
                 // Resolve the project's configured microphone so re-recording uses
                 // the same device + sampling rate as the original take
@@ -79,32 +100,45 @@ export default function ViewRecording() {
                 }
             } catch {
                 if (!cancelled) setNotFound(true);
+                return;
             } finally {
                 if (!cancelled) setLoading(false);
+            }
+
+            // Quality checks are non-critical — don't fail the page if they're missing.
+            try {
+                const [qResp, rResp] = await Promise.all([
+                    api.get<AudioQualityMeasure[]>(`/audio-quality/audio-file/${aid}`),
+                    api.get<QualityRangesByType>(`/audio-quality/ranges`),
+                ]);
+                if (cancelled) return;
+                setQualities(qResp.data);
+                setRanges(rResp.data);
+            } catch {
+                /* ignore — just no quality cards */
             }
         }
         load();
         return () => { cancelled = true; };
     }, [aid]);
 
-
     const handleAudioBlob = async (blob: Blob, durationSeconds: number) => {
         setNewRecording({ blob, durationSeconds });
     };
 
     const handleSaveRecording = async () => {
-        setSaving(true);
         if (!audioFile?.blockId || !newRecording) {
             showMessage(t("view_recording.save_error"), Severity.error);
             return;
         }
+        setSaving(true);
         const form = new FormData();
         form.append("audio", newRecording.blob, `${audioFile.blockId}.wav`);
         form.append("meta", JSON.stringify([{
             blockId: audioFile.blockId,
             blockIndex: 0,
             durationSeconds: newRecording.durationSeconds,
-            transcription: audioFile.transcription ?? "",
+            transcription: transcription, // the (possibly edited) transcription
         }]));
 
         try {
@@ -114,14 +148,11 @@ export default function ViewRecording() {
                 { headers: { "Content-Type": "multipart/form-data" } },
             );
             const saved = resp.data.results?.[0];
+            setNewRecording(null);
             if (saved) {
-                setAudioFile(prev => prev ? {
-                    ...prev,
-                    id: saved.audioFile.id,
-                    s3Link: saved.audioFile.s3Link,
-                    transcription: saved.audioFile.transcription,
-                } : prev);
-                // Keep the URL valid (the old audio file id was deleted on overwrite)
+                // Re-running checks happens server-side on save; navigate to the new
+                // audio file id (the old one was deleted) so the page reloads its
+                // transcription + freshly computed quality checks.
                 router.replace(`/projects/${id}/block/${saved.audioFile.id}`);
             }
             showMessage(t("view_recording.save_success"), Severity.success);
@@ -130,7 +161,7 @@ export default function ViewRecording() {
         } finally {
             setSaving(false);
         }
-    }
+    };
 
     if (loading) {
         return (
@@ -167,18 +198,30 @@ export default function ViewRecording() {
         >
             {/* Main column */}
             <Box sx={{ flex: 1, width: "100%", minWidth: 0 }}>
-                <Typography sx={{ fontFamily: HEADLINE, fontWeight: 700, fontSize: "1.5rem", color: "#0f172a", letterSpacing: "-0.02em", mb: 1 }}>
+                <Typography sx={{ fontFamily: HEADLINE, fontWeight: 700, fontSize: "1.5rem", color: "#0f172a", letterSpacing: "-0.02em", mb: 2 }}>
                     {t("view_recording.title")}
                 </Typography>
 
-                {audioFile.transcription && (
-                    <Typography sx={{ fontFamily: LABEL, fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#94a3b8", mb: 0.5 }}>
-                        {t("view_recording.transcription")}
+                {/* Current prompt — the expected text for this block */}
+                <Box sx={{ mb: 3 }}>
+                    <Typography sx={{ fontFamily: LABEL, fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#94a3b8", mb: 0.75 }}>
+                        {t("view_recording.current_prompt")}
                     </Typography>
-                )}
-                <Typography sx={{ fontFamily: BODY, fontSize: "1rem", color: "#1e293b", lineHeight: 1.6, mb: 3 }}>
-                    {t("view_recording.transcription_label")}: {audioFile.transcription || "—"}
-                </Typography>
+                    <Typography
+                        sx={{
+                            fontFamily: BODY,
+                            fontSize: "1.1rem",
+                            fontStyle: "italic",
+                            lineHeight: 1.6,
+                            color: "#1e293b",
+                            borderLeft: `2px solid ${ORANGE}`,
+                            pl: 2,
+                            py: 0.5,
+                        }}
+                    >
+                        {audioFile.prompt || "—"}
+                    </Typography>
+                </Box>
 
                 {micWarning && (
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
@@ -194,14 +237,50 @@ export default function ViewRecording() {
                     sampleRate={audioFile.samplingRate}
                     onAudioBlob={handleAudioBlob}
                     recordedAudio={audioFile}
+                    onTranscript={setTranscription}
+                    transcriptionLang={audioFile.languageCode ?? undefined}
                 />
-                <Box sx={{ py: 1 }}>
+
+                {/* Editable transcription */}
+                <Box sx={{ mt: 3 }}>
+                    <Typography sx={{ fontFamily: LABEL, fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#94a3b8", mb: 0.75 }}>
+                        {t("view_recording.transcription")}
+                    </Typography>
+                    <TextField
+                        value={transcription}
+                        onChange={(e) => setTranscription(e.target.value)}
+                        placeholder="—"
+                        fullWidth
+                        multiline
+                        minRows={2}
+                        sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px", fontFamily: BODY, fontSize: "0.95rem" } }}
+                    />
+                </Box>
+
+                <Box sx={{ py: 2 }}>
                     <SaveButton
                         onClick={handleSaveRecording}
                         saving={saving}
                         disabled={!newRecording}
-                        count={0}
                     />
+                </Box>
+
+                {/* Quality checks */}
+                <Box sx={{ mt: 2 }}>
+                    <SectionHeader label={t("view_recording.quality_checks")} />
+                    {qualities.length === 0 ? (
+                        <Typography sx={{ fontFamily: BODY, fontSize: "0.875rem", color: "#94a3b8" }}>
+                            {t("view_recording.no_quality_checks")}
+                        </Typography>
+                    ) : (
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+                            {qualities
+                                .filter((q) => ranges[q.type])
+                                .map((q) => (
+                                    <QualityCheckCard key={q.id} measure={q} meta={ranges[q.type]} />
+                                ))}
+                        </Box>
+                    )}
                 </Box>
             </Box>
 
@@ -216,12 +295,7 @@ export default function ViewRecording() {
                     p: 3,
                 }}
             >
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2.5 }}>
-                    <Box sx={{ width: 4, height: 20, bgcolor: ORANGE, borderRadius: "2px" }} />
-                    <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "#475569" }}>
-                        {t("view_recording.file_info")}
-                    </Typography>
-                </Box>
+                <SectionHeader label={t("view_recording.file_info")} />
 
                 <InfoRow label={t("view_recording.label_name")} value={audioFile.name} />
                 <InfoRow label={t("view_recording.label_format")} value={fileFormat} />

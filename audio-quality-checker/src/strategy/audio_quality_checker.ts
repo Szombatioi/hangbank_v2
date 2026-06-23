@@ -1,22 +1,34 @@
 export interface QualityMeasure {
-  //TODO: redesign this by the database schema
-    name: string; //This is a translatable name for the quality issue e.g. "quality_quietness", "quality_loudness", "quality_noise" (you can use i18 translate with this key)
-    // value: number;
-    // threshold: number;
-    result: boolean; //true if the quality issue is present, false otherwise
-    message: string; //A translatable message
-    messageEnding?: string; //Extra information (e.g. 0.50-0.90) that can be added to the end of the message
+    name: string;
+    displayName: string;
+    values: number[];
+    ranges: {
+        min: number;
+        max: number | null; //null, since e.g. SpeakerCheck has no upper limit for "Same" and "Different" speaker
+        displayName: string;
+    }[]; 
 }
 
 //The main interface for the audio quality check
 export interface AudioQualityCheckerStrategy {
   readonly requiredWavCount: number;
-  checkQuality(wav: WavDecodeResult[]): Promise<QualityMeasure>;
+  checkQuality(master: WavDecodeResult, wav: WavDecodeResult): Promise<QualityMeasure>;
+}
+
+// The quality results for a single audio file, tagged with its id so the caller
+// knows which audio the measures belong to.
+export interface AudioFileQuality {
+  audioFileId: string;
+  measures: QualityMeasure[];
 }
 
 export interface AudioQualityChecker {
     // strategies: AudioQualityCheckerStrategy[];
-    checkAudioQuality(audioFiles: Express.Multer.File[]): Promise<QualityMeasure[]>;
+    checkAudioQuality(
+      masterFile: Express.Multer.File,
+      additionalWavs: Express.Multer.File[],
+      ids: string[],
+    ): Promise<AudioFileQuality[]>;
 }
 
 export interface WavDecodeResult {

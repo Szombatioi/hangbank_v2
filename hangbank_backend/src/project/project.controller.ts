@@ -121,6 +121,7 @@ export class ProjectController {
   @Post(':id/recordings')
   @UseInterceptors(FilesInterceptor('audio'))
   uploadBlockRecordings(
+    @Req() req: { user: IJwtPayload },
     @Param('id') id: string,
     @UploadedFiles() files: Express.Multer.File[],
     @Body('meta') metaRaw: string,
@@ -165,6 +166,6 @@ export class ProjectController {
       };
     });
 
-    return this.projectService.saveBlockRecordings(id, recordings);
+    return this.projectService.saveBlockRecordings(req.user.id, id, recordings);
   }
 }
