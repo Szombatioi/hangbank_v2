@@ -24,11 +24,15 @@ interface FloatingRecorderBarProps {
     onNext: () => void;
     canPrev: boolean;
     canNext: boolean;
+    /** Live transcription output + language (BCP-47) */
+    onTranscript?: (text: string) => void;
+    transcriptionLang?: string;
 }
 
 export default function FloatingRecorderBar({
     showRecorder, deviceId, sampleRate, onAudioBlob, bufferSize, saving, onSave,
     recordedAudio, recorderKey, onPrev, onNext, canPrev, canNext,
+    onTranscript, transcriptionLang,
 }: FloatingRecorderBarProps) {
     const { t } = useTranslation("common");
 
@@ -65,6 +69,8 @@ export default function FloatingRecorderBar({
                         bitDepth={16}
                         recordedAudio={recordedAudio}
                         sessionKey={recorderKey}
+                        onTranscript={onTranscript}
+                        transcriptionLang={transcriptionLang}
                     />
                 )}
 

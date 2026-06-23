@@ -23,6 +23,7 @@ export class SpeakerDetailDto {
     name!: string;
     description!: string;
     samplingRate?: number;
+    languageCode?: string; // BCP-47, e.g. "en-US" — used for live transcription
     speaker!: SpeakerDetailDto;
     blocks!: BlockDetailDto[];
     masterRecording?: MasterRecordingDto | null;

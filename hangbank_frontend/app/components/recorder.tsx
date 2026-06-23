@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import api from "@/app/axios";
 import { Severity, useSnackbar } from "@/app/providers/SnackbarProvider";
 import ConfirmDialog from "@/app/components/confirm-dialog";
+import Transcriber, { TranscriberHandle } from "@/app/components/transcriber";
 
 // Same shape as BlockDto's audioFile
 export interface RecorderAudioFile {
@@ -25,6 +26,10 @@ interface RecorderProps {
   recordedAudio?: RecorderAudioFile | null;
   /** Changes when the active block changes, so the recorder resets/reloads per block */
   sessionKey?: string;
+  /** When provided, live speech-to-text runs alongside recording (driven by the recorder's controls) */
+  onTranscript?: (text: string) => void;
+  /** BCP-47 language for transcription, e.g. "en-US", "hu-HU", "de-DE" */
+  transcriptionLang?: string;
 }
 
 function formatDuration(seconds: number): string {
@@ -42,9 +47,13 @@ export default function Recorder({
   bitDepth = 16,
   recordedAudio = null,
   sessionKey,
+  onTranscript,
+  transcriptionLang,
 }: RecorderProps) {
   const { showMessage } = useSnackbar();
   const { t } = useTranslation("common");
+
+  const transcriberRef = useRef<TranscriberHandle>(null);
 
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -182,6 +191,7 @@ export default function Recorder({
         cleanupRecording();
         setIsRecording(false);
         setIsPaused(false);
+        transcriberRef.current?.stop();
         // Cancel: do NOT send audio data back
       }
     };
@@ -272,6 +282,9 @@ export default function Recorder({
     source.connect(workletNode);
     setIsRecording(true);
     setIsPaused(false);
+
+    // Drive live transcription from the same start action (no-op when disabled)
+    transcriberRef.current?.start();
   }
 
   async function handleStart() {
@@ -281,11 +294,13 @@ export default function Recorder({
   function handlePause() {
     audioContextRef.current?.suspend();
     setIsPaused(true);
+    transcriberRef.current?.pause();
   }
 
   function handleResume() {
     audioContextRef.current?.resume();
     setIsPaused(false);
+    transcriberRef.current?.resume();
   }
 
   // Stop recording, keep the blob locally so it can be played back, and emit it
@@ -296,6 +311,7 @@ export default function Recorder({
     setIsPaused(false);
     setRecordedBlob(blob);
     waveSurferRef.current?.loadBlob(blob);
+    transcriberRef.current?.stop();
     onAudioBlobRef.current(blob, dur);
   }
 
@@ -330,6 +346,22 @@ export default function Recorder({
         gap: 1,
       }}
     >
+      {onTranscript && (
+        <Transcriber
+          ref={transcriberRef}
+          lang={transcriptionLang}
+          onTranscript={onTranscript}
+          onError={(err) => {
+            const message =
+              err === "unsupported" ? "Live transcription isn't supported in this browser"
+                : err === "not-allowed" || err === "service-not-allowed" ? "Live transcription was blocked (check microphone permission)"
+                  : err === "language-not-supported" ? `Live transcription doesn't support this language (${transcriptionLang ?? "default"})`
+                    : err === "network" ? "Live transcription failed (network)"
+                      : `Transcription error: ${err}`;
+            showMessage(message, Severity.error);
+          }}
+        />
+      )}
       <div ref={waveformRef} />
       <div
         style={{

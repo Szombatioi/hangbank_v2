@@ -59,12 +59,14 @@ function CorpusRecordInner() {
 
     // Transcription draft (per-block); TODO: persist when backend supports it
     const [transcription, setTranscription] = useState("");
+    const transcriptionRef = useRef(""); // latest value for stable access in callbacks
 
     const [saving, setSaving] = useState(false);
 
     useEffect(() => { blocksRef.current = blocks; }, [blocks]);
     useEffect(() => { blocksTotalRef.current = blocksTotal; }, [blocksTotal]);
     useEffect(() => { loadingMoreRef.current = loadingMoreBlocks; }, [loadingMoreBlocks]);
+    useEffect(() => { transcriptionRef.current = transcription; }, [transcription]);
 
     const fetchBlocks = useCallback(async (from: number, isLoadMore: boolean) => {
         if (isLoadMore) {
@@ -140,6 +142,7 @@ function CorpusRecordInner() {
                     blockId: block.id,
                     blockIndex: block.blockIndex,
                     durationSeconds,
+                    transcription: transcriptionRef.current,
                 });
                 setBlobBufferSize(blobBufferRef.current.size);
             }
@@ -193,6 +196,7 @@ function CorpusRecordInner() {
             blockId: r.blockId,
             blockIndex: r.blockIndex,
             durationSeconds: r.durationSeconds,
+            transcription: r.transcription
         }));
         for (const r of recordings) {
             form.append("audio", r.blob, `${r.blockId}.wav`);
@@ -340,6 +344,8 @@ function CorpusRecordInner() {
                 onNext={handleNext}
                 canPrev={canPrev}
                 canNext={canNext}
+                onTranscript={setTranscription}
+                transcriptionLang={project?.languageCode}
             />
 
             {/* Blocking master-recording gate — only after mic is resolved so the dialog has a deviceId */}

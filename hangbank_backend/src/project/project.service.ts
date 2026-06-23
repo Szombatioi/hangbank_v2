@@ -308,7 +308,7 @@ export class ProjectService {
   async findCorpusDetail(id: string): Promise<CorpusProjectDetailDto> {
     const project = await this.corpusBasedProjectRepository.findOne({
       where: { id },
-      relations: ['speaker', 'blocks', 'blocks.audioFile', 'masterRecording'],
+      relations: ['corpus', 'corpus.language', 'speaker', 'blocks', 'blocks.audioFile', 'masterRecording'],
     });
 
     if (!project) {
@@ -360,6 +360,7 @@ export class ProjectService {
       name: project.name,
       description: project.description,
       samplingRate: project.samplingRate,
+      languageCode: project.corpus.language?.code,
       speaker: {
         id: project.speaker.id,
         microphoneLabel: project.speaker.microphoneLabel,

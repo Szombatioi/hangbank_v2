@@ -15,4 +15,5 @@ export interface BufferedRecording {
     blockId: string;
     blockIndex: number;
     durationSeconds: number;
+    transcription: string;
 }

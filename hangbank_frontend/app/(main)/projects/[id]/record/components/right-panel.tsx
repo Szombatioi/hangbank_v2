@@ -115,6 +115,7 @@ export default function RightPanel({
                     value={transcription}
                     onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => onTranscriptionChange(e.target.value)}
                     placeholder={t("record.transcription_placeholder")}
+                    disabled
                     sx={{
                         width: "100%",
                         minHeight: 96,
