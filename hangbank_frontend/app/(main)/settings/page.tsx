@@ -14,12 +14,12 @@ import { useLanguage } from "@/app/providers/language-provider";
 import { useSnackbar, Severity } from "@/app/providers/SnackbarProvider";
 import { BODY, HEADLINE, LABEL, ORANGE } from "@/app/components/style-constants";
 
-//TODO: read from DB
-const UI_LANGUAGES = [
-    { code: "en", labelKey: "settings.lang_en" },
-    { code: "hu", labelKey: "settings.lang_hu" },
-    { code: "de", labelKey: "settings.lang_de" },
-];
+// A UI-selectable language fetched from the backend (only the translated ones).
+interface UiLanguage {
+    code: string; // BCP-47, e.g. "en-US"
+    name: string; // i18n key under "language.", e.g. "lang_en-US"
+    isTranslated: boolean;
+}
 
 //TODO: read from DB
 const GENDERS = ["MALE", "FEMALE", "OTHER"];
@@ -66,6 +66,9 @@ export default function SettingsPage() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [savingPassword, setSavingPassword] = useState(false);
 
+    // Interface languages — only those with a complete UI translation (isTranslated = true)
+    const [languages, setLanguages] = useState<UiLanguage[]>([]);
+
     // Seed the profile form once the authenticated user is available
     useEffect(() => {
         if (!user) return;
@@ -74,6 +77,22 @@ export default function SettingsPage() {
         setUsername(user.username ?? "");
         setGender(user.gender ?? "");
     }, [user]);
+
+    // Fetch the translated languages offered as interface options
+    useEffect(() => {
+        let ignore = false;
+        api.get<UiLanguage[]>("/language/translated")
+            .then(({ data }) => { if (!ignore) setLanguages(data); })
+            .catch(() => { /* leave empty — language picker just won't list options */ });
+        return () => { ignore = true; };
+    }, []);
+
+    // The active i18n locale may be a short code ("en") while DB codes are BCP-47
+    // ("en-US"); match on the base subtag so the right option stays selected.
+    const selectedLanguageCode =
+        languages.find((l) => l.code === language)?.code ??
+        languages.find((l) => l.code.split("-")[0] === language.split("-")[0])?.code ??
+        "";
 
     const handleSaveProfile = async () => {
         setSavingProfile(true);
@@ -159,18 +178,24 @@ export default function SettingsPage() {
                     {/* Language */}
                     <SectionCard title={t("settings.language")}>
                         <FieldLabel label={t("settings.language_label")} />
-                        <Select
-                            value={language}
-                            onChange={(e) => setLanguage(e.target.value)}
-                            fullWidth
-                            sx={{ borderRadius: "8px" }}
-                        >
-                            {UI_LANGUAGES.map((l) => (
-                                <MenuItem key={l.code} value={l.code}>
-                                    {t(l.labelKey)}
-                                </MenuItem>
-                            ))}
-                        </Select>
+                        {languages.length === 0 ? (
+                            <Box sx={{ display: "flex", justifyContent: "center", py: 1 }}>
+                                <CircularProgress size={20} />
+                            </Box>
+                        ) : (
+                            <Select
+                                value={selectedLanguageCode}
+                                onChange={(e) => setLanguage(e.target.value)}
+                                fullWidth
+                                sx={{ borderRadius: "8px" }}
+                            >
+                                {languages.map((l) => (
+                                    <MenuItem key={l.code} value={l.code}>
+                                        {t(`language.${l.name}`)}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        )}
                     </SectionCard>
 
                     {/* Profile */}

@@ -6,6 +6,7 @@ import {
   Get,
   HttpCode,
   Param,
+  Patch,
   Post,
   Query,
   Req,
@@ -69,6 +70,21 @@ export class ProjectController {
     @Param('audioFileId') audioFileId: string,
   ) {
     return this.projectService.getAudioFileUrl(req.user.id, audioFileId);
+  }
+
+  // Update an audio file's transcription only (no new audio).
+  @UseGuards(AuthGuard)
+  @Patch('audio-file/:audioFileId/transcription')
+  updateAudioFileTranscription(
+    @Req() req: { user: IJwtPayload },
+    @Param('audioFileId') audioFileId: string,
+    @Body('transcription') transcription: string,
+  ) {
+    return this.projectService.updateAudioFileTranscription(
+      req.user.id,
+      audioFileId,
+      transcription ?? '',
+    );
   }
 
   @UseGuards(AuthGuard)

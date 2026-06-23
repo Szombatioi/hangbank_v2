@@ -271,6 +271,7 @@
         "status_idle": "Idle",
         "status_paused": "Paused",
         "live": "Live",
+        "upcoming": "Upcoming",
         "session_details": "Session Details",
         "sample_rate": "Sample Rate",
         "bit_depth": "Bit Depth",
@@ -345,9 +346,15 @@
         "label_length": "Length",
         "label_sample_rate": "Sample Rate",
         "label_created": "Created",
+        "label_project": "Project",
+        "label_block": "Block",
         "quality_checks": "Quality Checks",
         "no_quality_checks": "No quality checks have run yet.",
-        "current_prompt": "Current Prompt"
+        "current_prompt": "Current Prompt",
+        "save_transcription": "Save transcription",
+        "transcription_saved": "Transcription saved.",
+        "master_recording": "Master Recording",
+        "master_loading": "Loading audio…"
     },
     "aqc": {
         "errors": {

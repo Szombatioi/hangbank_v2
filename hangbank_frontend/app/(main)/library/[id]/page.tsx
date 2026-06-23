@@ -32,11 +32,12 @@ export default function ViewCorpusPage() {
 
     const total = corpus?.blockCount ?? 0;
 
-    const fetchBlocks = async (from: number) => {
+    // Appends the next page — only used by the "Load more" button.
+    const fetchMore = async () => {
         setLoadingMore(true);
         try {
             const resp = await api.get<string[]>(`/corpus/${id}/blocks`, {
-                params: { from, to: from + PAGE_SIZE },
+                params: { from: blocks.length, to: blocks.length + PAGE_SIZE },
             });
             setBlocks(prev => [...prev, ...resp.data]);
         } catch {
@@ -47,21 +48,32 @@ export default function ViewCorpusPage() {
     };
 
     useEffect(() => {
+        // `ignore` guards against React StrictMode's double-mount (and stale
+        // requests after the id changes) so the first page is set once, not appended twice.
+        let ignore = false;
         async function init() {
             try {
-                const resp = await api.get<CorpusDto>(`/corpus/${id}`);
-                setCorpus(resp.data);
-                await fetchBlocks(0);
+                const [corpusResp, blocksResp] = await Promise.all([
+                    api.get<CorpusDto>(`/corpus/${id}`),
+                    api.get<string[]>(`/corpus/${id}/blocks`, {
+                        params: { from: 0, to: PAGE_SIZE },
+                    }),
+                ]);
+                if (ignore) return;
+                setCorpus(corpusResp.data);
+                setBlocks(blocksResp.data); // replace — this is the initial page
             } catch (err) {
+                if (ignore) return;
                 const status = (err as AxiosError).response?.status;
                 if (status === 404) setError(t("corpus_view.not_found"));
                 else if (status === 403) setError(t("corpus_view.access_denied"));
                 else setError(t("corpus_view.error_load"));
             } finally {
-                setLoading(false);
+                if (!ignore) setLoading(false);
             }
         }
         init();
+        return () => { ignore = true; };
     }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
     if (loading) {
@@ -141,7 +153,7 @@ export default function ViewCorpusPage() {
                 <Box sx={{ display: "flex", justifyContent: "center", pt: 3 }}>
                     <Button
                         variant="outlined"
-                        onClick={() => fetchBlocks(blocks.length)}
+                        onClick={fetchMore}
                         disabled={loadingMore}
                         startIcon={loadingMore ? <CircularProgress size={14} /> : undefined}
                         sx={{ borderColor: "#e2e8f0", color: "#475569", fontFamily: LABEL, fontWeight: 700, fontSize: "0.72rem", textTransform: "none", borderRadius: 2, px: 3 }}

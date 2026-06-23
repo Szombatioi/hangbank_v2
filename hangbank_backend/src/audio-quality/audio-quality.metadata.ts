@@ -16,8 +16,8 @@ export const AUDIO_QUALITY_METADATA: Record<
   [AudioQualityType.SpeakerCheck]: {
     displayName: 'aqc.speaker_check.name',
     ranges: [
-      { min: 0, max: null, displayName: 'aqc.speaker_check.ranges.different_speaker', isProblem: true },
-      { min: 1, max: null, displayName: 'aqc.speaker_check.ranges.same_speaker' },
+      { min: 0, max: null, displayName: 'aqc.speaker_check.ranges.same_speaker' },
+      { min: 1, max: null, displayName: 'aqc.speaker_check.ranges.different_speaker', isProblem: true },
     ],
   },
   [AudioQualityType.NoiseCheck]: {

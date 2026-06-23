@@ -18,6 +18,7 @@ import { ProjectModule } from './project/project.module';
 import { AudioFileModule } from './audio-file/audio-file.module';
 import { AudioQualityModule } from './audio-quality/audio-quality.module';
 import { AudioModificationModule } from './audio-modification/audio-modification.module';
+import { ExportModule } from './export/export.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { AudioModificationModule } from './audio-modification/audio-modification
     AudioFileModule,
     AudioQualityModule,
     AudioModificationModule,
+    ExportModule,
   ],
   controllers: [AppController],
   providers: [AppService],

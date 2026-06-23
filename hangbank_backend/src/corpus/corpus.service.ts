@@ -254,6 +254,29 @@ export class CorpusService {
 
     return saved;
   }
+
+  // Recomputes (upserts) the TranscriptionCheck for an audio file by comparing the
+  // given transcription against its block's prompt text. Used when the transcription
+  // is edited without re-recording.
+  async recomputeTranscriptionCheck(
+    requesterId: string,
+    audioFileId: string,
+    transcription: string,
+  ): Promise<void> {
+    const block = await this.corpusBlockRepository.findOne({
+      where: { audioFile: { id: audioFileId } },
+    });
+    if (!block) return;
+
+    const matches =
+      normalizeTranscript(block.text) === normalizeTranscript(transcription);
+    await this.audioQualityService.setAudioQuality(
+      audioFileId,
+      AudioQualityType.TranscriptionCheck,
+      { values: [matches ? 1 : 0] },
+      requesterId,
+    );
+  }
 }
 
 function normalizeTranscript(text: string): string {

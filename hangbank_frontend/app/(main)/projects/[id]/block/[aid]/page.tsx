@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { Box, CircularProgress, Paper, TextField, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, Paper, TextField, Typography } from "@mui/material";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import api from "@/app/axios";
 import Recorder, { RecorderAudioFile } from "@/app/components/recorder";
@@ -18,15 +18,24 @@ import {
 } from "@/app/components/helpers/audio-quality";
 import QualityCheckCard from "./components/quality-check-card";
 
+interface MasterRecordingInfo {
+    id: string;
+    name: string;
+    durationSeconds: number | null;
+}
+
 interface AudioFileDetail extends RecorderAudioFile {
     blockId: string | null;
+    blockIndex?: number | null;
     name?: string;
+    projectName?: string | null;
     durationSeconds?: number;
     createdAt?: string;
     samplingRate?: number;
     microphoneLabel?: string | null;
     languageCode?: string | null;
     prompt?: string | null;
+    masterRecording?: MasterRecordingInfo | null;
 }
 
 function SectionHeader({ label }: { label: string }) {
@@ -73,11 +82,15 @@ export default function ViewRecording() {
     const [notFound, setNotFound] = useState(false);
     const [newRecording, setNewRecording] = useState<{ blob: Blob; durationSeconds: number } | null>(null);
     const [saving, setSaving] = useState(false);
+    const [savingTranscription, setSavingTranscription] = useState(false);
 
     // Editable transcription (seeded from the saved value, updated live on re-record)
     const [transcription, setTranscription] = useState("");
     const [qualities, setQualities] = useState<AudioQualityMeasure[]>([]);
     const [ranges, setRanges] = useState<QualityRangesByType>({});
+
+    // Presigned URL for playing the project's master recording
+    const [masterUrl, setMasterUrl] = useState<string | null>(null);
 
     useEffect(() => {
         let cancelled = false;
@@ -122,6 +135,31 @@ export default function ViewRecording() {
         return () => { cancelled = true; };
     }, [aid]);
 
+    // Resolve a presigned URL for the master recording once we know its id.
+    useEffect(() => {
+        const masterId = audioFile?.masterRecording?.id;
+        if (!masterId) {
+            setMasterUrl(null);
+            return;
+        }
+        let cancelled = false;
+        api
+            .get<{ url: string }>(`/project/audio-file/${masterId}/url`)
+            .then(({ data }) => { if (!cancelled) setMasterUrl(data.url); })
+            .catch(() => { if (!cancelled) setMasterUrl(null); });
+        return () => { cancelled = true; };
+    }, [audioFile?.masterRecording?.id]);
+
+    // Re-fetch the stored quality measures (e.g. after editing the transcription).
+    const refreshQualities = async () => {
+        try {
+            const { data } = await api.get<AudioQualityMeasure[]>(`/audio-quality/audio-file/${aid}`);
+            setQualities(data);
+        } catch {
+            /* ignore */
+        }
+    };
+
     const handleAudioBlob = async (blob: Blob, durationSeconds: number) => {
         setNewRecording({ blob, durationSeconds });
     };
@@ -160,6 +198,21 @@ export default function ViewRecording() {
             showMessage(t("view_recording.save_error"), Severity.error);
         } finally {
             setSaving(false);
+        }
+    };
+
+    // Save just the transcription (no new audio). Re-runs the transcription check.
+    const handleSaveTranscription = async () => {
+        setSavingTranscription(true);
+        try {
+            await api.patch(`/project/audio-file/${aid}/transcription`, { transcription });
+            setAudioFile((prev) => (prev ? { ...prev, transcription } : prev));
+            await refreshQualities();
+            showMessage(t("view_recording.transcription_saved"), Severity.success);
+        } catch {
+            showMessage(t("view_recording.save_error"), Severity.error);
+        } finally {
+            setSavingTranscription(false);
         }
     };
 
@@ -255,6 +308,28 @@ export default function ViewRecording() {
                         minRows={2}
                         sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px", fontFamily: BODY, fontSize: "0.95rem" } }}
                     />
+                    {/* Save transcription only — independent of (re-)recording */}
+                    <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={handleSaveTranscription}
+                            disabled={savingTranscription || transcription === (audioFile.transcription ?? "")}
+                            startIcon={savingTranscription ? <CircularProgress size={14} sx={{ color: "inherit" }} /> : undefined}
+                            sx={{
+                                borderRadius: 1.5,
+                                textTransform: "none",
+                                fontFamily: LABEL,
+                                fontWeight: 700,
+                                fontSize: "0.72rem",
+                                borderColor: "#cbd5e1",
+                                color: "#0f172a",
+                                "&:hover": { borderColor: "#94a3b8", bgcolor: "#f8fafc" },
+                            }}
+                        >
+                            {t("view_recording.save_transcription")}
+                        </Button>
+                    </Box>
                 </Box>
 
                 <Box sx={{ py: 2 }}>
@@ -284,34 +359,75 @@ export default function ViewRecording() {
                 </Box>
             </Box>
 
-            {/* Info box */}
-            <Paper
-                elevation={0}
-                sx={{
-                    width: { xs: "100%", md: 300 },
-                    flexShrink: 0,
-                    border: "1px solid #e2e8f0",
-                    borderRadius: 3,
-                    p: 3,
-                }}
-            >
-                <SectionHeader label={t("view_recording.file_info")} />
+            {/* Right column: info box + master recording */}
+            <Box sx={{ width: { xs: "100%", md: 300 }, flexShrink: 0, display: "flex", flexDirection: "column", gap: 4 }}>
+                <Paper
+                    elevation={0}
+                    sx={{
+                        border: "1px solid #e2e8f0",
+                        borderRadius: 3,
+                        p: 3,
+                    }}
+                >
+                    <SectionHeader label={t("view_recording.file_info")} />
 
-                <InfoRow label={t("view_recording.label_name")} value={audioFile.name} />
-                <InfoRow label={t("view_recording.label_format")} value={fileFormat} />
-                <InfoRow
-                    label={t("view_recording.label_length")}
-                    value={audioFile.durationSeconds != null ? formatDuration(audioFile.durationSeconds) : undefined}
-                />
-                <InfoRow
-                    label={t("view_recording.label_sample_rate")}
-                    value={audioFile.samplingRate ? `${audioFile.samplingRate.toLocaleString()} Hz` : undefined}
-                />
-                <InfoRow
-                    label={t("view_recording.label_created")}
-                    value={audioFile.createdAt ? new Date(audioFile.createdAt).toLocaleString() : undefined}
-                />
-            </Paper>
+                    <InfoRow label={t("view_recording.label_project")} value={audioFile.projectName} />
+                    <InfoRow
+                        label={t("view_recording.label_block")}
+                        value={audioFile.blockIndex != null ? `#${audioFile.blockIndex + 1}` : undefined}
+                    />
+                    <InfoRow label={t("view_recording.label_name")} value={audioFile.name} />
+                    <InfoRow label={t("view_recording.label_format")} value={fileFormat} />
+                    <InfoRow
+                        label={t("view_recording.label_length")}
+                        value={audioFile.durationSeconds != null ? formatDuration(audioFile.durationSeconds) : undefined}
+                    />
+                    <InfoRow
+                        label={t("view_recording.label_sample_rate")}
+                        value={audioFile.samplingRate ? `${audioFile.samplingRate.toLocaleString()} Hz` : undefined}
+                    />
+                    <InfoRow
+                        label={t("view_recording.label_created")}
+                        value={audioFile.createdAt ? new Date(audioFile.createdAt).toLocaleString() : undefined}
+                    />
+                </Paper>
+
+                {/* Master recording — the project's reference voice */}
+                {audioFile.masterRecording && (
+                    <Paper
+                        elevation={0}
+                        sx={{
+                            border: "1px solid #e2e8f0",
+                            borderRadius: 3,
+                            p: 3,
+                        }}
+                    >
+                        <SectionHeader label={t("view_recording.master_recording")} />
+
+                        <InfoRow label={t("view_recording.label_name")} value={audioFile.masterRecording.name} />
+                        <InfoRow
+                            label={t("view_recording.label_format")}
+                            value={audioFile.masterRecording.name.split(".").pop()?.toUpperCase()}
+                        />
+                        <InfoRow
+                            label={t("view_recording.label_length")}
+                            value={audioFile.masterRecording.durationSeconds != null ? formatDuration(audioFile.masterRecording.durationSeconds) : undefined}
+                        />
+                        {masterUrl ? (
+                            <Box
+                                component="audio"
+                                controls
+                                src={masterUrl}
+                                sx={{ width: "100%", mt: 1 }}
+                            />
+                        ) : (
+                            <Typography sx={{ fontFamily: BODY, fontSize: "0.8rem", color: "#94a3b8", mt: 1 }}>
+                                {t("view_recording.master_loading")}
+                            </Typography>
+                        )}
+                    </Paper>
+                )}
+            </Box>
         </Box>
     );
 }

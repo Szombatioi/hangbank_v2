@@ -145,7 +145,7 @@ export class ProjectService {
   ): Promise<AudioFile> {
     const audioFile = await this.audioFileRepository.findOne({
       where: { id: audioFileId },
-      relations: ['project', 'project.roles'],
+      relations: ['project', 'project.roles', 'project.masterRecording'],
     });
     if (!audioFile) {
       throw new NotFoundException(
@@ -183,10 +183,14 @@ export class ProjectService {
       }),
     ]);
 
+    const master = audioFile.project.masterRecording;
+
     return {
       id: audioFile.id,
       blockId: block?.id ?? null,
+      blockIndex: block?.blockIndex ?? null,
       projectId,
+      projectName: audioFile.project.name,
       name: audioFile.name,
       s3Link: audioFile.s3Link,
       transcription: audioFile.transcription,
@@ -196,7 +200,37 @@ export class ProjectService {
       microphoneLabel: speaker?.microphoneLabel ?? null,
       languageCode: block?.corpus?.language?.code ?? null, // for live transcription
       prompt: block?.text ?? null, // the expected text for this block
+      masterRecording: master
+        ? {
+            id: master.id,
+            name: master.name,
+            durationSeconds: master.durationSeconds,
+          }
+        : null,
     };
+  }
+
+  // Updates only an audio file's transcription (no new audio), then re-runs the
+  // transcription quality check against the block prompt.
+  async updateAudioFileTranscription(
+    requesterId: string,
+    audioFileId: string,
+    transcription: string,
+  ) {
+    const audioFile = await this.loadAuthorizedAudioFile(
+      requesterId,
+      audioFileId,
+    );
+    audioFile.transcription = transcription;
+    await this.audioFileRepository.save(audioFile);
+
+    await this.corpusService.recomputeTranscriptionCheck(
+      requesterId,
+      audioFileId,
+      transcription,
+    );
+
+    return { id: audioFile.id, transcription };
   }
 
   //Returns a short-lived presigned URL for an audio file (owner-checked)

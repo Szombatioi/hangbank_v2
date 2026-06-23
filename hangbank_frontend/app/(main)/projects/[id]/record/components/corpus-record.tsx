@@ -26,6 +26,7 @@ import { BufferedRecording, RecordingBlockDto } from "../helpers/types";
 
 const BLOCKS_PAGE_SIZE = 20;
 const LOAD_AHEAD_THRESHOLD = 5;
+const UPCOMING_PREVIEW = 6; // keep in sync with SurroundingBlocks' UPCOMING_COUNT
 
 function CorpusRecordInner() {
     const { t } = useTranslation("common");
@@ -47,6 +48,7 @@ function CorpusRecordInner() {
     const [blocksTotal, setBlocksTotal] = useState(0);
     const blocksTotalRef = useRef(0);
     const [currentIdx, setCurrentIdx] = useState(0);
+    const currentIdxRef = useRef(0);
     const [loadingMoreBlocks, setLoadingMoreBlocks] = useState(false);
     const loadingMoreRef = useRef(false);
 
@@ -67,6 +69,19 @@ function CorpusRecordInner() {
     useEffect(() => { blocksTotalRef.current = blocksTotal; }, [blocksTotal]);
     useEffect(() => { loadingMoreRef.current = loadingMoreBlocks; }, [loadingMoreBlocks]);
     useEffect(() => { transcriptionRef.current = transcription; }, [transcription]);
+    useEffect(() => { currentIdxRef.current = currentIdx; }, [currentIdx]);
+
+    // Edit the active block's transcription. If a buffered (unsaved) take exists for
+    // this block, update its transcription too — otherwise the edit is lost and the
+    // text captured at record time is what gets uploaded on save.
+    const handleTranscriptionChange = useCallback((value: string) => {
+        setTranscription(value);
+        const block = blocksRef.current[currentIdxRef.current];
+        const buffered = block ? blobBufferRef.current.get(block.id) : undefined;
+        if (buffered) {
+            buffered.transcription = value;
+        }
+    }, []);
 
     // Load the active block's transcription whenever it changes (navigation, auto-advance,
     // or first load): prefer a buffered (unsaved) take's transcription, then the saved
@@ -144,6 +159,21 @@ function CorpusRecordInner() {
         init();
     }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // Load-ahead: fetch the next page when we're within LOAD_AHEAD_THRESHOLD of the
+    // last loaded block. Safe to call on every navigation/record — it no-ops when a
+    // fetch is already in flight or everything is loaded.
+    const maybeLoadAhead = useCallback((targetIdx: number) => {
+        const remaining = blocksRef.current.length - targetIdx;
+        const nextFetchFrom = startFrom + blocksRef.current.length;
+        if (
+            remaining <= LOAD_AHEAD_THRESHOLD &&
+            nextFetchFrom < blocksTotalRef.current &&
+            !loadingMoreRef.current
+        ) {
+            fetchBlocks(nextFetchFrom, true);
+        }
+    }, [fetchBlocks, startFrom]);
+
     const handleAudioBlob = useCallback((blob: Blob, durationSeconds: number) => {
         setCurrentIdx(prev => {
             const block = blocksRef.current[prev];
@@ -158,23 +188,14 @@ function CorpusRecordInner() {
                 setBlobBufferSize(blobBufferRef.current.size);
             }
             const next = prev + 1;
-
-            // Load-ahead: fetch more blocks when approaching the end of what's loaded
-            const remaining = blocksRef.current.length - next;
-            const nextFetchFrom = startFrom + blocksRef.current.length;
-            if (
-                remaining <= LOAD_AHEAD_THRESHOLD &&
-                nextFetchFrom < blocksTotalRef.current &&
-                !loadingMoreRef.current
-            ) {
-                fetchBlocks(nextFetchFrom, true);
-            }
-
+            // Also pre-fetch the upcoming-blocks preview so it's never empty
+            maybeLoadAhead(next + UPCOMING_PREVIEW);
             return next;
         });
-    }, [fetchBlocks, startFrom]);
+    }, [maybeLoadAhead]);
 
-    // Move one block back/forward; fetch more blocks when nearing the loaded edge
+    // Move one block back/forward; fetch more blocks when nearing the loaded edge.
+    // (Prev never needs a fetch — pagination only runs forward from startFrom.)
     const handlePrev = useCallback(() => {
         setCurrentIdx(prev => Math.max(0, prev - 1));
     }, []);
@@ -185,18 +206,11 @@ function CorpusRecordInner() {
             const next = prev + 1;
             if (next >= totalInSession) return prev; // already at the last block
 
-            const remaining = blocksRef.current.length - next;
-            const nextFetchFrom = startFrom + blocksRef.current.length;
-            if (
-                remaining <= LOAD_AHEAD_THRESHOLD &&
-                nextFetchFrom < blocksTotalRef.current &&
-                !loadingMoreRef.current
-            ) {
-                fetchBlocks(nextFetchFrom, true);
-            }
+            // Keep enough loaded ahead to cover navigation + the upcoming-blocks preview
+            maybeLoadAhead(next + UPCOMING_PREVIEW);
             return next;
         });
-    }, [fetchBlocks, startFrom]);
+    }, [maybeLoadAhead, startFrom]);
 
     const handleSave = async () => {
         const recordings = Array.from(blobBufferRef.current.values());
@@ -337,7 +351,7 @@ function CorpusRecordInner() {
                     samplingRate={project?.samplingRate}
                     micLabel={micLabel}
                     transcription={transcription}
-                    onTranscriptionChange={setTranscription}
+                    onTranscriptionChange={handleTranscriptionChange}
                 />
             </Box>
 
