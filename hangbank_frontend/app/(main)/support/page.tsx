@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-    Box, Dialog, DialogContent, DialogTitle, Grid, IconButton, Typography,
+    Box, Button, Dialog, DialogContent, DialogTitle, Grid, IconButton, Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { BODY, HEADLINE } from "@/app/components/style-constants";
 import SupportCard, { SupportItem } from "./components/support-card";
+import { useRouter } from "next/navigation";
 
 // Mocked support items — replace with a real source later
 const SUPPORT_ITEMS: SupportItem[] = [
@@ -35,16 +36,28 @@ const SUPPORT_ITEMS: SupportItem[] = [
 
 export default function SupportPage() {
     const { t } = useTranslation("common");
+    const router = useRouter();
     const [selected, setSelected] = useState<SupportItem | null>(null);
 
     return (
         <Box sx={{ p: { xs: 3, md: 5 }, maxWidth: 1000, mx: "auto" }}>
-            <Typography sx={{ fontFamily: HEADLINE, fontWeight: 700, fontSize: "1.5rem", color: "#0f172a", letterSpacing: "-0.02em" }}>
-                {t("support.title")}
-            </Typography>
-            <Typography sx={{ fontFamily: BODY, fontSize: "0.95rem", color: "#64748b", mt: 0.5, mb: 4 }}>
-                {t("support.subtitle")}
-            </Typography>
+            <Box sx={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
+                <Box>
+                    <Typography sx={{ fontFamily: HEADLINE, fontWeight: 700, fontSize: "1.5rem", color: "#0f172a", letterSpacing: "-0.02em" }}>
+                        {t("support.title")}
+                    </Typography>
+                    <Typography sx={{ fontFamily: BODY, fontSize: "0.95rem", color: "#64748b", mt: 0.5, mb: 4 }}>
+                        {t("support.subtitle")}
+                    </Typography>
+                </Box>
+                <Button 
+                    variant="contained"
+                    onClick={() => {
+                        if(process.env.NEXT_PUBLIC_SUBMIT_URL) open(process.env.NEXT_PUBLIC_SUBMIT_URL, "_blank")
+                    }}>
+                    {t("support.submit_button")}
+                </Button>
+            </Box>
 
             <Grid container spacing={3}>
                 {SUPPORT_ITEMS.map((item) => (

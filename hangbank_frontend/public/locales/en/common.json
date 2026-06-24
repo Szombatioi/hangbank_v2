@@ -373,7 +373,8 @@
     },
     "support": {
         "title": "Support",
-        "subtitle": "Browse common topics. Click a card to read more."
+        "subtitle": "Browse common topics. Click a card to read more.",
+        "submit_button": "Submit errors (only in hungarian)"
     },
     "view_recording": {
         "title": "Recording",
