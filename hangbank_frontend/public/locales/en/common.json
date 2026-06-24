@@ -1,4 +1,22 @@
 {
+    "home": {
+        "welcome_title": "Welcome to Hangbank!",
+        "welcome_description": "This is a demo of the Hangbank project, which currently supports corpus-based projects, audio quality checks and exporting in LJSpeech format.",
+        "thesis_description": "Please help my thesis work with additional suggestions, extension ideas and error reports.",
+        "library_description": "You can upload corpora in .txt, .pdf and .docx format on",
+        "library_description_link": "the library page",
+        "project_description": "Create a new corpus-based project on",
+        "project_description_link": "the projects page",
+        "export_description": "Export your projects in LJSpeech format on",
+        "export_description_link": "the export page",
+        "settings_description": "Customize the language or your user settings on",
+        "settings_description_link": "the settings page",
+        "support_description": "Having questions? Head over to",
+        "support_description_link": "the support page",
+        "support_description_lead": "to find your answers",
+        "report_description": "Found errors? Submit your ticket on",
+        "report_description_link": "the support page"
+    },
     "login": "Login",
     "email": "Email",
     "password": "Password",
@@ -42,7 +60,7 @@
     "error_invalid_credentials": "Invalid email or password.",
     "error_passwords_mismatch": "Passwords do not match.",
     "error_register_failed": "Registration failed. Please try again.",
-    "brand_subtitle": "Technical Editorial",
+    "brand_subtitle": "Collect high-quality audio-text pairs",
     "nav_projects": "Projects",
     "nav_dashboard": "Dashboard",
     "nav_library": "Library",
@@ -78,6 +96,9 @@
             "add_collaborator_placeholder": "Add collaborator by email..."
         }
     },
+    "upload": {
+        "fill_all": "Please choose a file and fill all the fields!"
+    },
     "file_upload": {
         "drag_drop_files": "Drag & drop your files here",
         "supported_formats": "Support for .txt, .docx, and .pdf files (Max 50MB per file)",
@@ -104,6 +125,10 @@
         "label_domain": "Domain",
         "label_uploaded": "Uploaded",
         "label_coverage": "Coverage",
+        "filter_title": "Title",
+        "filter_domain": "Domain",
+        "filter_title_placeholder": "Search by title",
+        "filter_domain_placeholder": "Search by domain",
         "empty_filters": "No corpora match your filters.",
         "visibility": {
             "all": "All",
@@ -226,7 +251,25 @@
         "delete_title": "Delete Project",
         "delete_description": "Are you sure you want to permanently delete \"{{name}}\"? All recordings and blocks will be removed. This action cannot be undone.",
         "delete_forbidden": "Only the project owner can delete this project.",
-        "delete_error": "Failed to delete project. Please try again."
+        "delete_error": "Failed to delete project. Please try again.",
+        "edit": "Edit",
+        "edit_title": "Edit Project",
+        "edit_name_label": "Project Title",
+        "edit_name_placeholder": "Project name",
+        "edit_description_label": "Description",
+        "edit_description_placeholder": "Describe the purpose of this project...",
+        "edit_save": "Save Changes",
+        "edit_cancel": "Cancel",
+        "edit_name_required": "Project name is required.",
+        "edit_success": "Project updated.",
+        "edit_forbidden": "Only the project owner can edit this project.",
+        "edit_error": "Failed to update the project. Please try again.",
+        "quality_ok": "No issues",
+        "quality_issues": "Quality issues",
+        "master_recording": "Master Recording",
+        "master_recording_desc": "The reference voice clip recorded for this project.",
+        "open_master_recording": "Open Master Recording",
+        "no_master_recording": "No master recording has been made for this project yet."
     },
     "projects": {
         "active_projects": "Active projects",

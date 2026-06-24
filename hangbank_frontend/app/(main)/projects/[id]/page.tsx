@@ -1,16 +1,19 @@
 "use client";
-//TODO: add edit project functionality
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
     Accordion, AccordionDetails, AccordionSummary,
     Alert, Box, Button, Chip, CircularProgress,
-    Grid, IconButton, Paper, Snackbar, Typography,
+    Dialog, DialogActions, DialogContent, DialogTitle,
+    Grid, IconButton, Paper, Snackbar, TextField, Typography,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import GraphicEqIcon from "@mui/icons-material/GraphicEq";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { AxiosError } from "axios";
 import api from "@/app/axios";
 import { ProjectDto } from "@/app/components/types/project.dto";
@@ -27,6 +30,8 @@ export interface BlockDto {
     id: string;
     blockIndex: number;
     isRecorded: boolean;
+    hasQualityChecks?: boolean;   // quality checks have run for this block's audio
+    hasQualityProblems?: boolean; // at least one check flagged a problem
     audioFile?: {
         id: string;
         s3Link: string;
@@ -68,6 +73,12 @@ export default function ProjectDetailPage() {
     const [error, setError] = useState<string | null>(null);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
+
+    // Edit project (name + description)
+    const [editOpen, setEditOpen] = useState(false);
+    const [editName, setEditName] = useState("");
+    const [editDescription, setEditDescription] = useState("");
+    const [savingEdit, setSavingEdit] = useState(false);
 
     useEffect(() => {
         api.get<ProjectDto>(`/project/${id}`)
@@ -115,6 +126,39 @@ export default function ProjectDetailPage() {
         }
     };
 
+    const openEdit = () => {
+        if (!project) return;
+        setEditName(project.name);
+        setEditDescription(project.description ?? "");
+        setEditOpen(true);
+    };
+
+    const handleSaveEdit = async () => {
+        const name = editName.trim();
+        if (!name) {
+            showMessage(t("project_detail.edit_name_required"), Severity.error);
+            return;
+        }
+        setSavingEdit(true);
+        try {
+            const r = await api.patch<ProjectDto>(`/project/${id}`, {
+                name,
+                description: editDescription.trim(),
+            });
+            setProject(r.data);
+            setEditOpen(false);
+            showMessage(t("project_detail.edit_success"), Severity.success);
+        } catch (err) {
+            const status = (err as AxiosError).response?.status;
+            showMessage(
+                status === 403 ? t("project_detail.edit_forbidden") : t("project_detail.edit_error"),
+                Severity.error,
+            );
+        } finally {
+            setSavingEdit(false);
+        }
+    };
+
     return (
         <Box sx={{ p: { xs: 3, md: 5 }, maxWidth: 1200, mx: "auto" }}>
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 4 }}>
@@ -122,13 +166,22 @@ export default function ProjectDetailPage() {
                     {t("project_detail.title")}
                 </Typography>
                 {project && (
-                    <IconButton
-                        onClick={() => setConfirmOpen(true)}
-                        aria-label={t("project_detail.delete")}
-                        sx={{ color: "#94a3b8", "&:hover": { color: "#dc2626", bgcolor: "transparent" } }}
-                    >
-                        <DeleteOutlineIcon />
-                    </IconButton>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                        <IconButton
+                            onClick={openEdit}
+                            aria-label={t("project_detail.edit")}
+                            sx={{ color: "#94a3b8", "&:hover": { color: "#0f172a", bgcolor: "transparent" } }}
+                        >
+                            <EditOutlinedIcon />
+                        </IconButton>
+                        <IconButton
+                            onClick={() => setConfirmOpen(true)}
+                            aria-label={t("project_detail.delete")}
+                            sx={{ color: "#94a3b8", "&:hover": { color: "#dc2626", bgcolor: "transparent" } }}
+                        >
+                            <DeleteOutlineIcon />
+                        </IconButton>
+                    </Box>
                 )}
             </Box>
 
@@ -197,6 +250,37 @@ export default function ProjectDetailPage() {
                                 />
                             </Grid>
                         </Grid>
+                    </Paper>
+
+                    {/* Master recording */}
+                    <Paper elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: 3, p: 3 }}>
+                        <SectionHeader label={t("project_detail.master_recording")} />
+                        {project.masterRecordingId ? (
+                            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2, flexWrap: "wrap" }}>
+                                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                                    <GraphicEqIcon sx={{ color: ORANGE }} />
+                                    <Typography sx={{ fontFamily: BODY, fontSize: "0.9rem", color: "#475569" }}>
+                                        {t("project_detail.master_recording_desc")}
+                                    </Typography>
+                                </Box>
+                                <Button
+                                    variant="contained"
+                                    endIcon={<ArrowForwardIcon sx={{ fontSize: "0.9rem !important" }} />}
+                                    onClick={() => router.push(`/projects/${id}/block/${project.masterRecordingId}`)}
+                                    sx={{
+                                        bgcolor: "#191c1d", borderRadius: 1.5, textTransform: "none",
+                                        fontFamily: LABEL, fontWeight: 700, fontSize: "0.72rem", px: 2,
+                                        "&:hover": { bgcolor: "#0f172a" },
+                                    }}
+                                >
+                                    {t("project_detail.open_master_recording")}
+                                </Button>
+                            </Box>
+                        ) : (
+                            <Typography sx={{ fontFamily: BODY, fontSize: "0.875rem", color: "#94a3b8" }}>
+                                {t("project_detail.no_master_recording")}
+                            </Typography>
+                        )}
                     </Paper>
 
                     {/* Blocks accordion — lazy loaded on first expand */}
@@ -300,6 +384,68 @@ export default function ProjectDetailPage() {
                 onProceed={handleDelete}
                 onCancel={() => { if (!deleting) setConfirmOpen(false); }}
             />
+
+            {/* Edit project name + description */}
+            <Dialog
+                open={editOpen}
+                onClose={() => { if (!savingEdit) setEditOpen(false); }}
+                fullWidth
+                maxWidth="sm"
+                PaperProps={{ sx: { borderRadius: 3 } }}
+            >
+                <DialogTitle sx={{ fontFamily: HEADLINE, fontWeight: 700, color: "#0f172a" }}>
+                    {t("project_detail.edit_title")}
+                </DialogTitle>
+                <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2.5, pt: "8px !important" }}>
+                    <Box>
+                        <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.12em", color: "#94a3b8", mb: 0.75 }}>
+                            {t("project_detail.edit_name_label")}
+                        </Typography>
+                        <TextField
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                            placeholder={t("project_detail.edit_name_placeholder")}
+                            fullWidth
+                            autoFocus
+                            error={!editName.trim()}
+                            helperText={!editName.trim() ? t("project_detail.edit_name_required") : undefined}
+                            sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px" } }}
+                        />
+                    </Box>
+                    <Box>
+                        <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.12em", color: "#94a3b8", mb: 0.75 }}>
+                            {t("project_detail.edit_description_label")}
+                        </Typography>
+                        <TextField
+                            value={editDescription}
+                            onChange={(e) => setEditDescription(e.target.value)}
+                            placeholder={t("project_detail.edit_description_placeholder")}
+                            fullWidth
+                            multiline
+                            minRows={3}
+                            sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px" } }}
+                        />
+                    </Box>
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 2.5 }}>
+                    <Button
+                        onClick={() => setEditOpen(false)}
+                        disabled={savingEdit}
+                        sx={{ color: "#64748b", fontFamily: LABEL, fontWeight: 700, fontSize: "0.78rem", textTransform: "none" }}
+                    >
+                        {t("project_detail.edit_cancel")}
+                    </Button>
+                    <Button
+                        variant="contained"
+                        onClick={handleSaveEdit}
+                        disabled={savingEdit || !editName.trim()}
+                        startIcon={savingEdit ? <CircularProgress size={14} sx={{ color: "inherit" }} /> : undefined}
+                        sx={{ bgcolor: "#191c1d", borderRadius: 1.5, textTransform: "none", fontFamily: LABEL, fontWeight: 700, fontSize: "0.78rem", px: 2.5, "&:hover": { bgcolor: "#0f172a" }, "&.Mui-disabled": { bgcolor: "#e2e8f0", color: "#94a3b8" } }}
+                    >
+                        {t("project_detail.edit_save")}
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 }

@@ -44,3 +44,21 @@ export const AUDIO_QUALITY_METADATA: Record<
     ],
   },
 };
+
+// True if any stored quality measure falls into a range flagged as a problem.
+// Shared so block/audio listings can show a pass/fail badge without re-deriving
+// the range logic.
+export function audioQualitiesHaveProblems(
+  qualities: { type: AudioQualityType; values: number[] }[],
+): boolean {
+  return qualities.some((q) => {
+    const meta = AUDIO_QUALITY_METADATA[q.type];
+    if (!meta) return false;
+    return q.values.some((v) => {
+      const range = meta.ranges.find(
+        (r) => v >= r.min && (r.max === null || v <= r.max),
+      );
+      return range?.isProblem === true;
+    });
+  });
+}

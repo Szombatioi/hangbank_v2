@@ -43,8 +43,8 @@ const NAV_ITEMS = [
   // { key: "nav_archive", icon: <History />, path: "/archive" },
 ];
 
-const APPBAR_ITEMS = [
-  { key: "nav_projects", path: "/projects" },
+const APPBAR_ITEMS: {key: string, path: string}[] = [
+  // { key: "nav_projects", path: "/projects" },
   // { key: "nav_notifications" },
   // { key: "nav_profile", icon: <AccountCircle /> },
   // { key: "nav_settings", icon: <Settings fontSize="small" /> },
@@ -196,7 +196,7 @@ export default function MainLayout({
           fullWidth
           variant="contained"
           startIcon={<AddCircle />}
-          onClick={() => router.push("/record")}
+          onClick={() => router.push("/projects/new")}
           sx={{
             bgcolor: "#ed4a14",
             color: "#ffffff",

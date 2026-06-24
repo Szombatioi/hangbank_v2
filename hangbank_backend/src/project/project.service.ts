@@ -22,6 +22,7 @@ import { BadRequestException } from '@nestjs/common';
 import { In } from 'typeorm';
 import type { BufferedRecording } from 'src/corpus/corpus.service';
 import { blob } from 'stream/consumers';
+import { audioQualitiesHaveProblems } from 'src/audio-quality/audio-quality.metadata';
 
 @Injectable()
 export class ProjectService {
@@ -253,26 +254,33 @@ export class ProjectService {
   async getBlocks(projectId: string, from: number = 0, to: number = 50) {
     const [blocks, total] = await this.corpusBlockRepository.findAndCount({
       where: { corpusProject: { id: projectId } },
-      relations: ['audioFile'],
+      relations: ['audioFile', 'audioFile.audioQualities'],
       order: { blockIndex: 'ASC' },
       skip: from,
       take: to - from,
     });
 
     return {
-      data: blocks.map((b) => ({
-        id: b.id,
-        blockIndex: b.blockIndex,
-        isRecorded: !!b.audioFile,
-        text: b.text,
-        audioFile: b.audioFile
-          ? {
-              id: b.audioFile.id,
-              s3Link: b.audioFile.s3Link,
-              transcription: b.audioFile.transcription,
-            }
-          : undefined,
-      })),
+      data: blocks.map((b) => {
+        const qualities = b.audioFile?.audioQualities ?? [];
+        return {
+          id: b.id,
+          blockIndex: b.blockIndex,
+          isRecorded: !!b.audioFile,
+          text: b.text,
+          // Whether quality checks have run, and whether any flagged a problem —
+          // lets the UI show a pass/fail badge per block.
+          hasQualityChecks: qualities.length > 0,
+          hasQualityProblems: audioQualitiesHaveProblems(qualities),
+          audioFile: b.audioFile
+            ? {
+                id: b.audioFile.id,
+                s3Link: b.audioFile.s3Link,
+                transcription: b.audioFile.transcription,
+              }
+            : undefined,
+        };
+      }),
       total,
     };
   }
@@ -313,7 +321,7 @@ export class ProjectService {
   async findOne(id: string) {
     const project = await this.corpusBasedProjectRepository.findOne({
       where: { id },
-      relations: ['corpus', 'corpus.language', 'speaker', 'roles'],
+      relations: ['corpus', 'corpus.language', 'speaker', 'roles', 'masterRecording'],
     });
     //TODO: add access right checks here based on project roles and requester user id (e.g. only allow if requester is in project.roles with a valid role, or if the project is public, etc.)
 
@@ -339,7 +347,46 @@ export class ProjectService {
       corpusName: project.corpus.name,
       language: project.corpus.language.name,
       speakerCount: 1,
+      masterRecordingId: project.masterRecording?.id ?? null,
     };
+  }
+
+  // Updates a project's editable metadata (name and/or description). Owner-only.
+  // Returns the refreshed detail DTO so the caller can replace its state.
+  async updateProject(
+    requesterId: string,
+    projectId: string,
+    data: { name?: string; description?: string },
+  ) {
+    const project = await this.corpusBasedProjectRepository.findOne({
+      where: { id: projectId },
+      relations: { roles: true },
+    });
+    if (!project) {
+      throw new NotFoundException(`Project with id '${projectId}' not found`);
+    }
+
+    const isOwner = project.roles.some(
+      (r) => r.userId === requesterId && r.role === ProjectRoleType.OWNER,
+    );
+    if (!isOwner) {
+      throw new ForbiddenException('Only the project owner can edit this project');
+    }
+
+    if (data.name !== undefined) {
+      const name = data.name.trim();
+      if (!name) {
+        throw new BadRequestException('Project name cannot be empty');
+      }
+      project.name = name;
+    }
+    if (data.description !== undefined) {
+      project.description = data.description.trim();
+    }
+
+    await this.corpusBasedProjectRepository.save(project);
+
+    return this.findOne(projectId);
   }
 
   async findCorpusDetail(id: string): Promise<CorpusProjectDetailDto> {

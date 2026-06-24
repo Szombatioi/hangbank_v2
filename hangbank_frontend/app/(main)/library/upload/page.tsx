@@ -2,10 +2,12 @@
 //TODO: file feltöltésnél nincs semmi visszajelzés, hogy sikerült-e vagy sem, illetve a feltöltés folyamatáról sincs semmilyen indikátor. Ezt mindenképp érdemes lenne megoldani, mert nagyobb fájloknál elég bizonytalan lehet a helyzet. (pl. egy 100MB-s fájl feltöltése akár több percig is eltarthat, és ha nincs semmi visszajelzés, akkor a user azt hiheti, hogy nem történik semmi, és újra megpróbálja feltölteni, ami tovább növeli a terhelést)
 import FileUpload from "@/app/components/file_upload";
 import {
+  Autocomplete,
   Avatar,
   Box,
   Button,
   Chip,
+  createFilterOptions,
   Grid,
   IconButton,
   InputAdornment,
@@ -61,6 +63,7 @@ export default function CorpusUploadPage() {
   ); //TODO: fetch
   const [corpusTitle, setCorpusTitle] = useState<string>("");
   const [corpusDomain, setCorpusDomain] = useState<string>("");
+  const [domainOptions, setDomainOptions] = useState<string[]>([]);
 
   // Right panel state
   const [visibility, setVisibility] = useState<Visibility>("private");
@@ -93,6 +96,20 @@ export default function CorpusUploadPage() {
     }
 
     fetchLanguages();
+  }, []);
+
+  // Existing domains offered as suggestions; the user may still type a new one (freeSolo)
+  useEffect(() => {
+    async function fetchDomains() {
+      try {
+        const response = await api.get<{ name: string }[]>("/corpus-domain");
+        setDomainOptions(response.data.map((d) => d.name));
+      } catch (error) {
+        console.error("Failed to fetch domains:", error);
+      }
+    }
+
+    fetchDomains();
   }, []);
 
   const handleLanguageChange = (event: SelectChangeEvent) => {
@@ -143,7 +160,7 @@ export default function CorpusUploadPage() {
   //TODO: handle collaborators
   const handleUpload = async () => {
     if (!file || !corpusLanguage || !corpusTitle || !corpusDomain) {
-      //TODO: snackbar
+      showMessage(t("upload.fill_all"), Severity.error);
       return;
     }
 
@@ -276,13 +293,20 @@ export default function CorpusUploadPage() {
               >
                 {t("upload_corpus_page.domain")}
               </Typography>
-              {/* TODO: replace with auto search for existing domain names */}
-              <TextField
-                value={corpusDomain}
-                onChange={(e) => setCorpusDomain(e.target.value)}
-                placeholder={t("upload_corpus_page.corpus_domain_placeholder")}
-                fullWidth
-                sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px" } }}
+              <Autocomplete
+                freeSolo
+                options={domainOptions}
+                filterOptions={createFilterOptions<string>({ limit: 50, trim: true })}
+                inputValue={corpusDomain}
+                onInputChange={(_, value) => setCorpusDomain(value)}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder={t("upload_corpus_page.corpus_domain_placeholder")}
+                    fullWidth
+                    sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px" } }}
+                  />
+                )}
               />
             </div>
           </Paper>

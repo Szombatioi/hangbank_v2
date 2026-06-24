@@ -330,7 +330,12 @@ function CorpusRecordInner() {
                 </Box>
 
                 <Box sx={{ px: 8, py: 6, overflowY: "auto", display: "flex", flexDirection: "column", gap: 12 }}>
-                    <PromptHeader countLabel={currentCountLabel} promptText={promptText} />
+                    <PromptHeader
+                        countLabel={currentCountLabel}
+                        promptText={promptText}
+                        isRecorded={!isSessionDone && !!currentBlock?.isRecorded}
+                        isBuffered={!isSessionDone && !!currentBlock && bufferedRecordings.has(currentBlock.id)}
+                    />
 
                     {!isSessionDone && (
                         <SurroundingBlocks

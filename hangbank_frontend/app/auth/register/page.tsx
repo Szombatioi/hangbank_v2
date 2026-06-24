@@ -214,7 +214,7 @@ export default function RegisterPage() {
 
                     {/* Bottom: Footer meta */}
                     <Box sx={{ zIndex: 1, pt: 3, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-                        <Typography
+                        {/* <Typography
                             sx={{
                                 fontFamily: LABEL_FONT,
                                 fontSize: "9px",
@@ -224,7 +224,7 @@ export default function RegisterPage() {
                             }}
                         >
                             {t("login_footer_meta")}
-                        </Typography>
+                        </Typography> */}
                     </Box>
                 </Box>
 

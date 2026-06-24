@@ -47,6 +47,17 @@ export class ProjectController {
     return this.projectService.findOne(id);
   }
 
+  // Edit a project's name and/or description (owner only).
+  @UseGuards(AuthGuard)
+  @Patch(':id')
+  updateProject(
+    @Req() req: { user: IJwtPayload },
+    @Param('id') id: string,
+    @Body() body: { name?: string; description?: string },
+  ) {
+    return this.projectService.updateProject(req.user.id, id, body);
+  }
+
   @UseGuards(AuthGuard)
   @Delete(':id')
   @HttpCode(204)

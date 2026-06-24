@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Box, Typography, Chip, Button, CircularProgress } from "@mui/material";
+import { Box, Typography, Chip, Button, CircularProgress, Autocomplete, TextField, Grid, Collapse, createFilterOptions } from "@mui/material";
 import TuneIcon from "@mui/icons-material/Tune";
 import SortIcon from "@mui/icons-material/Sort";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
@@ -266,6 +266,11 @@ export default function LibraryPage() {
   const [langFilter, setLangFilter] = useState<string | null>(null);
   const [visFilter, setVisFilter] = useState<CorpusVisibility | null>(null);
 
+  // Searchable filter fields (toggled by the Filters button)
+  const [showFilters, setShowFilters] = useState(false);
+  const [titleFilter, setTitleFilter] = useState<string>("");
+  const [domainFilter, setDomainFilter] = useState<string>("");
+
   // Delete flow
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [targetCorpus, setTargetCorpus] = useState<CorpusDto | null>(null);
@@ -310,15 +315,32 @@ export default function LibraryPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const filtered = useMemo(
-    () =>
-      corpora.filter((c) => {
-        if (langFilter && c.language.code !== langFilter) return false;
-        if (visFilter && c.visibility !== visFilter) return false;
-        return true;
-      }),
-    [corpora, langFilter, visFilter]
+  // Distinct, sorted options for the searchable filter fields, derived from the
+  // already-loaded corpora (no extra request needed for the current data volume).
+  const titleOptions = useMemo(
+    () => Array.from(new Set(corpora.map((c) => c.name).filter(Boolean))).sort(),
+    [corpora]
   );
+  const domainOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(corpora.map((c) => c.domain?.name).filter((d): d is string => !!d))
+      ).sort(),
+    [corpora]
+  );
+
+  const filtered = useMemo(() => {
+    const title = titleFilter.trim().toLowerCase();
+    const domain = domainFilter.trim().toLowerCase();
+    return corpora.filter((c) => {
+      if (langFilter && c.language.code !== langFilter) return false;
+      if (visFilter && c.visibility !== visFilter) return false;
+      // Substring match so a freeSolo (typed) value still narrows the list
+      if (title && !c.name.toLowerCase().includes(title)) return false;
+      if (domain && !(c.domain?.name ?? "").toLowerCase().includes(domain)) return false;
+      return true;
+    });
+  }, [corpora, langFilter, visFilter, titleFilter, domainFilter]);
 
   const chipSx = (active: boolean) => ({
     fontFamily: LABEL,
@@ -330,6 +352,25 @@ export default function LibraryPage() {
     borderRadius: "999px",
     "&:hover": { bgcolor: active ? "#191c1d" : "#d9dadb" },
   });
+
+  // A little contrast for the autocomplete inputs against the page background:
+  // a soft fill + border that strengthens on hover/focus.
+  const filterFieldSx = {
+    "& .MuiOutlinedInput-root": {
+      bgcolor: "#f1f5f9",
+      borderRadius: 2,
+      "& fieldset": { borderColor: "#e2e8f0" },
+      "&:hover fieldset": { borderColor: "#cbd5e1" },
+      "&:hover": { bgcolor: "#eceff3" },
+      "&.Mui-focused": { bgcolor: "#fff" },
+      "&.Mui-focused fieldset": { borderColor: "#94a3b8" },
+    },
+    "& .MuiInputLabel-root": { fontFamily: LABEL, fontSize: "0.875rem" },
+  };
+
+  // Cap how many suggestions render so the dropdown stays fast even with a huge
+  // number of distinct titles/domains; typing narrows via substring match.
+  const limitOptions = createFilterOptions<string>({ limit: 50, trim: true });
 
   return (
     <Box sx={{ p: { xs: 4, lg: 6 }, maxWidth: 1400, mx: "auto" }}>
@@ -345,19 +386,27 @@ export default function LibraryPage() {
           </Typography>
         </Box>
         <Box sx={{ display: "flex", gap: 1.5 }}>
-          <Button variant="text" startIcon={<TuneIcon sx={{ fontSize: "1rem !important" }} />}
-            sx={{ bgcolor: "#e7e8e9", color: "#44474c", fontFamily: LABEL, fontWeight: 600, fontSize: "0.875rem", borderRadius: 2, px: 2, "&:hover": { bgcolor: "#d9dadb" }, textTransform: "none" }}>
+          <Button variant="text"
+            startIcon={<TuneIcon sx={{ fontSize: "1rem !important" }} />}
+            sx={{
+              bgcolor: showFilters ? "#191c1d" : "#e7e8e9",
+              color: showFilters ? "#fff" : "#44474c",
+              fontFamily: LABEL, fontWeight: 600, fontSize: "0.875rem", borderRadius: 2, px: 2,
+              "&:hover": { bgcolor: showFilters ? "#0f172a" : "#d9dadb" }, textTransform: "none",
+            }}
+            onClick={() => setShowFilters((s) => !s)}
+          >
             {t("library_page.filters_button")}
           </Button>
-          <Button variant="text" startIcon={<SortIcon sx={{ fontSize: "1rem !important" }} />}
+          {/* <Button variant="text" startIcon={<SortIcon sx={{ fontSize: "1rem !important" }} />}
             sx={{ bgcolor: "#e7e8e9", color: "#44474c", fontFamily: LABEL, fontWeight: 600, fontSize: "0.875rem", borderRadius: 2, px: 2, "&:hover": { bgcolor: "#d9dadb" }, textTransform: "none" }}>
             {t("library_page.sort_button")}
-          </Button>
+          </Button> */}
         </Box>
       </Box>
 
       {/* Filter chips */}
-      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 5, alignItems: "center" }}>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2, alignItems: "center" }}>
         <Chip
           label={t("library_page.chip_all_languages")}
           onClick={() => { setLangFilter(null); setVisFilter(null); }}
@@ -381,6 +430,47 @@ export default function LibraryPage() {
           />
         ))}
       </Box>
+      {/* Searchable filter fields — shown/hidden by the Filters button */}
+      <Collapse in={showFilters} unmountOnExit>
+        <Grid container spacing={2} sx={{ mb: 3, mt: 0.5 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+            <Autocomplete
+              freeSolo
+              disablePortal
+              options={titleOptions}
+              filterOptions={limitOptions}
+              inputValue={titleFilter}
+              onInputChange={(_, value) => setTitleFilter(value)}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label={t("library_page.filter_title")}
+                  placeholder={t("library_page.filter_title_placeholder")}
+                  sx={filterFieldSx}
+                />
+              )}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+            <Autocomplete
+              freeSolo
+              disablePortal
+              options={domainOptions}
+              filterOptions={limitOptions}
+              inputValue={domainFilter}
+              onInputChange={(_, value) => setDomainFilter(value)}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label={t("library_page.filter_domain")}
+                  placeholder={t("library_page.filter_domain_placeholder")}
+                  sx={filterFieldSx}
+                />
+              )}
+            />
+          </Grid>
+        </Grid>
+      </Collapse>
 
       {/* Grid */}
       {loading ? (

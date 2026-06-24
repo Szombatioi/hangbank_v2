@@ -1,11 +1,12 @@
 "use client";
-//TODO: add warning symbol if there are any quality issues
 import { HEADLINE, LABEL } from "@/app/components/style-constants";
 import { Paper, Typography, Box, Chip, Button } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { BlockDto } from "../page";
 import { FiberManualRecord } from "@mui/icons-material";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 
 export default function BlockCard({ block, projectId }: { block: BlockDto; projectId: string }) {
     const router = useRouter();
@@ -43,6 +44,23 @@ export default function BlockCard({ block, projectId }: { block: BlockDto; proje
                         sx={{ bgcolor: "#fff3e0", color: "#ef6c00", fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem" }}
                     />
                 )}
+
+                {/* Quality-check outcome (only once checks have run for this block) */}
+                {block.hasQualityProblems ? (
+                    <Chip
+                        icon={<ErrorOutlineIcon sx={{ fontSize: "0.85rem !important", color: "#c62828 !important" }} />}
+                        label={t("project_detail.quality_issues")}
+                        size="small"
+                        sx={{ bgcolor: "#fdecea", color: "#c62828", fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem", "& .MuiChip-icon": { ml: "4px" } }}
+                    />
+                ) : block.hasQualityChecks ? (
+                    <Chip
+                        icon={<CheckCircleIcon sx={{ fontSize: "0.85rem !important", color: "#2e7d32 !important" }} />}
+                        label={t("project_detail.quality_ok")}
+                        size="small"
+                        sx={{ bgcolor: "#e8f5e9", color: "#2e7d32", fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem", "& .MuiChip-icon": { ml: "4px" } }}
+                    />
+                ) : null}
             </Box>
 
             <Button
