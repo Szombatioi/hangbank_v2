@@ -114,6 +114,16 @@ export class ProjectController {
     return this.projectService.getBlocks(id, from ? +from : 0, to ? +to : 50);
   }
 
+  // Recorded audio files of a project, with the metadata the export UI needs.
+  @UseGuards(AuthGuard)
+  @Get(':id/audio-files')
+  getExportableAudioFiles(
+    @Req() req: { user: IJwtPayload },
+    @Param('id') id: string,
+  ) {
+    return this.projectService.getExportableAudioFiles(req.user.id, id);
+  }
+
   @UseGuards(AuthGuard)
   @Get(':id/master-recording-prompt')
   getMasterRecordingPrompt(@Param('id') id: string) {

@@ -12,7 +12,6 @@ import { ProjectRoleService } from './project-role.service';
 import { ProjectRoleType } from './entities/project-role.enum';
 import type { IJwtPayload } from '@hangbank/shared';
 import { computeAge } from 'src/helpers/compute-age';
-import { AudioFile } from './entities/audio-file.entity';
 import { Readable } from 'stream';
 // import { Blob } from 'buffer';
 import { S3StorageService } from 'src/s3-storage/s3-storage.service';
@@ -21,8 +20,10 @@ import { CorpusProjectDetailDto } from './dto/corpus-project-detail.dto';
 import { BadRequestException } from '@nestjs/common';
 import { In } from 'typeorm';
 import type { BufferedRecording } from 'src/corpus/corpus.service';
+import { normalizeTranscript } from 'src/corpus/corpus.service';
 import { blob } from 'stream/consumers';
 import { audioQualitiesHaveProblems } from 'src/audio-quality/audio-quality.metadata';
+import { AudioFile } from 'src/audio-file/entities/audio-file.entity';
 
 @Injectable()
 export class ProjectService {
@@ -285,9 +286,55 @@ export class ProjectService {
     };
   }
 
+  // Returns every recorded audio file of a project (owner-checked) with the fields
+  // the export UI needs: name, duration, transcription, block index, and whether
+  // the audio has any quality problems.
+  async getExportableAudioFiles(requesterId: string, projectId: string) {
+    const project = await this.corpusBasedProjectRepository.findOne({
+      where: { id: projectId },
+      relations: { roles: true },
+    });
+    if (!project) {
+      throw new NotFoundException(`Project with id '${projectId}' not found`);
+    }
+    const isOwner = project.roles.some(
+      (r) => r.userId === requesterId && r.role === ProjectRoleType.OWNER,
+    );
+    if (!isOwner) {
+      throw new ForbiddenException('Only the project owner can export this project');
+    }
+
+    const blocks = await this.corpusBlockRepository.find({
+      where: { corpusProject: { id: projectId }, audioFile: Not(IsNull()) },
+      relations: ['audioFile', 'audioFile.audioQualities'],
+      order: { blockIndex: 'ASC' },
+    });
+
+    return blocks
+      .filter((b) => b.audioFile)
+      .map((b) => {
+        // Flag a problem when an AQC check failed OR the transcription doesn't
+        // match the block's prompt (e.g. empty/edited away from the expected text).
+        const transcriptionMatches =
+          normalizeTranscript(b.text) ===
+          normalizeTranscript(b.audioFile!.transcription ?? '');
+        return {
+          audioFileId: b.audioFile!.id,
+          name: b.audioFile!.name,
+          durationSeconds: b.audioFile!.durationSeconds,
+          transcription: b.audioFile!.transcription,
+          blockIndex: b.blockIndex,
+          hasQualityProblems:
+            audioQualitiesHaveProblems(b.audioFile!.audioQualities ?? []) ||
+            !transcriptionMatches,
+        };
+      });
+  }
+
   async findAll(requesterId: string) {
     const projects = await this.corpusBasedProjectRepository.find({
-      where: { roles: { userId: requesterId } },
+      // Only projects the requester owns (ownership-only filtering for now)
+      where: { roles: { userId: requesterId, role: ProjectRoleType.OWNER } },
       relations: ['corpus', 'corpus.language', 'speaker', 'roles'],
     });
 

@@ -13,6 +13,7 @@ export default function Home() {
     <Box sx={{p: 2}}>
       <Typography variant="h3" sx={{ mb: 2 }}>{t("home.welcome_title")}</Typography>
       <Typography variant="body1" fontSize={"large"}>{t("home.welcome_description")}</Typography>
+      <Typography variant="body1" fontSize={"large"}>{t("home.welcome_browser")}</Typography>
       <Typography variant="body1" fontSize={"large"}>{t("home.thesis_description")}</Typography>
 
       <Typography variant="body1" fontSize={"large"} sx={{ mt: 2 }}>

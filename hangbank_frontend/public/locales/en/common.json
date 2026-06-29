@@ -2,6 +2,7 @@
     "home": {
         "welcome_title": "Welcome to Hangbank!",
         "welcome_description": "This is a demo of the Hangbank project, which currently supports corpus-based projects, audio quality checks and exporting in LJSpeech format.",
+        "welcome_browser": "The app was tested in Google Chrome and in Brave. As of this demo, audio transcription does NOT work in Brave.",
         "thesis_description": "Please help my thesis work with additional suggestions, extension ideas and error reports.",
         "library_description": "You can upload corpora in .txt, .pdf and .docx format on",
         "library_description_link": "the library page",
@@ -67,6 +68,7 @@
     "nav_archive": "Archive",
     "nav_settings": "Settings",
     "nav_support": "Support",
+    "nav_export": "Export",
     "nav_logout": "Logout",
     "button_new_recording": "New Recording",
     "button_new_project": "New Project",
@@ -146,6 +148,30 @@
     },
     "error": {
         "language_load": "Could not load available languages."
+    },
+    "export_page": {
+        "title": "Export dataset",
+        "description": "Export your dataset to one of the common dataset formats.",
+        "source_selection": "Source Selection",
+        "select_project": "Select a project",
+        "audio_files": "Audio Files",
+        "items_selected": "{{count}} selected",
+        "no_audio_files": "This project has no recorded audio files to export yet.",
+        "has_errors": "Quality issues",
+        "block_index": "Block Index",
+        "transcription": "Transcription",
+        "expand": "Show details",
+        "select_format": "Select a Format",
+        "summary_title": "Export Summary",
+        "summary_selected_blocks": "Selected blocks",
+        "summary_bitrate": "Bitrate",
+        "summary_sample_rate": "Sample rate",
+        "summary_format": "Format",
+        "initiate_export": "Initiate Export",
+        "export_success": "Export downloaded.",
+        "export_error": "Export failed. Please try again.",
+        "error_load_projects": "Failed to load your projects. Please try again.",
+        "error_load_files": "Failed to load the project's audio files. Please try again."
     },
     "corpus_upload": {
         "success": "Corpus uploaded successfully!",
@@ -374,7 +400,8 @@
     "support": {
         "title": "Support",
         "subtitle": "Browse common topics. Click a card to read more.",
-        "submit_button": "Submit errors (only in hungarian)"
+        "submit_button": "Submit errors (only in hungarian)",
+        "dialog_language": "Language"
     },
     "view_recording": {
         "title": "Recording",

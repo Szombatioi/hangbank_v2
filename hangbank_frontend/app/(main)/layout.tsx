@@ -24,6 +24,7 @@ import {
   AddCircle,
   DarkMode,
   LightMode,
+  FileDownload,
 } from "@mui/icons-material";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
@@ -40,6 +41,7 @@ const NAV_ITEMS = [
   { key: "nav_dashboard", icon: <GridView />, path: "/" },
   { key: "nav_library", icon: <ReceiptLong />, path: "/library" },
   { key: "nav_projects", icon: <Mic />, path: "/projects" },
+  { key: "nav_export", icon: <FileDownload />, path: "/export" },
   // { key: "nav_archive", icon: <History />, path: "/archive" },
 ];
 

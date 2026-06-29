@@ -5,9 +5,11 @@ import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import { BODY, HEADLINE, ORANGE } from "@/app/components/style-constants";
 
 export interface SupportItem {
+    id: string; //we give a custom name to determine which support text this is (to have multiple languages for this)
     title: string;
     shortDescription: string;
     longDescription: string;
+    language: string;
 }
 
 export default function SupportCard({ item, onClick }: { item: SupportItem; onClick: () => void }) {

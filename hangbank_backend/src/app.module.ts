@@ -19,6 +19,7 @@ import { AudioFileModule } from './audio-file/audio-file.module';
 import { AudioQualityModule } from './audio-quality/audio-quality.module';
 import { AudioModificationModule } from './audio-modification/audio-modification.module';
 import { ExportModule } from './export/export.module';
+import { SupportTextModule } from './support-text/support-text.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { ExportModule } from './export/export.module';
     AudioQualityModule,
     AudioModificationModule,
     ExportModule,
+    SupportTextModule,
   ],
   controllers: [AppController],
   providers: [AppService],

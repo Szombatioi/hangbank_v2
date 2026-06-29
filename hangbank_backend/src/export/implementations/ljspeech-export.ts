@@ -1,11 +1,11 @@
 import { Project } from "src/project/entities/project.entity";
-import { ExportStrategy } from "../export.strategy.interface";
+import { ExportOptions } from "../export.strategy.interface";
 import { Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { ExportBase } from "./export-base";
 import { S3StorageService } from "src/s3-storage/s3-storage.service";
-const archiver = require('archiver');
+import { ZipArchive } from "archiver";
 
 @Injectable()
 export class LJSpeechExportStrategy extends ExportBase{
@@ -16,32 +16,42 @@ export class LJSpeechExportStrategy extends ExportBase{
         super(projectRepository);
     }
 
-    async export(projectId: string) {
-        //TODO: Check permission for project
-        const data = await this.collectProjectData(projectId);
+    async export(requesterId: string, projectId: string, options?: ExportOptions) {
+        const data = await this.collectProjectData(requesterId, projectId, options?.audioFileIds);
 
-        const archive = archiver('zip', {
+        // archiver v8 exposes format classes instead of the old archiver('zip') factory
+        const archive = new ZipArchive({
             zlib: { level: 9 } // Maximum compression
         });
 
-        // ZIP file: 
+        // ZIP file:
         // → wavs/
             // file1.wav
             // file2.wav
         // → metadata.csv
             // filename | transcription | transcription normalized
 
-        for(const audioFile of data.files){
+        const files = [...data.files].sort((a, b) => a.name.localeCompare(b.name));
+
+        for (const audioFile of files) {
             //Download file and convert to wav file
             const file = await this.s3StorageService.downloadObject(audioFile.s3Link, this.s3StorageService.audioBucket);
             archive.append(file, { name: `wavs/${audioFile.name}` });
         }
 
-        const csvContent = "filename|transcription\n" + data.files.map(f => `${f.name}|${f.transcription}`).join('\n');
-        archive.append(csvContent, { name: 'metadata.csv' });
+        const csvContent = "filename|transcription\n" + files.map(f => `${f.name}|${f.transcription}`).join('\n');
+        // Prepend a UTF-8 BOM and append as a UTF-8 buffer so spreadsheet apps (Excel)
+        // read accented characters (e.g. Hungarian) as UTF-8 instead of guessing a
+        // single-byte code page, which produces mojibake.
+        const bom = String.fromCharCode(0xfeff);
+        archive.append(Buffer.from(bom + csvContent, 'utf-8'), { name: 'metadata.csv' });
 
-        archive.finalize();
+        // Don't await: the controller pipes the stream and finalize() only resolves
+        // once that consumer drains it. Catch so a failure isn't an unhandled
+        // rejection (it's also emitted via the 'error' event the controller handles).
+        archive.finalize().catch((err) => {
+            console.error('Export archive finalize error', err);
+        });
         return archive;
     }
-    
 }

@@ -12,9 +12,9 @@ export class SeederService {
     async seedLanguages() {
         console.log("Seeding languages...");
         // isTranslated marks languages with a complete shipped UI locale — only these
-        // are offered as interface options on the settings page. Currently only en-US.
+        // are offered as interface options on the settings page. en-US and hu-HU ship.
         const languages = [
-            { code: 'hu-HU', name: 'lang_hu-HU', isTranslated: false },
+            { code: 'hu-HU', name: 'lang_hu-HU', isTranslated: true },
             { code: 'en-US', name: 'lang_en-US', isTranslated: true },
             { code: 'de-DE', name: 'lang_de-DE', isTranslated: false },
             // { code: 'fr-FR', name: 'lang_fr-FR', isTranslated: false },
