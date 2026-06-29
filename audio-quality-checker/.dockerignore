@@ -1,0 +1,13 @@
+node_modules
+dist
+.git
+Dockerfile
+docker-compose.yaml
+.dockerignore
+.env
+.DS_Store
+# Large pretrained assets + scripts not needed at runtime (the exported model,
+# onnx/ecapa_tdnn.onnx, is kept and copied into the image).
+onnx/pretrained_ecapa
+onnx/generator*.py
+onnx/requirements.txt
