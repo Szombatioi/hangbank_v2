@@ -14,12 +14,12 @@ const LABEL_FONT = "'Manrope', sans-serif";
 
 export const COLORS = {
     primaryAccent: "#ed4a14",
-    secondaryText: "#47607e",
-    inputBg: "#e7e8e9",
-    borderColor: "#c4c6cc",
+    secondaryText: "var(--app-text-muted)",
+    inputBg: "var(--app-surface-strong)",
+    borderColor: "var(--app-border)",
     darkBg: "#101b30",
-    formBg: "#f3f4f5",
-    waveBar: "#79849d",
+    formBg: "var(--app-surface-muted)",
+    waveBar: "var(--app-text-faint)",
 };
 
 export const WAVEFORM_HEIGHTS = [25, 50, 75, 100, 66, 50, 33, 80, 100, 50, 25];
@@ -81,7 +81,7 @@ export default function LoginPage() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                backgroundColor: "#f8f9fa",
+                backgroundColor: "var(--app-bg)",
                 p: { xs: 0, sm: 2 },
             }}
         >

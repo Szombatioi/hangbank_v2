@@ -53,9 +53,9 @@ const FileUpload = ({ onFileSelected, onFileRemoved }: FileUploadProps) => {
         gap: 2,
         px: 6,
         py: 4,
-        bgcolor: isDragging ? "#e8f0fe" : "#f5f5f5",
+        bgcolor: isDragging ? "var(--app-info-bg)" : "var(--app-bg)",
         border: "2px dashed",
-        borderColor: isDragging ? "#4285f4" : "#d0d0d0",
+        borderColor: isDragging ? "#4285f4" : "var(--app-border)",
         borderRadius: 3,
         transition: "border-color 0.2s, background-color 0.2s",
         textAlign: "center",
@@ -99,12 +99,12 @@ const FileUpload = ({ onFileSelected, onFileRemoved }: FileUploadProps) => {
             mt: 1,
             px: 5,
             py: 1.5,
-            bgcolor: "black",
+            bgcolor: "var(--app-btn)",
             color: "white",
             fontWeight: 700,
             letterSpacing: "0.1em",
             borderRadius: 2,
-            "&:hover": { bgcolor: "#222" },
+            "&:hover": { bgcolor: "var(--app-btn-hover)" },
           }}
         >
           {t("file_upload.browse_files")}

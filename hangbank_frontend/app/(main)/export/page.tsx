@@ -19,7 +19,7 @@ function PanelHeader({ label }: { label: string }) {
     return (
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2.5 }}>
             <Box sx={{ width: 4, height: 20, bgcolor: ORANGE, borderRadius: "2px" }} />
-            <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "#475569" }}>
+            <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--app-text-secondary)" }}>
                 {label}
             </Typography>
         </Box>
@@ -29,7 +29,7 @@ function PanelHeader({ label }: { label: string }) {
 function SummaryRow({ label, value }: { label: string; value: string }) {
     return (
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2 }}>
-            <Typography sx={{ fontFamily: LABEL, fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "#8ea2c0" }}>
+            <Typography sx={{ fontFamily: LABEL, fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--app-text-faint)" }}>
                 {label}
             </Typography>
             <Typography sx={{ fontFamily: HEADLINE, fontSize: "0.95rem", fontWeight: 700, color: "#f8fafc" }}>
@@ -149,10 +149,10 @@ function ExportPageInner() {
 
     return (
         <Box sx={{ p: { xs: 3, md: 5 }, maxWidth: 1200, mx: "auto" }}>
-            <Typography sx={{ fontFamily: HEADLINE, fontWeight: 700, fontSize: "1.75rem", color: "#0f172a", letterSpacing: "-0.02em" }}>
+            <Typography sx={{ fontFamily: HEADLINE, fontWeight: 700, fontSize: "1.75rem", color: "var(--app-text-primary)", letterSpacing: "-0.02em" }}>
                 {t("export_page.title")}
             </Typography>
-            <Typography sx={{ fontFamily: BODY, fontSize: "0.95rem", color: "#64748b", mt: 0.5, mb: 4 }}>
+            <Typography sx={{ fontFamily: BODY, fontSize: "0.95rem", color: "var(--app-text-muted)", mt: 0.5, mb: 4 }}>
                 {t("export_page.description")}
             </Typography>
 
@@ -161,7 +161,7 @@ function ExportPageInner() {
                 <Box sx={{ flex: 1, width: "100%", minWidth: 0, display: "flex", flexDirection: "column", gap: 3 }}>
 
                     {/* Source selection */}
-                    <Paper elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: 3, p: 3 }}>
+                    <Paper elevation={0} sx={{ border: "1px solid var(--app-border)", borderRadius: 3, p: 3 }}>
                         <PanelHeader label={t("export_page.source_selection")} />
 
                         {loadingProjects ? (
@@ -178,7 +178,7 @@ function ExportPageInner() {
                                 renderValue={(val) =>
                                     val
                                         ? (projects.find((p) => p.id === val)?.name ?? val)
-                                        : <Box component="span" sx={{ color: "#94a3b8" }}>{t("export_page.select_project")}</Box>
+                                        : <Box component="span" sx={{ color: "var(--app-text-faint)" }}>{t("export_page.select_project")}</Box>
                                 }
                             >
                                 {projects.map((p) => (
@@ -191,13 +191,13 @@ function ExportPageInner() {
                         {selectedProjectId && (
                             <Box sx={{ mt: 3 }}>
                                 <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1.5 }}>
-                                    <Typography sx={{ fontFamily: LABEL, fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#94a3b8" }}>
+                                    <Typography sx={{ fontFamily: LABEL, fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--app-text-faint)" }}>
                                         {t("export_page.audio_files")}
                                     </Typography>
                                     <Chip
                                         label={t("export_page.items_selected", { count: selectedIds.size })}
                                         size="small"
-                                        sx={{ bgcolor: "#191c1d", color: "#fff", fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem" }}
+                                        sx={{ bgcolor: "var(--app-btn)", color: "#fff", fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem" }}
                                     />
                                 </Box>
 
@@ -206,7 +206,7 @@ function ExportPageInner() {
                                         <CircularProgress size={22} />
                                     </Box>
                                 ) : audioFiles.length === 0 ? (
-                                    <Typography sx={{ fontFamily: BODY, fontSize: "0.875rem", color: "#94a3b8", py: 2 }}>
+                                    <Typography sx={{ fontFamily: BODY, fontSize: "0.875rem", color: "var(--app-text-faint)", py: 2 }}>
                                         {t("export_page.no_audio_files")}
                                     </Typography>
                                 ) : (
@@ -226,7 +226,7 @@ function ExportPageInner() {
                     </Paper>
 
                     {/* Format selection */}
-                    <Paper elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: 3, p: 3 }}>
+                    <Paper elevation={0} sx={{ border: "1px solid var(--app-border)", borderRadius: 3, p: 3 }}>
                         <PanelHeader label={t("export_page.select_format")} />
                         <Select
                             value={format}

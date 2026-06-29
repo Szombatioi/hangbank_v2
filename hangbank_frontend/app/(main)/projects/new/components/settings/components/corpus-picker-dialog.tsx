@@ -47,11 +47,11 @@ export function CorpusPickerDialog({
           fontFamily: HEADLINE,
           fontWeight: 700,
           fontSize: "1.125rem",
-          color: "#0f172a",
+          color: "var(--app-text-primary)",
         }}
       >
         {t("new_project.corpus_based.dialog_title")}
-        <IconButton onClick={onClose} size="small" sx={{ color: "#94a3b8" }}>
+        <IconButton onClick={onClose} size="small" sx={{ color: "var(--app-text-faint)" }}>
           <CloseIcon fontSize="small" />
         </IconButton>
       </DialogTitle>
@@ -71,19 +71,19 @@ export function CorpusPickerDialog({
               alignItems: "center",
               gap: 1.5,
               py: 6,
-              border: "2px dashed #e2e8f0",
+              border: "2px dashed var(--app-border)",
               borderRadius: 3,
             }}
           >
-            <AlbumIcon sx={{ fontSize: "2.5rem", color: "#cbd5e1" }} />
-            <Typography sx={{ fontFamily: BODY, fontSize: "0.875rem", color: "#94a3b8" }}>
+            <AlbumIcon sx={{ fontSize: "2.5rem", color: "var(--app-border-strong)" }} />
+            <Typography sx={{ fontFamily: BODY, fontSize: "0.875rem", color: "var(--app-text-faint)" }}>
               {t("new_project.corpus_based.no_corpora")}
             </Typography>
             <Button
               size="small"
               variant="text"
               onClick={onUpload}
-              sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.75rem", textTransform: "none", color: "#191c1d" }}
+              sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.75rem", textTransform: "none", color: "var(--app-text-primary)" }}
             >
               {t("new_project.corpus_based.upload_corpus_link")}
             </Button>

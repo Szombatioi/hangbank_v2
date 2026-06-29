@@ -217,7 +217,7 @@ export default function CorpusUploadPage() {
 
           <Paper
             elevation={0}
-            sx={{ backgroundColor: "#f3f4f5", py: 4, px: 4, borderRadius: 4, display: "flex", flexDirection: "column", gap: 2 }}
+            sx={{ backgroundColor: "var(--app-surface-muted)", py: 4, px: 4, borderRadius: 4, display: "flex", flexDirection: "column", gap: 2 }}
           >
             <div style={{}}>
               <Typography
@@ -329,7 +329,7 @@ export default function CorpusUploadPage() {
           {/* Visibility Settings */}
           <Paper
             elevation={0}
-            sx={{ backgroundColor: "#f3f4f5", py: 3, px: 3, borderRadius: 4 }}
+            sx={{ backgroundColor: "var(--app-surface-muted)", py: 3, px: 3, borderRadius: 4 }}
           >
             <Typography
               variant="overline"
@@ -366,7 +366,7 @@ export default function CorpusUploadPage() {
                       cursor: option.value === "protected" || option.value === "public" ? "not-allowed" : "pointer", // TODO: Implement visibility
                       border: "1.5px solid", 
                       borderColor: isSelected ? "#b8c8e8" : "transparent",
-                      bgcolor: isSelected ? "#e8eef8" : "transparent",
+                      bgcolor: isSelected ? "var(--app-info-bg)" : "transparent",
                       transition: "all 0.15s",
                     }}
                   >
@@ -378,7 +378,7 @@ export default function CorpusUploadPage() {
                       sx={{
                         p: 0,
                         mt: "2px",
-                        color: isSelected ? "#1a1a1a" : "#aaa",
+                        color: isSelected ? "var(--app-text-primary)" : "#aaa",
                       }}
                     />
                     <Box>
@@ -402,7 +402,7 @@ export default function CorpusUploadPage() {
           {visibility === "protected" && (
             <Paper
               elevation={0}
-              sx={{ backgroundColor: "#f3f4f5", py: 3, px: 3, borderRadius: 4 }}
+              sx={{ backgroundColor: "var(--app-surface-muted)", py: 3, px: 3, borderRadius: 4 }}
             >
               <Box
                 sx={{
@@ -428,8 +428,8 @@ export default function CorpusUploadPage() {
                   )}
                   size="small"
                   sx={{
-                    bgcolor: "#dde6f5",
-                    color: "#4a6fa5",
+                    bgcolor: "var(--app-info-bg)",
+                    color: "var(--app-info-fg)",
                     fontWeight: 700,
                     fontSize: "0.65rem",
                     letterSpacing: "0.08em",
@@ -455,12 +455,12 @@ export default function CorpusUploadPage() {
                       edge="end"
                       size="small"
                     >
-                      <PersonAddIcon sx={{ color: "#4a6fa5" }} />
+                      <PersonAddIcon sx={{ color: "var(--app-info-fg)" }} />
                     </IconButton>
                   </InputAdornment>
                 }
                 sx={{
-                  bgcolor: "#e8edf5",
+                  bgcolor: "var(--app-info-bg)",
                   borderRadius: 2,
                   "& fieldset": { border: "none" },
                   mb: 2,
@@ -514,7 +514,7 @@ export default function CorpusUploadPage() {
           {file && file.name.split('.').pop()?.toLowerCase() === "pdf" && (
             <>
               <Paper elevation={0}
-                sx={{ backgroundColor: "#f3f4f5", py: 3, px: 3, borderRadius: 4 }}>
+                sx={{ backgroundColor: "var(--app-surface-muted)", py: 3, px: 3, borderRadius: 4 }}>
                 <Typography
                   variant="h6"
                   sx={{ textTransform: "capitalize" }}

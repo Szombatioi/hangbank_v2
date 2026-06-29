@@ -42,7 +42,7 @@ function SectionHeader({ label }: { label: string }) {
     return (
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
             <Box sx={{ width: 4, height: 20, bgcolor: ORANGE, borderRadius: "2px" }} />
-            <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "#475569" }}>
+            <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--app-text-secondary)" }}>
                 {label}
             </Typography>
         </Box>
@@ -52,10 +52,10 @@ function SectionHeader({ label }: { label: string }) {
 function InfoRow({ label, value }: { label: string; value?: string | null }) {
     return (
         <Box sx={{ mb: 2 }}>
-            <Typography sx={{ fontFamily: LABEL, fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#94a3b8", mb: 0.25 }}>
+            <Typography sx={{ fontFamily: LABEL, fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--app-text-faint)", mb: 0.25 }}>
                 {label}
             </Typography>
-            <Typography sx={{ fontFamily: BODY, fontSize: "0.9rem", fontWeight: 500, color: "#0f172a", wordBreak: "break-word" }}>
+            <Typography sx={{ fontFamily: BODY, fontSize: "0.9rem", fontWeight: 500, color: "var(--app-text-primary)", wordBreak: "break-word" }}>
                 {value || "—"}
             </Typography>
         </Box>
@@ -228,7 +228,7 @@ export default function ViewRecording() {
         return (
             <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, mt: 12 }}>
                 <WarningAmberIcon sx={{ fontSize: 48, color: "warning.main" }} />
-                <Typography sx={{ fontFamily: BODY, fontWeight: 600, color: "#0f172a", textAlign: "center", maxWidth: 420 }}>
+                <Typography sx={{ fontFamily: BODY, fontWeight: 600, color: "var(--app-text-primary)", textAlign: "center", maxWidth: 420 }}>
                     {t("view_recording.not_found")}
                 </Typography>
             </Box>
@@ -251,13 +251,13 @@ export default function ViewRecording() {
         >
             {/* Main column */}
             <Box sx={{ flex: 1, width: "100%", minWidth: 0 }}>
-                <Typography sx={{ fontFamily: HEADLINE, fontWeight: 700, fontSize: "1.5rem", color: "#0f172a", letterSpacing: "-0.02em", mb: 2 }}>
+                <Typography sx={{ fontFamily: HEADLINE, fontWeight: 700, fontSize: "1.5rem", color: "var(--app-text-primary)", letterSpacing: "-0.02em", mb: 2 }}>
                     {t("view_recording.title")}
                 </Typography>
 
                 {/* Current prompt — the expected text for this block */}
                 <Box sx={{ mb: 3 }}>
-                    <Typography sx={{ fontFamily: LABEL, fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#94a3b8", mb: 0.75 }}>
+                    <Typography sx={{ fontFamily: LABEL, fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--app-text-faint)", mb: 0.75 }}>
                         {t("view_recording.current_prompt")}
                     </Typography>
                     <Typography
@@ -266,7 +266,7 @@ export default function ViewRecording() {
                             fontSize: "1.1rem",
                             fontStyle: "italic",
                             lineHeight: 1.6,
-                            color: "#1e293b",
+                            color: "var(--app-text-body)",
                             borderLeft: `2px solid ${ORANGE}`,
                             pl: 2,
                             py: 0.5,
@@ -279,7 +279,7 @@ export default function ViewRecording() {
                 {micWarning && (
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
                         <WarningAmberIcon sx={{ fontSize: 18, color: "warning.main" }} />
-                        <Typography sx={{ fontFamily: BODY, fontSize: "0.85rem", color: "#92400e" }}>
+                        <Typography sx={{ fontFamily: BODY, fontSize: "0.85rem", color: "var(--app-warn-fg)" }}>
                             {t("view_recording.mic_warning")}
                         </Typography>
                     </Box>
@@ -296,7 +296,7 @@ export default function ViewRecording() {
 
                 {/* Editable transcription */}
                 <Box sx={{ mt: 3 }}>
-                    <Typography sx={{ fontFamily: LABEL, fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#94a3b8", mb: 0.75 }}>
+                    <Typography sx={{ fontFamily: LABEL, fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--app-text-faint)", mb: 0.75 }}>
                         {t("view_recording.transcription")}
                     </Typography>
                     <TextField
@@ -322,9 +322,9 @@ export default function ViewRecording() {
                                 fontFamily: LABEL,
                                 fontWeight: 700,
                                 fontSize: "0.72rem",
-                                borderColor: "#cbd5e1",
-                                color: "#0f172a",
-                                "&:hover": { borderColor: "#94a3b8", bgcolor: "#f8fafc" },
+                                borderColor: "var(--app-border-strong)",
+                                color: "var(--app-text-primary)",
+                                "&:hover": { borderColor: "var(--app-text-faint)", bgcolor: "var(--app-surface-subtle)" },
                             }}
                         >
                             {t("view_recording.save_transcription")}
@@ -344,7 +344,7 @@ export default function ViewRecording() {
                 <Box sx={{ mt: 2 }}>
                     <SectionHeader label={t("view_recording.quality_checks")} />
                     {qualities.length === 0 ? (
-                        <Typography sx={{ fontFamily: BODY, fontSize: "0.875rem", color: "#94a3b8" }}>
+                        <Typography sx={{ fontFamily: BODY, fontSize: "0.875rem", color: "var(--app-text-faint)" }}>
                             {t("view_recording.no_quality_checks")}
                         </Typography>
                     ) : (
@@ -364,7 +364,7 @@ export default function ViewRecording() {
                 <Paper
                     elevation={0}
                     sx={{
-                        border: "1px solid #e2e8f0",
+                        border: "1px solid var(--app-border)",
                         borderRadius: 3,
                         p: 3,
                     }}
@@ -397,7 +397,7 @@ export default function ViewRecording() {
                     <Paper
                         elevation={0}
                         sx={{
-                            border: "1px solid #e2e8f0",
+                            border: "1px solid var(--app-border)",
                             borderRadius: 3,
                             p: 3,
                         }}
@@ -421,7 +421,7 @@ export default function ViewRecording() {
                                 sx={{ width: "100%", mt: 1 }}
                             />
                         ) : (
-                            <Typography sx={{ fontFamily: BODY, fontSize: "0.8rem", color: "#94a3b8", mt: 1 }}>
+                            <Typography sx={{ fontFamily: BODY, fontSize: "0.8rem", color: "var(--app-text-faint)", mt: 1 }}>
                                 {t("view_recording.master_loading")}
                             </Typography>
                         )}

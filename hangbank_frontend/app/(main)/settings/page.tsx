@@ -26,10 +26,10 @@ const GENDERS = ["MALE", "FEMALE", "OTHER"];
 
 function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
     return (
-        <Paper elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: 3, p: 3 }}>
+        <Paper elevation={0} sx={{ border: "1px solid var(--app-border)", borderRadius: 3, p: 3 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2.5 }}>
                 <Box sx={{ width: 4, height: 20, bgcolor: ORANGE, borderRadius: "2px" }} />
-                <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "#475569" }}>
+                <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--app-text-secondary)" }}>
                     {title}
                 </Typography>
             </Box>
@@ -40,7 +40,7 @@ function SectionCard({ title, children }: { title: string; children: React.React
 
 function FieldLabel({ label }: { label: string }) {
     return (
-        <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.12em", color: "#94a3b8", mb: 0.75 }}>
+        <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--app-text-faint)", mb: 0.75 }}>
             {label}
         </Typography>
     );
@@ -142,10 +142,10 @@ export default function SettingsPage() {
 
     return (
         <Box sx={{ p: { xs: 3, md: 5 }, maxWidth: 760, mx: "auto" }}>
-            <Typography sx={{ fontFamily: HEADLINE, fontWeight: 700, fontSize: "1.5rem", color: "#0f172a", letterSpacing: "-0.02em" }}>
+            <Typography sx={{ fontFamily: HEADLINE, fontWeight: 700, fontSize: "1.5rem", color: "var(--app-text-primary)", letterSpacing: "-0.02em" }}>
                 {t("settings.title")}
             </Typography>
-            <Typography sx={{ fontFamily: BODY, fontSize: "0.95rem", color: "#64748b", mt: 0.5, mb: 4 }}>
+            <Typography sx={{ fontFamily: BODY, fontSize: "0.95rem", color: "var(--app-text-muted)", mt: 0.5, mb: 4 }}>
                 {t("settings.subtitle")}
             </Typography>
 
@@ -157,23 +157,22 @@ export default function SettingsPage() {
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
 
                     {/* Appearance */}
-                    {/* TODO: later */}
-                    {/* <SectionCard title={t("settings.appearance")}>
+                    <SectionCard title={t("settings.appearance")}>
                         <FormControlLabel
                             control={<Switch checked={mode === "dark"} onChange={() => toggleTheme()} />}
                             label={
                                 <Box>
-                                    <Typography sx={{ fontFamily: BODY, fontSize: "0.925rem", fontWeight: 600, color: "#0f172a" }}>
+                                    <Typography sx={{ fontFamily: BODY, fontSize: "0.925rem", fontWeight: 600, color: "var(--app-text-primary)" }}>
                                         {t("settings.dark_mode")}
                                     </Typography>
-                                    <Typography sx={{ fontFamily: BODY, fontSize: "0.8rem", color: "#94a3b8" }}>
+                                    <Typography sx={{ fontFamily: BODY, fontSize: "0.8rem", color: "var(--app-text-faint)" }}>
                                         {t("settings.dark_mode_desc")}
                                     </Typography>
                                 </Box>
                             }
                             sx={{ ml: 0, gap: 1.5 }}
                         />
-                    </SectionCard> */}
+                    </SectionCard>
 
                     {/* Language */}
                     <SectionCard title={t("settings.language")}>
@@ -230,7 +229,7 @@ export default function SettingsPage() {
                                     onClick={handleSaveProfile}
                                     disabled={savingProfile}
                                     startIcon={savingProfile ? <CircularProgress size={14} sx={{ color: "inherit" }} /> : undefined}
-                                    sx={{ bgcolor: "#191c1d", borderRadius: 1.5, textTransform: "none", fontFamily: LABEL, fontWeight: 700, fontSize: "0.78rem", px: 2.5, "&:hover": { bgcolor: "#0f172a" } }}
+                                    sx={{ bgcolor: "var(--app-btn)", borderRadius: 1.5, textTransform: "none", fontFamily: LABEL, fontWeight: 700, fontSize: "0.78rem", px: 2.5, "&:hover": { bgcolor: "var(--app-btn-hover)" } }}
                                 >
                                     {t("settings.save")}
                                 </Button>
@@ -261,7 +260,7 @@ export default function SettingsPage() {
                                     onClick={handleSavePassword}
                                     disabled={savingPassword || !currentPassword || !newPassword || !confirmPassword}
                                     startIcon={savingPassword ? <CircularProgress size={14} sx={{ color: "inherit" }} /> : undefined}
-                                    sx={{ bgcolor: "#191c1d", borderRadius: 1.5, textTransform: "none", fontFamily: LABEL, fontWeight: 700, fontSize: "0.78rem", px: 2.5, "&:hover": { bgcolor: "#0f172a" }, "&.Mui-disabled": { bgcolor: "#e2e8f0", color: "#94a3b8" } }}
+                                    sx={{ bgcolor: "var(--app-btn)", borderRadius: 1.5, textTransform: "none", fontFamily: LABEL, fontWeight: 700, fontSize: "0.78rem", px: 2.5, "&:hover": { bgcolor: "var(--app-btn-hover)" }, "&.Mui-disabled": { bgcolor: "var(--app-border)", color: "var(--app-text-faint)" } }}
                                 >
                                     {t("settings.update_password")}
                                 </Button>

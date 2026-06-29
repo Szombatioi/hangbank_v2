@@ -165,10 +165,10 @@ export default function SupportPage() {
         <Box sx={{ p: { xs: 3, md: 5 }, maxWidth: 1000, mx: "auto" }}>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <Box>
-                    <Typography sx={{ fontFamily: HEADLINE, fontWeight: 700, fontSize: "1.5rem", color: "#0f172a", letterSpacing: "-0.02em" }}>
+                    <Typography sx={{ fontFamily: HEADLINE, fontWeight: 700, fontSize: "1.5rem", color: "var(--app-text-primary)", letterSpacing: "-0.02em" }}>
                         {t("support.title")}
                     </Typography>
-                    <Typography sx={{ fontFamily: BODY, fontSize: "0.95rem", color: "#64748b", mt: 0.5, mb: 4 }}>
+                    <Typography sx={{ fontFamily: BODY, fontSize: "0.95rem", color: "var(--app-text-muted)", mt: 0.5, mb: 4 }}>
                         {t("support.subtitle")}
                     </Typography>
                 </Box>
@@ -196,11 +196,11 @@ export default function SupportPage() {
                 fullWidth
                 PaperProps={{ sx: { borderRadius: 3 } }}
             >
-                <DialogTitle sx={{ fontFamily: HEADLINE, fontWeight: 700, fontSize: "1.25rem", color: "#0f172a", textAlign: "center", pt: 3, px: 5 }}>
+                <DialogTitle sx={{ fontFamily: HEADLINE, fontWeight: 700, fontSize: "1.25rem", color: "var(--app-text-primary)", textAlign: "center", pt: 3, px: 5 }}>
                     {dialogItem?.title}
                     <IconButton
                         onClick={() => setSelectedId(null)}
-                        sx={{ position: "absolute", right: 12, top: 12, color: "#94a3b8" }}
+                        sx={{ position: "absolute", right: 12, top: 12, color: "var(--app-text-faint)" }}
                     >
                         <CloseIcon />
                     </IconButton>
@@ -222,7 +222,7 @@ export default function SupportPage() {
                             </Select>
                         </FormControl>
                     )}
-                    <Typography sx={{ fontFamily: BODY, fontSize: "0.95rem", color: "#475569", lineHeight: 1.75, whiteSpace: "pre-line" }}>
+                    <Typography sx={{ fontFamily: BODY, fontSize: "0.95rem", color: "var(--app-text-secondary)", lineHeight: 1.75, whiteSpace: "pre-line" }}>
                         {dialogItem?.longDescription}
                     </Typography>
                 </DialogContent>

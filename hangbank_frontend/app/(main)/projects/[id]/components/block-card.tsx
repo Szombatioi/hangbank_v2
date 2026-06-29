@@ -15,14 +15,14 @@ export default function BlockCard({ block, projectId }: { block: BlockDto; proje
     return (
         <Paper
             elevation={0}
-            sx={{ border: "1px solid #e2e8f0", borderRadius: 2, p: 2, display: "flex", flexDirection: "column", gap: 1.5, height: "100%" }}
+            sx={{ border: "1px solid var(--app-border)", borderRadius: 2, p: 2, display: "flex", flexDirection: "column", gap: 1.5, height: "100%" }}
         >
             <Typography
                 sx={{ 
                     fontFamily: HEADLINE, 
                     fontWeight: 700, 
                     fontSize: "0.9rem", 
-                    color: "#0f172a", 
+                    color: "var(--app-text-primary)", 
                     cursor: block.audioFile ? "pointer" : "default" }}
                 onClick={() => {
                     if (block.audioFile) router.push(`/projects/${projectId}/block/${block.audioFile.id}`)
@@ -35,30 +35,30 @@ export default function BlockCard({ block, projectId }: { block: BlockDto; proje
                     <Chip
                         label={t("project_detail.recorded")}
                         size="small"
-                        sx={{ bgcolor: "#e8f5e9", color: "#2e7d32", fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem" }}
+                        sx={{ bgcolor: "var(--app-success-bg)", color: "var(--app-success-fg)", fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem" }}
                     />
                 ) : (
                     <Chip
                         label={t("project_detail.pending")}
                         size="small"
-                        sx={{ bgcolor: "#fff3e0", color: "#ef6c00", fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem" }}
+                        sx={{ bgcolor: "var(--app-warn-bg)", color: "var(--app-warn-fg)", fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem" }}
                     />
                 )}
 
                 {/* Quality-check outcome (only once checks have run for this block) */}
                 {block.hasQualityProblems ? (
                     <Chip
-                        icon={<ErrorOutlineIcon sx={{ fontSize: "0.85rem !important", color: "#c62828 !important" }} />}
+                        icon={<ErrorOutlineIcon sx={{ fontSize: "0.85rem !important", color: "var(--app-error-fg) !important" }} />}
                         label={t("project_detail.quality_issues")}
                         size="small"
-                        sx={{ bgcolor: "#fdecea", color: "#c62828", fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem", "& .MuiChip-icon": { ml: "4px" } }}
+                        sx={{ bgcolor: "var(--app-error-bg)", color: "var(--app-error-fg)", fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem", "& .MuiChip-icon": { ml: "4px" } }}
                     />
                 ) : block.hasQualityChecks ? (
                     <Chip
-                        icon={<CheckCircleIcon sx={{ fontSize: "0.85rem !important", color: "#2e7d32 !important" }} />}
+                        icon={<CheckCircleIcon sx={{ fontSize: "0.85rem !important", color: "var(--app-success-fg) !important" }} />}
                         label={t("project_detail.quality_ok")}
                         size="small"
-                        sx={{ bgcolor: "#e8f5e9", color: "#2e7d32", fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem", "& .MuiChip-icon": { ml: "4px" } }}
+                        sx={{ bgcolor: "var(--app-success-bg)", color: "var(--app-success-fg)", fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem", "& .MuiChip-icon": { ml: "4px" } }}
                     />
                 ) : null}
             </Box>
@@ -69,13 +69,13 @@ export default function BlockCard({ block, projectId }: { block: BlockDto; proje
                 startIcon={<FiberManualRecord sx={{ fontSize: "0.8rem !important" }} />}
                 sx={{
                     mt: "auto",
-                    bgcolor: "#191c1d",
+                    bgcolor: "var(--app-btn)",
                     borderRadius: 1.5,
                     textTransform: "none",
                     fontFamily: LABEL,
                     fontWeight: 700,
                     fontSize: "0.72rem",
-                    "&:hover": { bgcolor: "#0f172a" },
+                    "&:hover": { bgcolor: "var(--app-btn-hover)" },
                 }}
                 onClick={() => router.push(`/projects/${projectId}/record?startFrom=${block.blockIndex}`)}
             >

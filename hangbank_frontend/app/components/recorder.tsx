@@ -9,6 +9,7 @@ import api from "@/app/axios";
 import { Severity, useSnackbar } from "@/app/providers/SnackbarProvider";
 import ConfirmDialog from "@/app/components/confirm-dialog";
 import Transcriber, { TranscriberHandle } from "@/app/components/transcriber";
+import { formatDuration } from "./helpers/formatDuration";
 
 // Same shape as BlockDto's audioFile
 export interface RecorderAudioFile {
@@ -30,14 +31,6 @@ interface RecorderProps {
   onTranscript?: (text: string) => void;
   /** BCP-47 language for transcription, e.g. "en-US", "hu-HU", "de-DE" */
   transcriptionLang?: string;
-}
-
-function formatDuration(seconds: number): string {
-  const safe = Number.isFinite(seconds) && seconds > 0 ? seconds : 0;
-  const mm = Math.floor(safe / 60);
-  const ss = Math.floor(safe % 60);
-  const cs = Math.floor((safe * 100) % 100);
-  return `${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}.${String(cs).padStart(2, "0")}`;
 }
 
 export default function Recorder({
@@ -340,7 +333,7 @@ export default function Recorder({
       sx={{
         display: "flex",
         flexDirection: "column",
-        border: "1px solid #e2e8f0",
+        border: "1px solid var(--app-border)",
         borderRadius: 2,
         p: 2,
         gap: 1,
@@ -379,7 +372,7 @@ export default function Recorder({
               fontSize: "1.25rem",
               fontVariantNumeric: "tabular-nums",
               letterSpacing: "-0.025em",
-              color: "#191c1d",
+              color: "var(--app-text-primary)",
             }}
           >
             {formatDuration(durationSeconds)}

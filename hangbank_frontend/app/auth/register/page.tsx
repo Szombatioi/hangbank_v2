@@ -82,7 +82,7 @@ export default function RegisterPage() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: "#f0f2f5",
+                backgroundColor: "var(--app-bg)",
                 p: { xs: 0, sm: 2 }
             }}
         >
@@ -233,7 +233,7 @@ export default function RegisterPage() {
                     component="section"
                     sx={{
                         flex: 1,
-                        bgcolor: "#ffffff",
+                        bgcolor: "var(--app-card)",
                         display: "flex",
                         flexDirection: "column",
                         justifyContent: "center",

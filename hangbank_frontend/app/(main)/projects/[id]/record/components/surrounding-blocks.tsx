@@ -5,7 +5,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { BODY, LABEL } from "@/app/components/style-constants";
-import { COLOR } from "../helpers/colors";
+import { useColors } from "../helpers/colors";
 import { formatDuration } from "../helpers/format-duration";
 import { BufferedRecording, RecordingBlockDto } from "../helpers/types";
 
@@ -47,6 +47,7 @@ function BlockChip({ label, bg, color, icon }: { label: string; bg: string; colo
 // only the blocks that come *after* it, so the speaker can read ahead.
 export default function SurroundingBlocks({ blocks, currentIdx, bufferedRecordings }: SurroundingBlocksProps) {
     const { t } = useTranslation("common");
+    const COLOR = useColors();
     const upcoming = blocks.slice(currentIdx + 1, currentIdx + 1 + UPCOMING_COUNT);
 
     if (upcoming.length === 0) return null;

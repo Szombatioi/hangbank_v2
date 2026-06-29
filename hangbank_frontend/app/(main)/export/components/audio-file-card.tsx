@@ -36,57 +36,57 @@ export default function AudioFileCard({
     const [open, setOpen] = useState(false);
 
     return (
-        <Box sx={{ border: "1px solid #e2e8f0", borderRadius: 2, overflow: "hidden", bgcolor: "#fff" }}>
+        <Box sx={{ border: "1px solid var(--app-border)", borderRadius: 2, overflow: "hidden", bgcolor: "var(--app-card)" }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1, px: 1.5, py: 1.25 }}>
                 <Checkbox
                     checked={selected}
                     onChange={onToggle}
                     size="small"
-                    sx={{ color: "#cbd5e1", "&.Mui-checked": { color: "#191c1d" }, p: 0.5 }}
+                    sx={{ color: "var(--app-border-strong)", "&.Mui-checked": { color: "var(--app-text-primary)" }, p: 0.5 }}
                 />
 
                 <Typography
-                    sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.85rem", color: "#0f172a", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                    sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.85rem", color: "var(--app-text-primary)", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
                     title={file.name}
                 >
                     {file.name}
                 </Typography>
 
-                <Typography sx={{ fontFamily: BODY, fontSize: "0.8rem", color: "#64748b", fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>
+                <Typography sx={{ fontFamily: BODY, fontSize: "0.8rem", color: "var(--app-text-muted)", fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>
                     {formatDuration(file.durationSeconds)}
                 </Typography>
 
                 {file.hasQualityProblems && (
                     <Chip
-                        icon={<ErrorOutlineIcon sx={{ fontSize: "0.85rem !important", color: "#c62828 !important" }} />}
+                        icon={<ErrorOutlineIcon sx={{ fontSize: "0.85rem !important", color: "var(--app-error-fg) !important" }} />}
                         label={t("export_page.has_errors")}
                         size="small"
-                        sx={{ bgcolor: "#fdecea", color: "#c62828", fontFamily: LABEL, fontWeight: 700, fontSize: "0.62rem", flexShrink: 0, "& .MuiChip-icon": { ml: "4px" } }}
+                        sx={{ bgcolor: "var(--app-error-bg)", color: "var(--app-error-fg)", fontFamily: LABEL, fontWeight: 700, fontSize: "0.62rem", flexShrink: 0, "& .MuiChip-icon": { ml: "4px" } }}
                     />
                 )}
 
                 <IconButton onClick={() => setOpen((o) => !o)} size="small" sx={{ flexShrink: 0 }} aria-label={t("export_page.expand")}>
                     <KeyboardArrowDownIcon
-                        sx={{ fontSize: 20, color: "#94a3b8", transition: "transform 0.2s", transform: open ? "rotate(180deg)" : "none" }}
+                        sx={{ fontSize: 20, color: "var(--app-text-faint)", transition: "transform 0.2s", transform: open ? "rotate(180deg)" : "none" }}
                     />
                 </IconButton>
             </Box>
 
             <Collapse in={open}>
-                <Box sx={{ px: 2, pb: 1.75, pt: 0.5, display: "flex", flexDirection: "column", gap: 1.5, borderTop: "1px solid #f1f5f9" }}>
+                <Box sx={{ px: 2, pb: 1.75, pt: 0.5, display: "flex", flexDirection: "column", gap: 1.5, borderTop: "1px solid var(--app-surface-muted)" }}>
                     <Box sx={{ pt: 1.5 }}>
-                        <Typography sx={{ fontFamily: LABEL, fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#94a3b8", mb: 0.5 }}>
+                        <Typography sx={{ fontFamily: LABEL, fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--app-text-faint)", mb: 0.5 }}>
                             {t("export_page.block_index")}
                         </Typography>
-                        <Typography sx={{ fontFamily: BODY, fontSize: "0.85rem", color: "#0f172a" }}>
+                        <Typography sx={{ fontFamily: BODY, fontSize: "0.85rem", color: "var(--app-text-primary)" }}>
                             #{file.blockIndex + 1}
                         </Typography>
                     </Box>
                     <Box>
-                        <Typography sx={{ fontFamily: LABEL, fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#94a3b8", mb: 0.5 }}>
+                        <Typography sx={{ fontFamily: LABEL, fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--app-text-faint)", mb: 0.5 }}>
                             {t("export_page.transcription")}
                         </Typography>
-                        <Typography sx={{ fontFamily: BODY, fontSize: "0.85rem", color: "#475569", lineHeight: 1.6 }}>
+                        <Typography sx={{ fontFamily: BODY, fontSize: "0.85rem", color: "var(--app-text-secondary)", lineHeight: 1.6 }}>
                             {file.transcription || "—"}
                         </Typography>
                     </Box>

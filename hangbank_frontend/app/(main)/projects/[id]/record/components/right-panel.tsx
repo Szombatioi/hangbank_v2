@@ -3,7 +3,7 @@
 import { Box, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { BODY, HEADLINE, LABEL } from "@/app/components/style-constants";
-import { COLOR } from "../helpers/colors";
+import { useColors } from "../helpers/colors";
 
 interface RightPanelProps {
     samplingRate?: number;
@@ -16,6 +16,7 @@ export default function RightPanel({
     samplingRate, micLabel, transcription, onTranscriptionChange,
 }: RightPanelProps) {
     const { t } = useTranslation("common");
+    const COLOR = useColors();
 
     return (
         <Box

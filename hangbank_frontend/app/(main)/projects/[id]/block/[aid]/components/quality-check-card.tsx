@@ -27,7 +27,7 @@ export default function QualityCheckCard({
     const hasProblem = valuesHaveProblem(measure.values, meta.ranges);
 
     return (
-        <Box sx={{ border: "1px solid #e2e8f0", borderRadius: 2, overflow: "hidden" }}>
+        <Box sx={{ border: "1px solid var(--app-border)", borderRadius: 2, overflow: "hidden" }}>
             {/* Header */}
             <Box
                 onClick={() => setOpen((o) => !o)}
@@ -38,21 +38,21 @@ export default function QualityCheckCard({
                     px: 2,
                     py: 1.25,
                     cursor: "pointer",
-                    "&:hover": { bgcolor: "#f8fafc" },
+                    "&:hover": { bgcolor: "var(--app-surface-subtle)" },
                 }}
             >
                 {hasProblem ? (
-                    <ErrorOutlineIcon sx={{ fontSize: 18, color: "#dc2626" }} />
+                    <ErrorOutlineIcon sx={{ fontSize: 18, color: "var(--app-error-fg)" }} />
                 ) : (
-                    <CheckCircleOutlineIcon sx={{ fontSize: 18, color: "#16a34a" }} />
+                    <CheckCircleOutlineIcon sx={{ fontSize: 18, color: "var(--app-success-fg)" }} />
                 )}
-                <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.85rem", color: "#0f172a", flex: 1 }}>
+                <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.85rem", color: "var(--app-text-primary)", flex: 1 }}>
                     {t(meta.displayName)}
                 </Typography>
                 <KeyboardArrowDownIcon
                     sx={{
                         fontSize: 20,
-                        color: "#94a3b8",
+                        color: "var(--app-text-faint)",
                         transition: "transform 0.2s",
                         transform: open ? "rotate(180deg)" : "none",
                     }}
@@ -69,7 +69,7 @@ export default function QualityCheckCard({
                                 key={i}
                                 sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2 }}
                             >
-                                <Typography sx={{ fontFamily: BODY, fontSize: "0.85rem", color: "#475569", fontVariantNumeric: "tabular-nums" }}>
+                                <Typography sx={{ fontFamily: BODY, fontSize: "0.85rem", color: "var(--app-text-secondary)", fontVariantNumeric: "tabular-nums" }}>
                                     {Number.isInteger(value) ? value : value.toFixed(2)}
                                 </Typography>
                                 <Typography
@@ -77,7 +77,7 @@ export default function QualityCheckCard({
                                         fontFamily: LABEL,
                                         fontWeight: 700,
                                         fontSize: "0.72rem",
-                                        color: range?.isProblem ? "#dc2626" : "#16a34a",
+                                        color: range?.isProblem ? "var(--app-error-fg)" : "var(--app-success-fg)",
                                     }}
                                 >
                                     {range ? t(range.displayName) : "—"}

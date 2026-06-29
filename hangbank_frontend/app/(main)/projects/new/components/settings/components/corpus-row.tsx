@@ -30,10 +30,10 @@ export function CorpusRow({
         py: 1.75,
         borderRadius: 3,
         border: "1.5px solid",
-        borderColor: selected ? "#191c1d" : "transparent",
-        bgcolor: selected ? "#f0f0f0" : "transparent",
+        borderColor: selected ? "var(--app-text-primary)" : "transparent",
+        bgcolor: selected ? "var(--app-bg)" : "transparent",
         transition: "all 0.15s",
-        "&:hover": { bgcolor: selected ? "#f0f0f0" : "#f4f4f5" },
+        "&:hover": { bgcolor: selected ? "var(--app-bg)" : "var(--app-bg)" },
       }}
     >
       {/* Icon */}
@@ -42,7 +42,7 @@ export function CorpusRow({
           width: 40,
           height: 40,
           borderRadius: 2,
-          bgcolor: selected ? "#191c1d" : "#e7e8e9",
+          bgcolor: selected ? "var(--app-btn)" : "var(--app-surface-strong)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -50,7 +50,7 @@ export function CorpusRow({
           transition: "background-color 0.15s",
         }}
       >
-        <AlbumIcon sx={{ fontSize: "1.2rem", color: selected ? "#fff" : "#94a3b8" }} />
+        <AlbumIcon sx={{ fontSize: "1.2rem", color: selected ? "#fff" : "var(--app-text-faint)" }} />
       </Box>
 
       {/* Info */}
@@ -60,7 +60,7 @@ export function CorpusRow({
             fontFamily: LABEL,
             fontWeight: 700,
             fontSize: "0.875rem",
-            color: "#0f172a",
+            color: "var(--app-text-primary)",
             whiteSpace: "nowrap",
             overflow: "hidden",
             textOverflow: "ellipsis",
@@ -68,7 +68,7 @@ export function CorpusRow({
         >
           {corpus.name}
         </Typography>
-        <Typography sx={{ fontFamily: BODY, fontSize: "0.75rem", color: "#64748b" }}>
+        <Typography sx={{ fontFamily: BODY, fontSize: "0.75rem", color: "var(--app-text-muted)" }}>
           {t(`language.${corpus.language.name}`)}
           {corpus.domain ? ` · ${corpus.domain.name}` : ""}
         </Typography>
@@ -86,8 +86,8 @@ export function CorpusRow({
             fontWeight: 600,
             fontSize: "0.75rem",
             textTransform: "none",
-            color: "#64748b",
-            "&:hover": { color: "#0f172a", bgcolor: "transparent" },
+            color: "var(--app-text-muted)",
+            "&:hover": { color: "var(--app-text-primary)", bgcolor: "transparent" },
           }}
         >
           {t("new_project.corpus_based.dialog_preview")}
@@ -105,20 +105,20 @@ export function CorpusRow({
                   fontWeight: 700,
                   fontSize: "0.75rem",
                   textTransform: "none",
-                  bgcolor: "#191c1d",
+                  bgcolor: "var(--app-btn)",
                   color: "#fff",
                   borderRadius: 2,
-                  "&:hover": { bgcolor: "#0f172a" },
+                  "&:hover": { bgcolor: "var(--app-btn-hover)" },
                 }
               : {
                   fontFamily: LABEL,
                   fontWeight: 700,
                   fontSize: "0.75rem",
                   textTransform: "none",
-                  borderColor: "#cbd5e1",
-                  color: "#334155",
+                  borderColor: "var(--app-border-strong)",
+                  color: "var(--app-text-body)",
                   borderRadius: 2,
-                  "&:hover": { borderColor: "#191c1d", color: "#191c1d", bgcolor: "transparent" },
+                  "&:hover": { borderColor: "var(--app-text-primary)", color: "var(--app-text-primary)", bgcolor: "transparent" },
                 }
           }
         >

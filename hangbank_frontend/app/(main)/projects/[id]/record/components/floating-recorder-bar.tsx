@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import Recorder, { RecorderAudioFile } from "@/app/components/recorder";
 import SaveButton from "@/app/components/save-button";
 import { BODY, LABEL } from "@/app/components/style-constants";
-import { COLOR } from "../helpers/colors";
+import { useColors } from "../helpers/colors";
 import { ArrowLeft, ArrowRight } from "@mui/icons-material";
 
 interface FloatingRecorderBarProps {
@@ -35,6 +35,7 @@ export default function FloatingRecorderBar({
     onTranscript, transcriptionLang,
 }: FloatingRecorderBarProps) {
     const { t } = useTranslation("common");
+    const COLOR = useColors();
 
     return (
         <Box
@@ -50,10 +51,10 @@ export default function FloatingRecorderBar({
             <Paper
                 elevation={6}
                 sx={{
-                    bgcolor: "rgba(255,255,255,0.85)",
+                    bgcolor: COLOR.glassBg,
                     backdropFilter: "blur(16px)",
                     borderRadius: 4,
-                    border: "1px solid rgba(255,255,255,0.4)",
+                    border: `1px solid ${COLOR.glassBorder}`,
                     boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
                     p: 3,
                     display: "flex",

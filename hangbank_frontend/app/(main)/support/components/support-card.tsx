@@ -18,7 +18,7 @@ export default function SupportCard({ item, onClick }: { item: SupportItem; onCl
             elevation={0}
             onClick={onClick}
             sx={{
-                border: "1px solid #e2e8f0",
+                border: "1px solid var(--app-border)",
                 borderRadius: 3,
                 p: 3,
                 cursor: "pointer",
@@ -32,11 +32,11 @@ export default function SupportCard({ item, onClick }: { item: SupportItem; onCl
         >
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
                 <HelpOutlineIcon sx={{ fontSize: "1.25rem", color: ORANGE }} />
-                <Typography sx={{ fontFamily: HEADLINE, fontWeight: 700, fontSize: "1.05rem", color: "#0f172a" }}>
+                <Typography sx={{ fontFamily: HEADLINE, fontWeight: 700, fontSize: "1.05rem", color: "var(--app-text-primary)" }}>
                     {item.title}
                 </Typography>
             </Box>
-            <Typography sx={{ fontFamily: BODY, fontSize: "0.9rem", color: "#64748b", lineHeight: 1.6 }}>
+            <Typography sx={{ fontFamily: BODY, fontSize: "0.9rem", color: "var(--app-text-muted)", lineHeight: 1.6 }}>
                 {item.shortDescription}
             </Typography>
         </Paper>

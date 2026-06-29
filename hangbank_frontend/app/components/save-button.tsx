@@ -26,15 +26,15 @@ export default function SaveButton({ onClick, saving = false, disabled = false, 
             onClick={onClick}
             disabled={disabled || saving}
             sx={{
-                bgcolor: "#191c1d",
+                bgcolor: "var(--app-btn)",
                 borderRadius: 1.5,
                 textTransform: "none",
                 fontFamily: LABEL,
                 fontWeight: 700,
                 fontSize: "0.75rem",
                 px: 2.5,
-                "&:hover": { bgcolor: "#0f172a" },
-                "&.Mui-disabled": { bgcolor: "#e1e3e4", color: "#44474c80" },
+                "&:hover": { bgcolor: "var(--app-btn-hover)" },
+                "&.Mui-disabled": { bgcolor: "var(--app-surface-strong)", color: "#44474c80" },
             }}
         >
             {saving ? t("record.saving") : `${t("record.save")}${suffix}`}

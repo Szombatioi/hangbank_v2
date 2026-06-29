@@ -20,7 +20,7 @@ import PromptHeader from "./prompt-header";
 import SurroundingBlocks from "./surrounding-blocks";
 import RightPanel from "./right-panel";
 import FloatingRecorderBar from "./floating-recorder-bar";
-import { COLOR } from "../helpers/colors";
+import { useColors } from "../helpers/colors";
 import { resolveMicrophone } from "../helpers/mic-resolver";
 import { BufferedRecording, RecordingBlockDto } from "../helpers/types";
 
@@ -30,6 +30,7 @@ const UPCOMING_PREVIEW = 6; // keep in sync with SurroundingBlocks' UPCOMING_COU
 
 function CorpusRecordInner() {
     const { t } = useTranslation("common");
+    const COLOR = useColors();
     const { showMessage } = useSnackbar();
     const params = useParams();
     const searchParams = useSearchParams();

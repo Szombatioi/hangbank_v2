@@ -58,6 +58,75 @@ const DARK = {
   buttonPrimary: "#ed4a14",
 };
 
+// ─── App semantic color tokens ───────────────────────────────────────────────
+// Single source of truth for the colors used across pages (text, surfaces,
+// borders, buttons, status). Emitted as CSS custom properties (--app-*) per mode
+// in MuiCssBaseline below, so `sx` values like color: "var(--app-text-primary)"
+// flip automatically with the theme. Each LIGHT value equals the hex it replaced,
+// so light mode is unchanged; only dark mode gets proper, visible colors.
+export const APP_COLORS = {
+  light: {
+    "text-primary": "#0f172a",
+    "text-body": "#334155",
+    "text-secondary": "#475569",
+    "text-muted": "#64748b",
+    "text-faint": "#94a3b8",
+    "bg": "#f8f9fa",
+    "card": "#ffffff",
+    "surface-subtle": "#f8fafc",
+    "surface-muted": "#f1f5f9",
+    "surface-strong": "#e7e8e9",
+    "border": "#e2e8f0",
+    "border-strong": "#cbd5e1",
+    "btn": "#191c1d",
+    "btn-hover": "#0f172a",
+    "accent": "#ed4a14",
+    "accent-hover": "#c93d0f",
+    "success-fg": "#2e7d32",
+    "success-bg": "#e8f5e9",
+    "error-fg": "#c62828",
+    "error-bg": "#fdecea",
+    "warn-fg": "#ef6c00",
+    "warn-bg": "#fff3e0",
+    "info-fg": "#1d4ed8",
+    "info-bg": "#dbeafe",
+  },
+  dark: {
+    "text-primary": "#e6e8ea",
+    "text-body": "#cdd0d3",
+    "text-secondary": "#b9bcc2",
+    "text-muted": "#a6aab2",
+    "text-faint": "#878c95",
+    "bg": "#191c1d",
+    "card": "#222426",
+    "surface-subtle": "#1e2122",
+    "surface-muted": "#24272a",
+    "surface-strong": "#2c2e2f",
+    "border": "#34373b",
+    "border-strong": "#44474c",
+    "btn": "#33373b",
+    "btn-hover": "#3f4348",
+    "accent": "#ed4a14",
+    "accent-hover": "#c93d0f",
+    "success-fg": "#74d57f",
+    "success-bg": "#16331c",
+    "error-fg": "#f1a39b",
+    "error-bg": "#3a1b18",
+    "warn-fg": "#f0b072",
+    "warn-bg": "#3a2a12",
+    "info-fg": "#9ab8f5",
+    "info-bg": "#16263f",
+  },
+} as const;
+
+function appCssVars(mode: PaletteMode): Record<string, string> {
+  const vars: Record<string, string> = {};
+  for (const [key, value] of Object.entries(APP_COLORS[mode])) {
+    vars[`--app-${key}`] = value;
+  }
+  return vars;
+}
+
 // Shared component overrides that don't depend on mode
 const sharedComponents = {
   MuiButton: {
@@ -150,6 +219,9 @@ export function createAppTheme(mode: PaletteMode) {
 
       MuiCssBaseline: {
         styleOverrides: {
+          // Semantic app color tokens for the current mode — consumed in `sx`
+          // as e.g. color: "var(--app-text-primary)".
+          ":root": appCssVars(mode),
           "*, *::before, *::after": { boxSizing: "border-box" },
           body: {
             margin: 0,

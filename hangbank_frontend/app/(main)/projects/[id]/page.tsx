@@ -44,10 +44,10 @@ export interface BlockDto {
 function InfoField({ label, value }: { label: string; value?: string | number | null }) {
     return (
         <Box>
-            <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.12em", color: "#94a3b8", mb: 0.5 }}>
+            <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--app-text-faint)", mb: 0.5 }}>
                 {label}
             </Typography>
-            <Typography sx={{ fontFamily: BODY, fontSize: "0.925rem", fontWeight: 500, color: "#0f172a" }}>
+            <Typography sx={{ fontFamily: BODY, fontSize: "0.925rem", fontWeight: 500, color: "var(--app-text-primary)" }}>
                 {value ?? "—"}
             </Typography>
         </Box>
@@ -162,7 +162,7 @@ export default function ProjectDetailPage() {
     return (
         <Box sx={{ p: { xs: 3, md: 5 }, maxWidth: 1200, mx: "auto" }}>
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 4 }}>
-                <Typography sx={{ fontFamily: HEADLINE, fontWeight: 700, fontSize: "1.5rem", color: "#0f172a", letterSpacing: "-0.02em" }}>
+                <Typography sx={{ fontFamily: HEADLINE, fontWeight: 700, fontSize: "1.5rem", color: "var(--app-text-primary)", letterSpacing: "-0.02em" }}>
                     {t("project_detail.title")}
                 </Typography>
                 {project && (
@@ -170,14 +170,14 @@ export default function ProjectDetailPage() {
                         <IconButton
                             onClick={openEdit}
                             aria-label={t("project_detail.edit")}
-                            sx={{ color: "#94a3b8", "&:hover": { color: "#0f172a", bgcolor: "transparent" } }}
+                            sx={{ color: "var(--app-text-faint)", "&:hover": { color: "var(--app-text-primary)", bgcolor: "transparent" } }}
                         >
                             <EditOutlinedIcon />
                         </IconButton>
                         <IconButton
                             onClick={() => setConfirmOpen(true)}
                             aria-label={t("project_detail.delete")}
-                            sx={{ color: "#94a3b8", "&:hover": { color: "#dc2626", bgcolor: "transparent" } }}
+                            sx={{ color: "var(--app-text-faint)", "&:hover": { color: "var(--app-error-fg)", bgcolor: "transparent" } }}
                         >
                             <DeleteOutlineIcon />
                         </IconButton>
@@ -193,7 +193,7 @@ export default function ProjectDetailPage() {
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
 
                     {/* Paper 1: Basic Info */}
-                    <Paper elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: 3, p: 3 }}>
+                    <Paper elevation={0} sx={{ border: "1px solid var(--app-border)", borderRadius: 3, p: 3 }}>
                         <SectionHeader label={t("project_detail.basic_info")} />
                         <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
                             <InfoField label={t("project_detail.project_title")} value={project.name} />
@@ -225,7 +225,7 @@ export default function ProjectDetailPage() {
                     </Paper>
 
                     {/* Paper 2: Technical Info */}
-                    <Paper elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: 3, p: 3 }}>
+                    <Paper elevation={0} sx={{ border: "1px solid var(--app-border)", borderRadius: 3, p: 3 }}>
                         <SectionHeader label={t("project_detail.technical_info")} />
                         <Grid container spacing={2.5}>
                             <Grid size={{ xs: 12, sm: 6 }}>
@@ -253,13 +253,13 @@ export default function ProjectDetailPage() {
                     </Paper>
 
                     {/* Master recording */}
-                    <Paper elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: 3, p: 3 }}>
+                    <Paper elevation={0} sx={{ border: "1px solid var(--app-border)", borderRadius: 3, p: 3 }}>
                         <SectionHeader label={t("project_detail.master_recording")} />
                         {project.masterRecordingId ? (
                             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2, flexWrap: "wrap" }}>
                                 <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
                                     <GraphicEqIcon sx={{ color: ORANGE }} />
-                                    <Typography sx={{ fontFamily: BODY, fontSize: "0.9rem", color: "#475569" }}>
+                                    <Typography sx={{ fontFamily: BODY, fontSize: "0.9rem", color: "var(--app-text-secondary)" }}>
                                         {t("project_detail.master_recording_desc")}
                                     </Typography>
                                 </Box>
@@ -268,16 +268,16 @@ export default function ProjectDetailPage() {
                                     endIcon={<ArrowForwardIcon sx={{ fontSize: "0.9rem !important" }} />}
                                     onClick={() => router.push(`/projects/${id}/block/${project.masterRecordingId}`)}
                                     sx={{
-                                        bgcolor: "#191c1d", borderRadius: 1.5, textTransform: "none",
+                                        bgcolor: "var(--app-btn)", borderRadius: 1.5, textTransform: "none",
                                         fontFamily: LABEL, fontWeight: 700, fontSize: "0.72rem", px: 2,
-                                        "&:hover": { bgcolor: "#0f172a" },
+                                        "&:hover": { bgcolor: "var(--app-btn-hover)" },
                                     }}
                                 >
                                     {t("project_detail.open_master_recording")}
                                 </Button>
                             </Box>
                         ) : (
-                            <Typography sx={{ fontFamily: BODY, fontSize: "0.875rem", color: "#94a3b8" }}>
+                            <Typography sx={{ fontFamily: BODY, fontSize: "0.875rem", color: "var(--app-text-faint)" }}>
                                 {t("project_detail.no_master_recording")}
                             </Typography>
                         )}
@@ -288,7 +288,7 @@ export default function ProjectDetailPage() {
                         elevation={0}
                         onChange={handleBlocksToggle}
                         sx={{
-                            border: "1px solid #e2e8f0",
+                            border: "1px solid var(--app-border)",
                             borderRadius: "12px !important",
                             "&:before": { display: "none" },
                         }}
@@ -297,7 +297,7 @@ export default function ProjectDetailPage() {
                             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
                                 <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
                                     <Box sx={{ width: 4, height: 20, bgcolor: ORANGE, borderRadius: "2px" }} />
-                                    <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "#475569" }}>
+                                    <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--app-text-secondary)" }}>
                                         {t("project_detail.blocks")}
                                     </Typography>
                                 </Box>
@@ -310,13 +310,13 @@ export default function ProjectDetailPage() {
                                         startIcon={<FiberManualRecord sx={{ fontSize: "0.8rem !important" }} />}
                                         sx={{
                                             mt: "auto",
-                                            bgcolor: "#191c1d",
+                                            bgcolor: "var(--app-btn)",
                                             borderRadius: 1.5,
                                             textTransform: "none",
                                             fontFamily: LABEL,
                                             fontWeight: 700,
                                             fontSize: "0.72rem",
-                                            "&:hover": { bgcolor: "#0f172a" },
+                                            "&:hover": { bgcolor: "var(--app-btn-hover)" },
                                         }}
                                         onClick={(e) => {
                                             e.stopPropagation(); // prevent accordion toggle
@@ -349,7 +349,7 @@ export default function ProjectDetailPage() {
                                                 onClick={handleLoadMore}
                                                 disabled={loadingMore}
                                                 startIcon={loadingMore ? <CircularProgress size={14} /> : undefined}
-                                                sx={{ borderColor: "#e2e8f0", color: "#475569", fontFamily: LABEL, fontWeight: 700, fontSize: "0.72rem", textTransform: "none", borderRadius: 2 }}
+                                                sx={{ borderColor: "var(--app-border)", color: "var(--app-text-secondary)", fontFamily: LABEL, fontWeight: 700, fontSize: "0.72rem", textTransform: "none", borderRadius: 2 }}
                                             >
                                                 {t("project_detail.load_more")} ({blocks.length} / {blocksTotal})
                                             </Button>
@@ -393,12 +393,12 @@ export default function ProjectDetailPage() {
                 maxWidth="sm"
                 PaperProps={{ sx: { borderRadius: 3 } }}
             >
-                <DialogTitle sx={{ fontFamily: HEADLINE, fontWeight: 700, color: "#0f172a" }}>
+                <DialogTitle sx={{ fontFamily: HEADLINE, fontWeight: 700, color: "var(--app-text-primary)" }}>
                     {t("project_detail.edit_title")}
                 </DialogTitle>
                 <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2.5, pt: "8px !important" }}>
                     <Box>
-                        <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.12em", color: "#94a3b8", mb: 0.75 }}>
+                        <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--app-text-faint)", mb: 0.75 }}>
                             {t("project_detail.edit_name_label")}
                         </Typography>
                         <TextField
@@ -413,7 +413,7 @@ export default function ProjectDetailPage() {
                         />
                     </Box>
                     <Box>
-                        <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.12em", color: "#94a3b8", mb: 0.75 }}>
+                        <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--app-text-faint)", mb: 0.75 }}>
                             {t("project_detail.edit_description_label")}
                         </Typography>
                         <TextField
@@ -431,7 +431,7 @@ export default function ProjectDetailPage() {
                     <Button
                         onClick={() => setEditOpen(false)}
                         disabled={savingEdit}
-                        sx={{ color: "#64748b", fontFamily: LABEL, fontWeight: 700, fontSize: "0.78rem", textTransform: "none" }}
+                        sx={{ color: "var(--app-text-muted)", fontFamily: LABEL, fontWeight: 700, fontSize: "0.78rem", textTransform: "none" }}
                     >
                         {t("project_detail.edit_cancel")}
                     </Button>
@@ -440,7 +440,7 @@ export default function ProjectDetailPage() {
                         onClick={handleSaveEdit}
                         disabled={savingEdit || !editName.trim()}
                         startIcon={savingEdit ? <CircularProgress size={14} sx={{ color: "inherit" }} /> : undefined}
-                        sx={{ bgcolor: "#191c1d", borderRadius: 1.5, textTransform: "none", fontFamily: LABEL, fontWeight: 700, fontSize: "0.78rem", px: 2.5, "&:hover": { bgcolor: "#0f172a" }, "&.Mui-disabled": { bgcolor: "#e2e8f0", color: "#94a3b8" } }}
+                        sx={{ bgcolor: "var(--app-btn)", borderRadius: 1.5, textTransform: "none", fontFamily: LABEL, fontWeight: 700, fontSize: "0.78rem", px: 2.5, "&:hover": { bgcolor: "var(--app-btn-hover)" }, "&.Mui-disabled": { bgcolor: "var(--app-border)", color: "var(--app-text-faint)" } }}
                     >
                         {t("project_detail.edit_save")}
                     </Button>

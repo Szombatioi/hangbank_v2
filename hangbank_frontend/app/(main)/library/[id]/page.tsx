@@ -14,9 +14,9 @@ import { BODY, HEADLINE, LABEL, ORANGE } from "@/app/components/style-constants"
 const PAGE_SIZE = 30;
 
 function visibilityChipStyle(v: string) {
-    if (v === "public") return { bgcolor: "#d1fae5", color: "#065f46" };
-    if (v === "private") return { bgcolor: "#fef3c7", color: "#92400e" };
-    return { bgcolor: "#e2e8f0", color: "#475569" };
+    if (v === "public") return { bgcolor: "var(--app-success-bg)", color: "var(--app-success-fg)" };
+    if (v === "private") return { bgcolor: "var(--app-warn-bg)", color: "var(--app-warn-fg)" };
+    return { bgcolor: "var(--app-border)", color: "var(--app-text-secondary)" };
 }
 
 export default function ViewCorpusPage() {
@@ -88,7 +88,7 @@ export default function ViewCorpusPage() {
         return (
             <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, mt: 12 }}>
                 <WarningAmberIcon sx={{ fontSize: 48, color: "warning.main" }} />
-                <Typography sx={{ fontFamily: BODY, fontWeight: 600, color: "#0f172a", textAlign: "center", maxWidth: 420 }}>
+                <Typography sx={{ fontFamily: BODY, fontWeight: 600, color: "var(--app-text-primary)", textAlign: "center", maxWidth: 420 }}>
                     {error ?? t("corpus_view.error_load")}
                 </Typography>
             </Box>
@@ -109,39 +109,39 @@ export default function ViewCorpusPage() {
                     <Chip
                         label={t(`language.${corpus.language.name}`)}
                         size="small"
-                        sx={{ bgcolor: "#f1f5f9", color: "#475569", fontFamily: LABEL, fontSize: "0.6rem", fontWeight: 700 }}
+                        sx={{ bgcolor: "var(--app-surface-muted)", color: "var(--app-text-secondary)", fontFamily: LABEL, fontSize: "0.6rem", fontWeight: 700 }}
                     />
                     {corpus.domain && (
                         <Chip
                             label={corpus.domain.name}
                             size="small"
-                            sx={{ bgcolor: "#f1f5f9", color: "#475569", fontFamily: LABEL, fontSize: "0.6rem", fontWeight: 700 }}
+                            sx={{ bgcolor: "var(--app-surface-muted)", color: "var(--app-text-secondary)", fontFamily: LABEL, fontSize: "0.6rem", fontWeight: 700 }}
                         />
                     )}
                 </Box>
-                <Typography sx={{ fontFamily: HEADLINE, fontWeight: 700, fontSize: { xs: "1.75rem", md: "2.25rem" }, letterSpacing: "-0.03em", color: "#0f172a" }}>
+                <Typography sx={{ fontFamily: HEADLINE, fontWeight: 700, fontSize: { xs: "1.75rem", md: "2.25rem" }, letterSpacing: "-0.03em", color: "var(--app-text-primary)" }}>
                     {corpus.name}
                 </Typography>
-                <Typography sx={{ fontFamily: LABEL, fontSize: "0.8rem", fontWeight: 600, color: "#94a3b8", mt: 0.5 }}>
+                <Typography sx={{ fontFamily: LABEL, fontSize: "0.8rem", fontWeight: 600, color: "var(--app-text-faint)", mt: 0.5 }}>
                     {t("corpus_view.block_count", { count: total })}
                 </Typography>
             </Box>
 
             {/* Blocks list */}
-            <Paper elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: 3, overflow: "hidden" }}>
+            <Paper elevation={0} sx={{ border: "1px solid var(--app-border)", borderRadius: 3, overflow: "hidden" }}>
                 {blocks.map((text, i) => (
                     <Box
                         key={i}
                         sx={{
                             display: "flex", gap: 2, px: 3, py: 1.75,
-                            borderBottom: i < blocks.length - 1 ? "1px solid #f1f5f9" : "none",
-                            "&:hover": { bgcolor: "#f8fafc" },
+                            borderBottom: i < blocks.length - 1 ? "1px solid var(--app-surface-muted)" : "none",
+                            "&:hover": { bgcolor: "var(--app-surface-subtle)" },
                         }}
                     >
                         <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.75rem", color: ORANGE, flexShrink: 0, minWidth: 64, pt: 0.25 }}>
                             {i + 1} / {total}
                         </Typography>
-                        <Typography sx={{ fontFamily: BODY, fontSize: "0.95rem", lineHeight: 1.6, color: "#1e293b" }}>
+                        <Typography sx={{ fontFamily: BODY, fontSize: "0.95rem", lineHeight: 1.6, color: "var(--app-text-body)" }}>
                             {text}
                         </Typography>
                     </Box>
@@ -156,7 +156,7 @@ export default function ViewCorpusPage() {
                         onClick={fetchMore}
                         disabled={loadingMore}
                         startIcon={loadingMore ? <CircularProgress size={14} /> : undefined}
-                        sx={{ borderColor: "#e2e8f0", color: "#475569", fontFamily: LABEL, fontWeight: 700, fontSize: "0.72rem", textTransform: "none", borderRadius: 2, px: 3 }}
+                        sx={{ borderColor: "var(--app-border)", color: "var(--app-text-secondary)", fontFamily: LABEL, fontWeight: 700, fontSize: "0.72rem", textTransform: "none", borderRadius: 2, px: 3 }}
                     >
                         {t("corpus_view.load_more")} ({blocks.length} / {total})
                     </Button>

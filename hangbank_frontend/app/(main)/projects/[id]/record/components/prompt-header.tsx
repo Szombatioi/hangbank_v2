@@ -4,7 +4,7 @@ import { Box, Typography } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useTranslation } from "react-i18next";
 import { HEADLINE, LABEL } from "@/app/components/style-constants";
-import { COLOR } from "../helpers/colors";
+import { useColors } from "../helpers/colors";
 
 interface PromptHeaderProps {
     countLabel: string;
@@ -15,6 +15,7 @@ interface PromptHeaderProps {
 
 export default function PromptHeader({ countLabel, promptText, isRecorded, isBuffered }: PromptHeaderProps) {
     const { t } = useTranslation("common");
+    const COLOR = useColors();
 
     return (
         <Box>

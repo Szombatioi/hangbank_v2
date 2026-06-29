@@ -97,7 +97,7 @@ export default function MasterRecordingDialog({
             maxWidth="md"
             fullWidth
             PaperProps={{
-                sx: { borderRadius: 3, bgcolor: "#f8f9fa" },
+                sx: { borderRadius: 3, bgcolor: "var(--app-bg)" },
             }}
         >
             <DialogContent sx={{ p: { xs: 4, md: 6 }, display: "flex", flexDirection: "column", gap: 4 }}>
@@ -114,10 +114,10 @@ export default function MasterRecordingDialog({
                         <GraphicEqIcon />
                     </Box>
                     <Box>
-                        <Typography sx={{ fontFamily: HEADLINE, fontWeight: 700, fontSize: "1.5rem", lineHeight: 1.1, color: "#191c1d" }}>
+                        <Typography sx={{ fontFamily: HEADLINE, fontWeight: 700, fontSize: "1.5rem", lineHeight: 1.1, color: "var(--app-text-primary)" }}>
                             {t("master_recording.title")}
                         </Typography>
-                        <Typography sx={{ fontFamily: BODY, fontSize: "0.9rem", color: "#44474c", mt: 0.5 }}>
+                        <Typography sx={{ fontFamily: BODY, fontSize: "0.9rem", color: "var(--app-text-secondary)", mt: 0.5 }}>
                             {t("master_recording.subtitle")}
                         </Typography>
                     </Box>
@@ -141,7 +141,7 @@ export default function MasterRecordingDialog({
                     <Box
                         sx={{
                             p: 3,
-                            bgcolor: "#fff",
+                            bgcolor: "var(--app-card)",
                             borderRadius: 2,
                             border: "1px solid rgba(196,198,204,0.4)",
                             minHeight: 96,
@@ -152,7 +152,7 @@ export default function MasterRecordingDialog({
                         {promptLoading || !prompt ? (
                             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                                 <CircularProgress size={18} />
-                                <Typography sx={{ fontFamily: BODY, color: "#44474c" }}>
+                                <Typography sx={{ fontFamily: BODY, color: "var(--app-text-secondary)" }}>
                                     {t("master_recording.loading_prompt")}
                                 </Typography>
                             </Box>
@@ -162,7 +162,7 @@ export default function MasterRecordingDialog({
                                     fontFamily: HEADLINE,
                                     fontSize: { xs: "1.25rem", md: "1.5rem" },
                                     lineHeight: 1.4,
-                                    color: "#191c1d",
+                                    color: "var(--app-text-primary)",
                                     fontWeight: 500,
                                 }}
                             >
@@ -186,7 +186,7 @@ export default function MasterRecordingDialog({
                         <Typography sx={{ fontFamily: LABEL, fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "rgba(68,71,76,0.6)" }}>
                             {t("master_recording.duration_label")}
                         </Typography>
-                        <Typography sx={{ fontFamily: HEADLINE, fontWeight: 700, fontSize: "1rem", fontVariantNumeric: "tabular-nums", color: take ? "#191c1d" : "rgba(68,71,76,0.5)" }}>
+                        <Typography sx={{ fontFamily: HEADLINE, fontWeight: 700, fontSize: "1rem", fontVariantNumeric: "tabular-nums", color: take ? "var(--app-text-primary)" : "rgba(68,71,76,0.5)" }}>
                             {take ? formatDuration(take.durationSeconds) : t("master_recording.no_recording_yet")}
                         </Typography>
                     </Box>
@@ -196,7 +196,7 @@ export default function MasterRecordingDialog({
                         disabled={!take || saving}
                         onClick={handleSave}
                         sx={{
-                            bgcolor: "#191c1d",
+                            bgcolor: "var(--app-btn)",
                             borderRadius: 1.5,
                             textTransform: "none",
                             fontFamily: LABEL,
@@ -204,8 +204,8 @@ export default function MasterRecordingDialog({
                             fontSize: "0.8rem",
                             px: 3,
                             py: 1.2,
-                            "&:hover": { bgcolor: "#0f172a" },
-                            "&.Mui-disabled": { bgcolor: "#e1e3e4", color: "rgba(68,71,76,0.5)" },
+                            "&:hover": { bgcolor: "var(--app-btn-hover)" },
+                            "&.Mui-disabled": { bgcolor: "var(--app-surface-strong)", color: "rgba(68,71,76,0.5)" },
                         }}
                     >
                         {saving ? t("master_recording.saving") : t("master_recording.save")}

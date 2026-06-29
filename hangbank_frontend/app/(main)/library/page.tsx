@@ -26,18 +26,18 @@ const BODY = "'Inter', sans-serif";
 const VISIBILITY_OPTIONS: CorpusVisibility[] = ["public", "protected", "private"];
 
 function visibilityChipStyle(v: string) {
-  if (v === "public") return { bgcolor: "#d1fae5", color: "#065f46" };
-  if (v === "private") return { bgcolor: "#fef3c7", color: "#92400e" };
-  return { bgcolor: "#e2e8f0", color: "#475569" };
+  if (v === "public") return { bgcolor: "var(--app-success-bg)", color: "var(--app-success-fg)" };
+  if (v === "private") return { bgcolor: "var(--app-warn-bg)", color: "var(--app-warn-fg)" };
+  return { bgcolor: "var(--app-border)", color: "var(--app-text-secondary)" };
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <Box>
-      <Typography sx={{ fontFamily: LABEL, fontSize: "0.6rem", textTransform: "uppercase", color: "#94a3b8", fontWeight: 700, letterSpacing: "0.15em", mb: 0.5 }}>
+      <Typography sx={{ fontFamily: LABEL, fontSize: "0.6rem", textTransform: "uppercase", color: "var(--app-text-faint)", fontWeight: 700, letterSpacing: "0.15em", mb: 0.5 }}>
         {label}
       </Typography>
-      <Typography sx={{ fontFamily: LABEL, fontSize: "0.875rem", fontWeight: 600, color: "#334155" }}>
+      <Typography sx={{ fontFamily: LABEL, fontSize: "0.875rem", fontWeight: 600, color: "var(--app-text-body)" }}>
         {value}
       </Typography>
     </Box>
@@ -47,10 +47,10 @@ function Stat({ label, value }: { label: string; value: string }) {
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
     <Box>
-      <Typography sx={{ fontFamily: LABEL, fontSize: "0.5625rem", textTransform: "uppercase", color: "#94a3b8", fontWeight: 700, letterSpacing: "0.15em", mb: 0.25 }}>
+      <Typography sx={{ fontFamily: LABEL, fontSize: "0.5625rem", textTransform: "uppercase", color: "var(--app-text-faint)", fontWeight: 700, letterSpacing: "0.15em", mb: 0.25 }}>
         {label}
       </Typography>
-      <Typography sx={{ fontFamily: LABEL, fontSize: "0.75rem", fontWeight: 600, color: "#334155" }}>
+      <Typography sx={{ fontFamily: LABEL, fontSize: "0.75rem", fontWeight: 600, color: "var(--app-text-body)" }}>
         {value}
       </Typography>
     </Box>
@@ -58,8 +58,8 @@ function MiniStat({ label, value }: { label: string; value: string }) {
 }
 
 function VisibilityIcon({ v }: { v: string }) {
-  if (v === "protected") return <LockOutlinedIcon sx={{ fontSize: "1.2rem", color: "#94a3b8" }} />;
-  if (v === "private") return <VisibilityOffOutlinedIcon sx={{ fontSize: "1.2rem", color: "#94a3b8" }} />;
+  if (v === "protected") return <LockOutlinedIcon sx={{ fontSize: "1.2rem", color: "var(--app-text-faint)" }} />;
+  if (v === "private") return <VisibilityOffOutlinedIcon sx={{ fontSize: "1.2rem", color: "var(--app-text-faint)" }} />;
   return null;
 }
 
@@ -94,7 +94,7 @@ function FeaturedCard({ corpus, t, router, onArchive }: { corpus: CorpusDto; t: 
       sx={{
         gridColumn: { md: "span 2" },
         position: "relative",
-        bgcolor: "#ffffff",
+        bgcolor: "var(--app-card)",
         p: 4,
         display: "flex",
         flexDirection: "column",
@@ -114,11 +114,11 @@ function FeaturedCard({ corpus, t, router, onArchive }: { corpus: CorpusDto; t: 
         <Typography sx={{ fontFamily: LABEL, fontSize: "0.7rem", fontWeight: 700, color: "#ed4a14", textTransform: "uppercase", letterSpacing: "0.2em" }}>
           {t("library_page.primary_archive_label")}
         </Typography>
-        <Typography sx={{ fontFamily: HEADLINE, fontSize: "1.875rem", fontWeight: 700, color: "#0f172a", lineHeight: 1.2 }}>
+        <Typography sx={{ fontFamily: HEADLINE, fontSize: "1.875rem", fontWeight: 700, color: "var(--app-text-primary)", lineHeight: 1.2 }}>
           {corpus.name}
         </Typography>
         {corpus.domain && (
-          <Typography sx={{ fontFamily: BODY, color: "#47607e", lineHeight: 1.6 }}>
+          <Typography sx={{ fontFamily: BODY, color: "var(--app-text-muted)", lineHeight: 1.6 }}>
             {corpus.domain.name}
           </Typography>
         )}
@@ -135,7 +135,7 @@ function FeaturedCard({ corpus, t, router, onArchive }: { corpus: CorpusDto; t: 
           variant="contained"
           endIcon={<ArrowForwardIcon />}
           onClick={() => window.open((`/library/${corpus.id}`), '_blank')}
-          sx={{ bgcolor: "#191c1d", color: "#fff", borderRadius: 2, fontFamily: LABEL, fontWeight: 700, fontSize: "0.875rem", px: 3, py: 1.25, "&:hover": { bgcolor: "#0f172a" }, textTransform: "none" }}
+          sx={{ bgcolor: "var(--app-btn)", color: "#fff", borderRadius: 2, fontFamily: LABEL, fontWeight: 700, fontSize: "0.875rem", px: 3, py: 1.25, "&:hover": { bgcolor: "var(--app-btn-hover)" }, textTransform: "none" }}
         >
           {t("library_page.view_corpus")}
         </Button>
@@ -143,7 +143,7 @@ function FeaturedCard({ corpus, t, router, onArchive }: { corpus: CorpusDto; t: 
           variant="text"
           startIcon={<ArchiveOutlinedIcon />}
           onClick={onArchive}
-          sx={{ color: "#64748b", fontFamily: LABEL, fontWeight: 700, fontSize: "0.875rem", textTransform: "none", "&:hover": { color: "#0f172a", bgcolor: "transparent" } }}
+          sx={{ color: "var(--app-text-muted)", fontFamily: LABEL, fontWeight: 700, fontSize: "0.875rem", textTransform: "none", "&:hover": { color: "var(--app-text-primary)", bgcolor: "transparent" } }}
         >
           {t("library_page.archive_button")}
         </Button>
@@ -161,13 +161,13 @@ function RegularCard({ corpus, t, router, onArchive }: { corpus: CorpusDto; t: (
   return (
     <Box
       sx={{
-        bgcolor: "#edeeef",
+        bgcolor: "var(--app-surface-muted)",
         p: 3,
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
         transition: "background-color 0.3s",
-        "&:hover": { bgcolor: "#e7e8e9" },
+        "&:hover": { bgcolor: "var(--app-surface-strong)" },
       }}
     >
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 3 }}>
@@ -176,13 +176,13 @@ function RegularCard({ corpus, t, router, onArchive }: { corpus: CorpusDto; t: (
       </Box>
 
       <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-        <Typography sx={{ fontFamily: HEADLINE, fontSize: "1.25rem", fontWeight: 700, color: "#0f172a", lineHeight: 1.3 }}>
+        <Typography sx={{ fontFamily: HEADLINE, fontSize: "1.25rem", fontWeight: 700, color: "var(--app-text-primary)", lineHeight: 1.3 }}>
           {corpus.name}
         </Typography>
         {corpus.domain && (
           <Typography
             sx={{
-              fontFamily: BODY, fontSize: "0.875rem", color: "#47607e",
+              fontFamily: BODY, fontSize: "0.875rem", color: "var(--app-text-muted)",
               overflow: "hidden", display: "-webkit-box",
               WebkitLineClamp: 3, WebkitBoxOrient: "vertical",
             }}
@@ -201,14 +201,14 @@ function RegularCard({ corpus, t, router, onArchive }: { corpus: CorpusDto; t: (
           variant="text"
           endIcon={<NorthEastIcon sx={{ fontSize: "0.875rem !important" }} />}
           onClick={() => router.push(`/library/${corpus.id}`)}
-          sx={{ color: "#191c1d", fontFamily: LABEL, fontWeight: 700, fontSize: "0.875rem", textTransform: "none", p: 0, "&:hover": { bgcolor: "transparent", opacity: 0.6 }, minWidth: 0 }}
+          sx={{ color: "var(--app-text-primary)", fontFamily: LABEL, fontWeight: 700, fontSize: "0.875rem", textTransform: "none", p: 0, "&:hover": { bgcolor: "transparent", opacity: 0.6 }, minWidth: 0 }}
         >
           {t("library_page.view_button")}
         </Button>
         <Button
           variant="text"
           onClick={onArchive}
-          sx={{ color: "#94a3b8", minWidth: 0, p: 0.5, "&:hover": { color: "#ef4444", bgcolor: "transparent" } }}
+          sx={{ color: "var(--app-text-faint)", minWidth: 0, p: 0.5, "&:hover": { color: "var(--app-error-fg)", bgcolor: "transparent" } }}
         >
           <ArchiveOutlinedIcon sx={{ fontSize: "1.25rem" }} />
         </Button>
@@ -222,7 +222,7 @@ function AddCard({ t, router }: { t: (k: string) => string; router: ReturnType<t
     <Box
       onClick={() => router.push("/library/upload")}
       sx={{
-        border: "2px dashed #e2e8f0",
+        border: "2px dashed var(--app-border)",
         p: 3,
         display: "flex",
         flexDirection: "column",
@@ -233,21 +233,21 @@ function AddCard({ t, router }: { t: (k: string) => string; router: ReturnType<t
         cursor: "pointer",
         minHeight: 200,
         transition: "all 0.2s",
-        "&:hover": { borderColor: "#94a3b8", bgcolor: "#f8fafc" },
-        "&:hover .add-icon-wrapper": { bgcolor: "#191c1d", color: "#fff" },
+        "&:hover": { borderColor: "var(--app-text-faint)", bgcolor: "var(--app-surface-subtle)" },
+        "&:hover .add-icon-wrapper": { bgcolor: "var(--app-btn)", color: "#fff" },
       }}
     >
       <Box
         className="add-icon-wrapper"
-        sx={{ width: 48, height: 48, borderRadius: "50%", bgcolor: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8", transition: "all 0.2s" }}
+        sx={{ width: 48, height: 48, borderRadius: "50%", bgcolor: "var(--app-surface-muted)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--app-text-faint)", transition: "all 0.2s" }}
       >
         <AddCircleOutlineIcon />
       </Box>
       <Box>
-        <Typography sx={{ fontFamily: HEADLINE, fontWeight: 700, color: "#0f172a", fontSize: "1rem" }}>
+        <Typography sx={{ fontFamily: HEADLINE, fontWeight: 700, color: "var(--app-text-primary)", fontSize: "1rem" }}>
           {t("library_page.new_corpus_title")}
         </Typography>
-        <Typography sx={{ fontFamily: BODY, fontSize: "0.75rem", color: "#94a3b8", mt: 0.5 }}>
+        <Typography sx={{ fontFamily: BODY, fontSize: "0.75rem", color: "var(--app-text-faint)", mt: 0.5 }}>
           {t("library_page.new_corpus_subtitle")}
         </Typography>
       </Box>
@@ -347,23 +347,23 @@ export default function LibraryPage() {
     fontWeight: active ? 700 : 600,
     fontSize: "0.75rem",
     letterSpacing: "0.04em",
-    bgcolor: active ? "#191c1d" : "#e7e8e9",
-    color: active ? "#fff" : "#44474c",
+    bgcolor: active ? "var(--app-btn)" : "var(--app-surface-strong)",
+    color: active ? "#fff" : "var(--app-text-secondary)",
     borderRadius: "999px",
-    "&:hover": { bgcolor: active ? "#191c1d" : "#d9dadb" },
+    "&:hover": { bgcolor: active ? "var(--app-btn-hover)" : "var(--app-surface-strong)" },
   });
 
   // A little contrast for the autocomplete inputs against the page background:
   // a soft fill + border that strengthens on hover/focus.
   const filterFieldSx = {
     "& .MuiOutlinedInput-root": {
-      bgcolor: "#f1f5f9",
+      bgcolor: "var(--app-surface-muted)",
       borderRadius: 2,
-      "& fieldset": { borderColor: "#e2e8f0" },
-      "&:hover fieldset": { borderColor: "#cbd5e1" },
-      "&:hover": { bgcolor: "#eceff3" },
-      "&.Mui-focused": { bgcolor: "#fff" },
-      "&.Mui-focused fieldset": { borderColor: "#94a3b8" },
+      "& fieldset": { borderColor: "var(--app-border)" },
+      "&:hover fieldset": { borderColor: "var(--app-border-strong)" },
+      "&:hover": { bgcolor: "var(--app-surface-muted)" },
+      "&.Mui-focused": { bgcolor: "var(--app-card)" },
+      "&.Mui-focused fieldset": { borderColor: "var(--app-text-faint)" },
     },
     "& .MuiInputLabel-root": { fontFamily: LABEL, fontSize: "0.875rem" },
   };
@@ -378,10 +378,10 @@ export default function LibraryPage() {
       {/* Header */}
       <Box sx={{ mb: 6, display: "flex", flexDirection: { xs: "column", md: "row" }, alignItems: { md: "flex-end" }, justifyContent: "space-between", gap: 3 }}>
         <Box>
-          <Typography sx={{ fontFamily: HEADLINE, fontSize: { xs: "2.5rem", lg: "3rem" }, fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1, color: "#0f172a" }}>
+          <Typography sx={{ fontFamily: HEADLINE, fontSize: { xs: "2.5rem", lg: "3rem" }, fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1, color: "var(--app-text-primary)" }}>
             {t("library_page.title")}
           </Typography>
-          <Typography sx={{ fontFamily: BODY, fontSize: "1.125rem", color: "#47607e", maxWidth: 400, mt: 1 }}>
+          <Typography sx={{ fontFamily: BODY, fontSize: "1.125rem", color: "var(--app-text-muted)", maxWidth: 400, mt: 1 }}>
             {t("library_page.description")}
           </Typography>
         </Box>
@@ -389,17 +389,17 @@ export default function LibraryPage() {
           <Button variant="text"
             startIcon={<TuneIcon sx={{ fontSize: "1rem !important" }} />}
             sx={{
-              bgcolor: showFilters ? "#191c1d" : "#e7e8e9",
-              color: showFilters ? "#fff" : "#44474c",
+              bgcolor: showFilters ? "var(--app-btn)" : "var(--app-surface-strong)",
+              color: showFilters ? "#fff" : "var(--app-text-secondary)",
               fontFamily: LABEL, fontWeight: 600, fontSize: "0.875rem", borderRadius: 2, px: 2,
-              "&:hover": { bgcolor: showFilters ? "#0f172a" : "#d9dadb" }, textTransform: "none",
+              "&:hover": { bgcolor: showFilters ? "var(--app-btn-hover)" : "var(--app-surface-strong)" }, textTransform: "none",
             }}
             onClick={() => setShowFilters((s) => !s)}
           >
             {t("library_page.filters_button")}
           </Button>
           {/* <Button variant="text" startIcon={<SortIcon sx={{ fontSize: "1rem !important" }} />}
-            sx={{ bgcolor: "#e7e8e9", color: "#44474c", fontFamily: LABEL, fontWeight: 600, fontSize: "0.875rem", borderRadius: 2, px: 2, "&:hover": { bgcolor: "#d9dadb" }, textTransform: "none" }}>
+            sx={{ bgcolor: "var(--app-surface-strong)", color: "var(--app-text-secondary)", fontFamily: LABEL, fontWeight: 600, fontSize: "0.875rem", borderRadius: 2, px: 2, "&:hover": { bgcolor: "var(--app-surface-strong)" }, textTransform: "none" }}>
             {t("library_page.sort_button")}
           </Button> */}
         </Box>
@@ -420,7 +420,7 @@ export default function LibraryPage() {
             sx={chipSx(langFilter === lang.code)}
           />
         ))}
-        <Box sx={{ width: "1px", height: 16, bgcolor: "#c4c6cc", mx: 1, alignSelf: "center" }} />
+        <Box sx={{ width: "1px", height: 16, bgcolor: "var(--app-border)", mx: 1, alignSelf: "center" }} />
         {VISIBILITY_OPTIONS.map((v) => (
           <Chip
             key={v}
@@ -480,7 +480,7 @@ export default function LibraryPage() {
       ) : (
         <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }, gap: 4 }}>
           {filtered.length === 0 && (
-            <Typography sx={{ gridColumn: "1 / -1", fontFamily: BODY, color: "#94a3b8", textAlign: "center", py: 10 }}>
+            <Typography sx={{ gridColumn: "1 / -1", fontFamily: BODY, color: "var(--app-text-faint)", textAlign: "center", py: 10 }}>
               {t("library_page.empty_filters")}
             </Typography>
           )}
@@ -500,7 +500,7 @@ export default function LibraryPage() {
         description={
           <>
             {t("library_page.delete_corpus_description", { name: targetCorpus?.name ?? "" })}
-            <Box component="span" sx={{ display: "block", mt: 1.5, color: "#f59e0b", fontSize: "0.8rem" }}>
+            <Box component="span" sx={{ display: "block", mt: 1.5, color: "var(--app-warn-fg)", fontSize: "0.8rem" }}>
               {t("library_page.delete_corpus_in_use_warning")}
             </Box>
           </>

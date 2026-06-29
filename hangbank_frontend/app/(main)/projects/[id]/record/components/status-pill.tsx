@@ -2,13 +2,14 @@
 
 import { Box, Typography } from "@mui/material";
 import { LABEL } from "@/app/components/style-constants";
-import { COLOR } from "../helpers/colors";
+import { useColors } from "../helpers/colors";
 
 interface StatusPillProps {
     label: string;
 }
 
 export default function StatusPill({ label }: StatusPillProps) {
+    const COLOR = useColors();
     return (
         <Box
             sx={{
