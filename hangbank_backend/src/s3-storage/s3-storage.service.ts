@@ -21,15 +21,27 @@ export class S3StorageService implements OnModuleInit {
     this.originalCorpusBucket,
   ];
   private readonly minioClient: Client;
+  // Base URL the minio client signs from (internal docker hostname), and the public
+  // base the browser can actually reach (e.g. via the reverse proxy). Presigned URLs
+  // are rewritten from the former to the latter so they work outside the network.
+  private readonly internalBaseUrl: string;
+  private readonly publicBaseUrl?: string;
 
   constructor() {
+    const endPoint = process.env.MINIO_ENDPOINT || 'localhost';
+    const port = Number(process.env.MINIO_PORT) || 9000;
+    const useSSL = process.env.MINIO_USE_SSL === 'true';
+
     this.minioClient = new Client({
-      endPoint: process.env.MINIO_ENDPOINT || 'localhost',
-      port: Number(process.env.MINIO_PORT) || 9000,
-      useSSL: false,
+      endPoint,
+      port,
+      useSSL,
       accessKey: process.env.MINIO_ACCESS_KEY || 'minioadmin',
       secretKey: process.env.MINIO_SECRET_KEY || 'minioadmin123',
     });
+
+    this.internalBaseUrl = `${useSSL ? 'https' : 'http'}://${endPoint}:${port}`;
+    this.publicBaseUrl = process.env.MINIO_PUBLIC_URL || undefined;
   }
 
   async onModuleInit() {
@@ -111,11 +123,17 @@ export class S3StorageService implements OnModuleInit {
     }
 
     try {
-      return await this.minioClient.presignedGetObject(
+      const url = await this.minioClient.presignedGetObject(
         bucket,
         path.basename(objectName),
         expirySeconds,
       );
+      // Rewrite the internal endpoint to the public one (when configured) so the
+      // browser can fetch the object — the signature stays valid as long as the
+      // proxy forwards the request to MinIO with the original Host header.
+      return this.publicBaseUrl
+        ? url.replace(this.internalBaseUrl, this.publicBaseUrl)
+        : url;
     } catch (err) {
       this.logger.error('Failed to generate presigned URL', err);
       throw new InternalServerErrorException('Failed to generate presigned URL');

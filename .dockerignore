@@ -1,0 +1,18 @@
+# Build context for the root-context images (hangbank-backend, auth-service).
+# They only need shared/ + their own service dir; everything else is excluded so
+# the host's node_modules/build output can't clobber the in-image install.
+**/node_modules
+**/dist
+**/.next
+**/coverage
+**/*.tsbuildinfo
+.git
+.claude
+.vscode
+audio_processing_codes
+audio-quality-checker
+hangbank_frontend
+local
+ui_design
+**/.DS_Store
+**/*.log
