@@ -2,10 +2,17 @@
 # Everything the browser touches (frontend, backend API, MinIO audio) is served
 # same-origin over HTTPS, so there's no mixed-content blocking.
 
-localhost {
-	# Self-signed certificate issued by Caddy's built-in (internal) CA.
-	# The browser will show a one-time "not trusted" warning — expected for a
-	# self-signed cert. To trust it, import Caddy's root CA from the caddy_data volume.
+{
+	# Present the right internal cert even when the client sends no SNI — which is
+	# exactly what happens when you connect by bare IP address.
+	default_sni {$SITE_ADDRESS:localhost}
+}
+
+# Site address comes from $SITE_ADDRESS (the public host/IP), defaulting to localhost.
+{$SITE_ADDRESS:localhost} {
+	# Self-signed certificate issued by Caddy's built-in (internal) CA — works for
+	# both hostnames and IP addresses. The browser shows a one-time "not trusted"
+	# warning (expected). To trust it, import Caddy's root CA from the caddy_data volume.
 	tls internal
 
 	# Backend API — the browser calls /api/*, the backend serves routes without the prefix.
