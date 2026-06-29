@@ -4,8 +4,8 @@ import { runVad } from './common/vad';
 export class NoiseCheck implements AudioQualityCheckerStrategy {
     readonly requiredWavCount = 1;
 
-    async checkQuality(wavs: WavDecodeResult[]): Promise<QualityMeasure> {
-        const segments = await runVad(wavs[0]);
+    async checkQuality(master: WavDecodeResult, wav: WavDecodeResult): Promise<QualityMeasure> {
+        const segments = await runVad(wav);
         const speechSegs = segments.filter(s => s.isSpeech && s.rmsDb !== undefined);
         const silenceSegs = segments.filter(s => !s.isSpeech && s.rmsDb !== undefined);
 
@@ -32,15 +32,37 @@ export class NoiseCheck implements AudioQualityCheckerStrategy {
 
         // SNR → 0-100 score
         // < 10 dB: bad, > 40 dB: excellent
-        const score = Math.round(
-            Math.min(100, Math.max(0, (snr - 10) / 30 * 100))
-        );
+        // const score = Math.round(
+        //     Math.min(100, Math.max(0, (snr - 10) / 30 * 100))
+        // );
 
-        console.log("Zajszint: ", snr.toFixed(2), "dB, Pontszám: ", score.toFixed(2));
-        return { //TODO
-            name: "noise_check",
-            result: false, //TODO
-            message: "Zajszint ellenőrzés (TODO)"
+        //SNR ratings: (based on thesis)
+        //<15-20: Bad
+        //20-30: Acceptable
+        //>30: Excellent
+
+        console.log("Zajszint: ", snr.toFixed(2), "dB");//, Pontszám: ", score.toFixed(2));
+        return {
+            name: "NoiseCheck",
+            displayName: "aqc.noise_check.name",
+            values: [snr],
+            ranges: [
+                {
+                    min: 0,
+                    max: 20,
+                    displayName: "aqc.noise_check.snr.bad"
+                },
+                {
+                    min: 21,
+                    max: 30,
+                    displayName: "aqc.noise_check.snr.acceptable"
+                },
+                {
+                    min: 31,
+                    max: 99,
+                    displayName: "aqc.noise_check.snr.excellent"
+                }
+            ]
         };
     }
 

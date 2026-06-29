@@ -26,7 +26,7 @@ import { useTranslation } from "react-i18next";
 import api from "@/app/axios";
 import { CorpusDto } from "@/app/components/types/corpus.dto";
 import { useRouter } from "next/navigation";
-import { useSnackbar, Severity } from "@/app/contexts/SnackbarProvider";
+import { useSnackbar, Severity } from "@/app/providers/SnackbarProvider";
 import { getMicrophones, MicrophoneDetail } from "@/app/components/helpers/get-mics";
 import { CorpusRow } from "./components/corpus-row";
 import { CorpusPickerDialog } from "./components/corpus-picker-dialog";
@@ -128,7 +128,7 @@ export default function CorpusBasedSettings() {
         speaker: {
           speechCharacteristics: speechDescription.trim() || undefined,
         },
-        microphoneDeviceId: selectedMic?.deviceId,
+        microphoneLabel: selectedMic?.label,
       });
       showMessage(t("new_project.corpus_based.success"), Severity.success);
       

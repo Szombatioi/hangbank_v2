@@ -14,10 +14,13 @@ export class CorpusBlock {
   @Column()
   blockIndex!: number;
 
+  @Column('text')
+  text!: string;
+
   @OneToOne(() => AudioFile, { nullable: true })
   @JoinColumn()
   audioFile?: AudioFile;
 
-  @ManyToOne(() => CorpusBasedProject, (p) => p.blocks, { nullable: false, onDelete: 'CASCADE' })
-  corpusProject!: CorpusBasedProject;
+  @ManyToOne(() => CorpusBasedProject, (p) => p.blocks, { nullable: true, onDelete: 'CASCADE' })
+  corpusProject?: CorpusBasedProject;
 }

@@ -14,12 +14,14 @@ export class CorpusProcesserService {
   ];
 
   public async processCorpusFile(file: Express.Multer.File, skipPages: number = 0,
-  ): Promise<Buffer> {
+  ): Promise<string[]> {
     const ext = file.originalname.split('.').pop()?.toLowerCase();
     let rawText: string;
 
     if (ext === 'txt') {
       rawText = file.buffer.toString('utf-8');
+      // Promote every line break to a paragraph break to match pdf/docx structure
+      rawText = rawText.replace(/\r\n?/g, '\n').replace(/\n+/g, '\n\n');
     } else if (ext === 'docx') {
       const result = await mammoth.extractRawText({ buffer: file.buffer });
       rawText = result.value;
@@ -31,8 +33,7 @@ export class CorpusProcesserService {
       throw new BadRequestException('Unsupported file format. Use .txt, .docx, or .pdf');
     }
 
-    const sentences = this.extractSentences(rawText);
-    return Buffer.from(sentences.join('\n'), 'utf-8');
+    return this.extractSentences(rawText);
   }
 
   public extractSentences(text: string): string[] {
@@ -47,6 +48,7 @@ export class CorpusProcesserService {
     // This preserves intentional structure before we flatten each block into sentences.
     const blocks = text
       .split(/\n{2,}/)
+      // .split(/\n/)
       .flatMap(block => block.split(/(?=\n\s*[-•*\u2022\u2013]\s)/))
       .map(block =>
         block

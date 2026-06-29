@@ -2,7 +2,7 @@
 
 import api from "@/app/axios";
 import { ProjectDto } from "@/app/components/types/project.dto";
-import { Severity, useSnackbar } from "@/app/contexts/SnackbarProvider";
+import { Severity, useSnackbar } from "@/app/providers/SnackbarProvider";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { AxiosError } from "axios";
 import { useParams } from "next/navigation";

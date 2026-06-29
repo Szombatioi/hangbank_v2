@@ -22,6 +22,16 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const {t} = useTranslation("common");
   const [language, setLanguageState] = useState<Language>("en");
 
+  // Restore the previously chosen language on mount so the selection persists
+  // across reloads. Runs client-side only (after hydration) to avoid SSR mismatch.
+  useEffect(() => {
+    const saved = localStorage.getItem("language");
+    if (saved) {
+      setLanguageState(saved);
+      i18n.changeLanguage(saved);
+    }
+  }, []);
+
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
     i18n.changeLanguage(lang);

@@ -10,6 +10,7 @@ export interface CorpusDto {
   s3Link: string;
   domain?: { name: string };
   phoneticalCoverage: number;
+  blockCount: number;
   uploaderId: string;
   createdAt: string;
 }

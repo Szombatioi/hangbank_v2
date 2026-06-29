@@ -12,4 +12,5 @@ export interface ProjectDto {
   corpusName?: string;
   language?: string;       // translatable name, e.g. "en-US"
   speakerCount?: number;
+  masterRecordingId?: string | null; // audio-file id of the project's master recording, if any
 }
