@@ -20,7 +20,7 @@ export class Speaker {
   gender!: Gender;
 
   @Column({ nullable: true })
-  microphoneDeviceId?: string; // device ID string, e.g. "default", "communications"
+  microphoneLabel?: string; // full OS label, e.g. "Mikrofon (3 - Anua Mic CM 900) (0d8c:0134)"
 
   // @ManyToOne(() => CorpusBasedProject, (p) => p.speakers, { onDelete: 'CASCADE' })
   @OneToOne(() => CorpusBasedProject, (p) => p.speaker, { onDelete: 'CASCADE' })

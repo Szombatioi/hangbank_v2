@@ -38,22 +38,22 @@ export default function ProjectsOverviewPage() {
             {/* Header */}
             <Box sx={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", mb: 4 }}>
                 <Box>
-                    <Typography variant="h4" sx={{ fontWeight: 700, letterSpacing: "-0.03em", color: "#0f172a" }}>
+                    <Typography variant="h4" sx={{ fontWeight: 700, letterSpacing: "-0.03em", color: "var(--app-text-primary)" }}>
                         {t("projects.active_projects")}
                     </Typography>
-                    <Typography variant="caption" sx={{ textTransform: "uppercase", letterSpacing: "0.15em", color: "#94a3b8", fontWeight: 700 }}>
+                    <Typography variant="caption" sx={{ textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--app-text-faint)", fontWeight: 700 }}>
                         {t("projects.subtitle")}
                     </Typography>
                 </Box>
                 <Button
                     variant="contained"
                     sx={{
-                        bgcolor: "#191c1d",
+                        bgcolor: "var(--app-btn)",
                         borderRadius: 2,
                         px: 3,
                         textTransform: "none",
                         fontWeight: 700,
-                        "&:hover": { bgcolor: "#0f172a" },
+                        "&:hover": { bgcolor: "var(--app-btn-hover)" },
                     }}
                     onClick={() => router.push(`${pathname}/new`)}
                 >

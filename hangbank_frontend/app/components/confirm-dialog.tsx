@@ -47,13 +47,13 @@ export default function ConfirmDialog({
         >
             <DialogTitle sx={{
                 fontFamily: HEADLINE, fontWeight: 700, fontSize: "1.1rem",
-                color: "#0f172a", pb: 1,
+                color: "var(--app-text-primary)", pb: 1,
             }}>
                 {title}
             </DialogTitle>
 
             <DialogContent>
-                <DialogContentText sx={{ fontFamily: BODY, fontSize: "0.9rem", color: "#475569", lineHeight: 1.65 }}>
+                <DialogContentText sx={{ fontFamily: BODY, fontSize: "0.9rem", color: "var(--app-text-secondary)", lineHeight: 1.65 }}>
                     {description}
                 </DialogContentText>
             </DialogContent>
@@ -64,7 +64,7 @@ export default function ConfirmDialog({
                     disabled={loading}
                     sx={{
                         fontFamily: LABEL, fontWeight: 700, fontSize: "0.75rem",
-                        color: "#64748b", textTransform: "none", borderRadius: 1.5,
+                        color: "var(--app-text-muted)", textTransform: "none", borderRadius: 1.5,
                     }}
                 >
                     {cancelLabel ?? t("confirm_dialog.cancel")}
@@ -77,9 +77,9 @@ export default function ConfirmDialog({
                     sx={{
                         fontFamily: LABEL, fontWeight: 700, fontSize: "0.75rem",
                         textTransform: "none", borderRadius: 1.5,
-                        bgcolor: dangerous ? "#dc2626" : "#191c1d",
-                        "&:hover": { bgcolor: dangerous ? "#b91c1c" : "#0f172a" },
-                        "&.Mui-disabled": { bgcolor: "#e2e8f0", color: "#94a3b8" },
+                        bgcolor: dangerous ? "#dc2626" : "var(--app-btn)",
+                        "&:hover": { bgcolor: dangerous ? "#b91c1c" : "var(--app-btn-hover)" },
+                        "&.Mui-disabled": { bgcolor: "var(--app-border)", color: "var(--app-text-faint)" },
                     }}
                 >
                     {proceedLabel ?? t("confirm_dialog.proceed")}

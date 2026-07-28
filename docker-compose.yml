@@ -1,95 +1,155 @@
+# Full-stack deployment. One container each for frontend, backend, auth and the
+# audio-quality-checker; a database per app (backend + auth), MinIO for object
+# storage, and Caddy terminating HTTPS (self-signed) as the single public entrypoint.
+#
+#   Frontend : https://localhost
+#   Backend  : https://localhost/api   -> hangbank-backend
+#   MinIO    : https://localhost/minio -> minio (presigned audio URLs)
+#
+# Start with:  docker compose up --build
+
 services:
-  # PostgreSQL DB for auth service
-  auth-db:
-    image: postgres:15-alpine
-    container_name: dev_auth
+  # ---- Reverse proxy / TLS terminator (public entrypoint) ----
+  caddy:
+    image: caddy:2-alpine
+    container_name: hangbank_caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
     environment:
-      POSTGRES_USER: auth_admin
-      POSTGRES_PASSWORD: auth_admin
-      POSTGRES_DB: auth_db
-    ports:
-      - "5432:5432"
+      # Public host/IP Caddy issues the cert for and matches requests against.
+      SITE_ADDRESS: ${PUBLIC_HOST}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-  # Authentication Service
-  auth-service:
-    build:
-      context: .
-      dockerfile: auth/Dockerfile
-    container_name: auth_service
-    ports:
-      - "8888:8888"
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
     depends_on:
-      - auth-db
-    env_file:
-      - ./auth/.env
-    environment:
-      DB_TYPE: postgres
-      DB_HOST: auth-db
-      DB_PORT: 5432
-      DB_USERNAME: auth_admin
-      DB_PASSWORD: auth_admin
-      DB_DATABASE: auth_db
+      - hangbank-frontend
+      - hangbank-backend
+      - minio
 
-  # PostgreSQL DB for hangbank backend
-  hangbank-db:
-    image: postgres:15-alpine
-    container_name: dev_hangbank
-    environment:
-      POSTGRES_USER: hangbank_admin
-      POSTGRES_PASSWORD: hangbank_admin
-      POSTGRES_DB: hangbank_db
-    ports:
-      - "5433:5432"
-    volumes:
-      - hangbank_postgres_data:/var/lib/postgresql/data
+  # ---- Frontend (Next.js) ----
+  hangbank-frontend:
+    build:
+      context: ./hangbank_frontend
+      dockerfile: Dockerfile
+      args:
+        # Same-origin through Caddy; baked in at build time.
+        NEXT_PUBLIC_BACKEND_URL: /api
+    container_name: hangbank_frontend
+    restart: unless-stopped
+    depends_on:
+      - hangbank-backend
 
-  # NestJS Backend
+  # ---- Backend (NestJS) ----
   hangbank-backend:
     build:
       context: .
       dockerfile: hangbank_backend/Dockerfile
     container_name: hangbank_backend
-    ports:
-      - "3001:3000"
-    depends_on:
-      - hangbank-db
+    restart: unless-stopped
     environment:
+      PORT: 3000
+      JWT_SECRET: ${JWT_SECRET}
+      ENABLED_URLS: https://${PUBLIC_HOST}
       AUTH_SERVICE_URL: http://auth-service:8888
-      ENABLED_URLS: http://hangbank-frontend:3000,http://localhost:3000
+      AQC_SERVICE_URL: http://audio-quality-checker:3002
+      # Database
       DB_TYPE: postgres
       DB_HOST: hangbank-db
       DB_PORT: 5432
-      DB_USERNAME: hangbank_admin
-      DB_PASSWORD: hangbank_admin
-      DB_DATABASE: hangbank_db
-    env_file:
-      - ./hangbank_backend/.env
+      DB_USERNAME: ${HANGBANK_DB_USER}
+      DB_PASSWORD: ${HANGBANK_DB_PASSWORD}
+      DB_DATABASE: ${HANGBANK_DB_NAME}
+      # MinIO — internal endpoint for server-side ops, public base for presigned URLs
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_USE_SSL: "false"
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      MINIO_PUBLIC_URL: https://${PUBLIC_HOST}/minio
+    depends_on:
+      - hangbank-db
+      - minio
+      - auth-service
+      - audio-quality-checker
 
-  # Audio Quality Checker Service
+  # ---- Auth service (NestJS) ----
+  auth-service:
+    build:
+      context: .
+      dockerfile: auth/Dockerfile
+    container_name: hangbank_auth
+    restart: unless-stopped
+    environment:
+      PORT: 8888
+      JWT_SECRET: ${JWT_SECRET}
+      ENABLED_URLS: https://${PUBLIC_HOST}
+      DB_TYPE: postgres
+      DB_HOST: auth-db
+      DB_PORT: 5432
+      DB_USERNAME: ${AUTH_DB_USER}
+      DB_PASSWORD: ${AUTH_DB_PASSWORD}
+      DB_DATABASE: ${AUTH_DB_NAME}
+    depends_on:
+      - auth-db
+
+  # ---- Audio quality checker (NestJS) ----
   audio-quality-checker:
     build:
       context: ./audio-quality-checker
       dockerfile: Dockerfile
-    container_name: audio_quality_checker
-    ports:
-      - "3002:3002"
-
-  # Next.js Frontend
-  hangbank-frontend:
-    build:
-      context: ./hangbank_frontend
-      dockerfile: Dockerfile
-    container_name: hangbank_frontend
-    ports:
-      - "3000:3000"
+    container_name: hangbank_aqc
+    restart: unless-stopped
     environment:
-      NEXT_PUBLIC_BACKEND_URL: http://hangbank-backend:3001
-    depends_on:
-      - auth-service
-      - hangbank-backend
+      PORT: 3002
+
+  # ---- Backend database ----
+  hangbank-db:
+    image: postgres:15-alpine
+    container_name: hangbank_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${HANGBANK_DB_USER}
+      POSTGRES_PASSWORD: ${HANGBANK_DB_PASSWORD}
+      POSTGRES_DB: ${HANGBANK_DB_NAME}
+    ports:
+      - "5433:5432" # exposed for local inspection
+    volumes:
+      - hangbank_db_data:/var/lib/postgresql/data
+
+  # ---- Auth database ----
+  auth-db:
+    image: postgres:15-alpine
+    container_name: hangbank_auth_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${AUTH_DB_USER}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
+      POSTGRES_DB: ${AUTH_DB_NAME}
+    ports:
+      - "5432:5432" # exposed for local inspection
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
+
+  # ---- Object storage ----
+  minio:
+    image: minio/minio:latest
+    container_name: hangbank_minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    ports:
+      - "9001:9001" # web console (admin); the S3 API (9000) is fronted by Caddy
+    volumes:
+      - minio_data:/data
 
 volumes:
-  postgres_data:
-  hangbank_postgres_data:
+  hangbank_db_data:
+  auth_db_data:
+  minio_data:
+  caddy_data:
+  caddy_config:

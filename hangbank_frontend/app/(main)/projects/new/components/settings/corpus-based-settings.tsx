@@ -26,7 +26,7 @@ import { useTranslation } from "react-i18next";
 import api from "@/app/axios";
 import { CorpusDto } from "@/app/components/types/corpus.dto";
 import { useRouter } from "next/navigation";
-import { useSnackbar, Severity } from "@/app/contexts/SnackbarProvider";
+import { useSnackbar, Severity } from "@/app/providers/SnackbarProvider";
 import { getMicrophones, MicrophoneDetail } from "@/app/components/helpers/get-mics";
 import { CorpusRow } from "./components/corpus-row";
 import { CorpusPickerDialog } from "./components/corpus-picker-dialog";
@@ -128,7 +128,7 @@ export default function CorpusBasedSettings() {
         speaker: {
           speechCharacteristics: speechDescription.trim() || undefined,
         },
-        microphoneDeviceId: selectedMic?.deviceId,
+        microphoneLabel: selectedMic?.label,
       });
       showMessage(t("new_project.corpus_based.success"), Severity.success);
       
@@ -162,12 +162,12 @@ export default function CorpusBasedSettings() {
             fontSize: { xs: "1.75rem", md: "2.25rem" },
             fontWeight: 700,
             letterSpacing: "-0.03em",
-            color: "#0f172a",
+            color: "var(--app-text-primary)",
           }}
         >
           {t("new_project.corpus_based.title")}
         </Typography>
-        <Typography sx={{ fontFamily: BODY, fontSize: "1rem", color: "#47607e", mt: 0.5 }}>
+        <Typography sx={{ fontFamily: BODY, fontSize: "1rem", color: "var(--app-text-muted)", mt: 0.5 }}>
           {t("new_project.corpus_based.subtitle")}
         </Typography>
       </Box>
@@ -176,7 +176,7 @@ export default function CorpusBasedSettings() {
       <Paper
         elevation={0}
         sx={{
-          bgcolor: "#f3f4f5",
+          bgcolor: "var(--app-surface-muted)",
           borderRadius: 4,
           py: 4,
           px: 4,
@@ -205,7 +205,7 @@ export default function CorpusBasedSettings() {
             fullWidth
             error={submitted && errors.name}
             helperText={submitted && errors.name ? t("new_project.corpus_based.error_name_required") : undefined}
-            sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px", bgcolor: "#fff" } }}
+            sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px", bgcolor: "var(--app-card)" } }}
           />
         </Box>
 
@@ -221,7 +221,7 @@ export default function CorpusBasedSettings() {
             fullWidth
             multiline
             rows={3}
-            sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px", bgcolor: "#fff" } }}
+            sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px", bgcolor: "var(--app-card)" } }}
           />
         </Box>
 
@@ -239,7 +239,7 @@ export default function CorpusBasedSettings() {
             fullWidth
             displayEmpty
             error={submitted && errors.microphone}
-            sx={{ borderRadius: "8px", bgcolor: "#fff" }}
+            sx={{ borderRadius: "8px", bgcolor: "var(--app-card)" }}
             renderValue={(selectedId) => {
               if (!selectedId) {
                 return (
@@ -282,7 +282,7 @@ export default function CorpusBasedSettings() {
             fullWidth
             displayEmpty
             error={submitted && errors.samplingRate}
-            sx={{ borderRadius: "8px", bgcolor: "#fff" }}
+            sx={{ borderRadius: "8px", bgcolor: "var(--app-card)" }}
             renderValue={(val) =>
               val === ""
                 ? <em style={{ color: "#aaa", fontStyle: "normal" }}>
@@ -299,7 +299,7 @@ export default function CorpusBasedSettings() {
           </Select>
           {submitted && errors.samplingRate
             ? <FormHelperText error sx={{ mx: "14px" }}>{t("new_project.corpus_based.error_sampling_rate_required")}</FormHelperText>
-            : <Typography sx={{ mt: 1, ml: 1 }} variant="subtitle2" color="#47607e">{t("sampling_rate_explanation")}</Typography>
+            : <Typography sx={{ mt: 1, ml: 1 }} variant="subtitle2" color="var(--app-text-muted)">{t("sampling_rate_explanation")}</Typography>
           }
         </Box>
 
@@ -315,7 +315,7 @@ export default function CorpusBasedSettings() {
             rows={3}
             placeholder={t("new_project.corpus_based.recording_environment_placeholder")}
             fullWidth
-            sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px", bgcolor: "#fff" } }}
+            sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px", bgcolor: "var(--app-card)" } }}
           />
         </Box>
 
@@ -325,7 +325,7 @@ export default function CorpusBasedSettings() {
       <Paper
         elevation={0}
         sx={{
-          bgcolor: "#f3f4f5",
+          bgcolor: "var(--app-surface-muted)",
           borderRadius: 4,
           py: 4,
           px: 4,
@@ -344,17 +344,17 @@ export default function CorpusBasedSettings() {
 
         <Box sx={{
           flex: "1 1",
-          bgcolor: "#fff",
+          bgcolor: "var(--app-card)",
           borderRadius: 3,
           px: 2.5,
           py: 2,
         }}>
           <Typography
-            sx={{ fontFamily: LABEL, fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "#94a3b8", mb: 0.5 }}
+            sx={{ fontFamily: LABEL, fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--app-text-faint)", mb: 0.5 }}
           >
             {t("new_project.corpus_based.label_speaker_name")}
           </Typography>
-          <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "1.25rem", color: "#0f172a" }}>
+          <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "1.25rem", color: "var(--app-text-primary)" }}>
             {user ? `${user.firstName} ${user.lastName} (${t("you")})` : "—"}
           </Typography>
         </Box>
@@ -365,18 +365,18 @@ export default function CorpusBasedSettings() {
           <Box
             sx={{
               flex: "1 1 120px",
-              bgcolor: "#fff",
+              bgcolor: "var(--app-card)",
               borderRadius: 3,
               px: 2.5,
               py: 2,
             }}
           >
             <Typography
-              sx={{ fontFamily: LABEL, fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "#94a3b8", mb: 0.5 }}
+              sx={{ fontFamily: LABEL, fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--app-text-faint)", mb: 0.5 }}
             >
               {t("new_project.corpus_based.label_age")}
             </Typography>
-            <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "1.25rem", color: "#0f172a" }}>
+            <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "1.25rem", color: "var(--app-text-primary)" }}>
               {user?.birthDate ? computeAge(user.birthDate) : "—"}
             </Typography>
           </Box>
@@ -385,18 +385,18 @@ export default function CorpusBasedSettings() {
           <Box
             sx={{
               flex: "1 1 120px",
-              bgcolor: "#fff",
+              bgcolor: "var(--app-card)",
               borderRadius: 3,
               px: 2.5,
               py: 2,
             }}
           >
             <Typography
-              sx={{ fontFamily: LABEL, fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "#94a3b8", mb: 0.5 }}
+              sx={{ fontFamily: LABEL, fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--app-text-faint)", mb: 0.5 }}
             >
               {t("new_project.corpus_based.label_gender")}
             </Typography>
-            <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "1.25rem", color: "#0f172a", textTransform: "capitalize" }}>
+            <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "1.25rem", color: "var(--app-text-primary)", textTransform: "capitalize" }}>
               {user?.gender
                 ? t(`gender.${user.gender.toLowerCase()}`)
                 : "—"}
@@ -416,7 +416,7 @@ export default function CorpusBasedSettings() {
             fullWidth
             multiline
             rows={3}
-            sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px", bgcolor: "#fff" } }}
+            sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px", bgcolor: "var(--app-card)" } }}
           />
         </Box>
       </Paper>
@@ -425,12 +425,12 @@ export default function CorpusBasedSettings() {
       <Paper
         elevation={0}
         sx={{
-          bgcolor: "#f3f4f5",
+          bgcolor: "var(--app-surface-muted)",
           borderRadius: 4,
           py: 4,
           px: 4,
           mb: submitted && errors.corpus ? 0.5 : 4,
-          outline: submitted && errors.corpus ? "2px solid #d32f2f" : "none",
+          outline: submitted && errors.corpus ? "2px solid var(--app-error-fg)" : "none",
           outlineOffset: "0px",
         }}
       >
@@ -450,7 +450,7 @@ export default function CorpusBasedSettings() {
               {t("new_project.corpus_based.section_corpus")}
             </Typography>
             {!selectedCorpus && (
-              <Typography sx={{ fontFamily: BODY, fontSize: "0.875rem", color: "#64748b", mt: 0.25 }}>
+              <Typography sx={{ fontFamily: BODY, fontSize: "0.875rem", color: "var(--app-text-muted)", mt: 0.25 }}>
                 {t("new_project.corpus_based.corpus_hint")}
               </Typography>
             )}
@@ -466,9 +466,9 @@ export default function CorpusBasedSettings() {
               fontSize: "0.8rem",
               textTransform: "none",
               borderRadius: 2,
-              borderColor: "#cbd5e1",
-              color: "#334155",
-              "&:hover": { borderColor: "#191c1d", color: "#191c1d", bgcolor: "transparent" },
+              borderColor: "var(--app-border-strong)",
+              color: "var(--app-text-body)",
+              "&:hover": { borderColor: "var(--app-text-primary)", color: "var(--app-text-primary)", bgcolor: "transparent" },
             }}
           >
             {selectedCorpus
@@ -486,8 +486,8 @@ export default function CorpusBasedSettings() {
               gap: 2,
               p: 2,
               borderRadius: 3,
-              border: "1.5px solid #191c1d",
-              bgcolor: "#f0f0f0",
+              border: "1.5px solid var(--app-text-primary)",
+              bgcolor: "var(--app-bg)",
             }}
           >
             <Box
@@ -495,7 +495,7 @@ export default function CorpusBasedSettings() {
                 width: 40,
                 height: 40,
                 borderRadius: 2,
-                bgcolor: "#191c1d",
+                bgcolor: "var(--app-btn)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -505,10 +505,10 @@ export default function CorpusBasedSettings() {
               <AlbumIcon sx={{ fontSize: "1.2rem", color: "#fff" }} />
             </Box>
             <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.875rem", color: "#0f172a" }}>
+              <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.875rem", color: "var(--app-text-primary)" }}>
                 {selectedCorpus.name}
               </Typography>
-              <Typography sx={{ fontFamily: BODY, fontSize: "0.75rem", color: "#64748b" }}>
+              <Typography sx={{ fontFamily: BODY, fontSize: "0.75rem", color: "var(--app-text-muted)" }}>
                 {t(`language.${selectedCorpus.language.name}`)}
                 {selectedCorpus.domain ? ` · ${selectedCorpus.domain.name}` : ""}
               </Typography>
@@ -516,7 +516,7 @@ export default function CorpusBasedSettings() {
             <IconButton
               size="small"
               onClick={() => setSelectedCorpusId(null)}
-              sx={{ color: "#94a3b8", "&:hover": { color: "#ef4444" } }}
+              sx={{ color: "var(--app-text-faint)", "&:hover": { color: "var(--app-error-fg)" } }}
             >
               <CloseIcon fontSize="small" />
             </IconButton>
@@ -536,7 +536,7 @@ export default function CorpusBasedSettings() {
           disabled={submitting}
           onClick={handleCreate}
           sx={{
-            bgcolor: "#191c1d",
+            bgcolor: "var(--app-btn)",
             color: "#fff",
             borderRadius: 3,
             py: 1.5,
@@ -545,8 +545,8 @@ export default function CorpusBasedSettings() {
             fontWeight: 700,
             fontSize: "0.95rem",
             textTransform: "none",
-            "&:hover": { bgcolor: "#0f172a" },
-            "&:disabled": { bgcolor: "#e2e8f0", color: "#94a3b8" },
+            "&:hover": { bgcolor: "var(--app-btn-hover)" },
+            "&:disabled": { bgcolor: "var(--app-border)", color: "var(--app-text-faint)" },
           }}
         >
           {submitting ? (

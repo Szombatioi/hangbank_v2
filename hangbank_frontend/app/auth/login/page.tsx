@@ -12,17 +12,17 @@ const HEADLINE_FONT = "'Space Grotesk', sans-serif";
 const BODY_FONT = "'Inter', sans-serif";
 const LABEL_FONT = "'Manrope', sans-serif";
 
-const COLORS = {
+export const COLORS = {
     primaryAccent: "#ed4a14",
-    secondaryText: "#47607e",
-    inputBg: "#e7e8e9",
-    borderColor: "#c4c6cc",
+    secondaryText: "var(--app-text-muted)",
+    inputBg: "var(--app-surface-strong)",
+    borderColor: "var(--app-border)",
     darkBg: "#101b30",
-    formBg: "#f3f4f5",
-    waveBar: "#79849d",
+    formBg: "var(--app-surface-muted)",
+    waveBar: "var(--app-text-faint)",
 };
 
-const WAVEFORM_HEIGHTS = [25, 50, 75, 100, 66, 50, 33, 80, 100, 50, 25];
+export const WAVEFORM_HEIGHTS = [25, 50, 75, 100, 66, 50, 33, 80, 100, 50, 25];
 
 export default function LoginPage() {
     const { t } = useTranslation("common");
@@ -81,7 +81,7 @@ export default function LoginPage() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                backgroundColor: "#f8f9fa",
+                backgroundColor: "var(--app-bg)",
                 p: { xs: 0, sm: 2 },
             }}
         >
@@ -186,7 +186,7 @@ export default function LoginPage() {
                         >
                             {t("login_hero_sub")}
                         </Typography>
-                        <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
+                        {/* <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
                             {[
                                 { val: "24.8k", label: t("stat_archived_nodes") },
                                 { val: "0.02ms", label: t("stat_signal_latency") },
@@ -208,12 +208,12 @@ export default function LoginPage() {
                                     </Typography>
                                 </Box>
                             ))}
-                        </Box>
+                        </Box> */}
                     </Box>
 
                     {/* Bottom: Footer meta */}
                     <Box sx={{ zIndex: 1, pt: 3, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-                        <Typography
+                        {/* <Typography
                             sx={{
                                 fontFamily: LABEL_FONT,
                                 fontSize: "9px",
@@ -223,7 +223,7 @@ export default function LoginPage() {
                             }}
                         >
                             {t("login_footer_meta")}
-                        </Typography>
+                        </Typography> */}
                     </Box>
                 </Box>
 
@@ -306,7 +306,7 @@ export default function LoginPage() {
                             <Box>
                                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", mb: 1 }}>
                                     <Typography sx={{ ...labelStyle, mb: 0 }}>{t("label_security_sequence")}</Typography>
-                                    <Link
+                                    {/* <Link
                                         href="#"
                                         sx={{
                                             fontSize: "9px",
@@ -320,7 +320,7 @@ export default function LoginPage() {
                                         }}
                                     >
                                         {t("link_forgot")}
-                                    </Link>
+                                    </Link> */}
                                 </Box>
                                 <TextField
                                     fullWidth
@@ -389,7 +389,7 @@ export default function LoginPage() {
                                 alignItems: "center",
                             }}
                         >
-                            <Box sx={{ display: "flex", gap: 1.5 }}>
+                            {/* <Box sx={{ display: "flex", gap: 1.5 }}>
                                 <Security sx={{ color: COLORS.borderColor, fontSize: "18px" }} />
                                 <Fingerprint sx={{ color: COLORS.borderColor, fontSize: "18px" }} />
                             </Box>
@@ -403,7 +403,7 @@ export default function LoginPage() {
                                 }}
                             >
                                 {t("secure_terminal")}
-                            </Typography>
+                            </Typography> */}
                         </Box>
                     </Box>
 

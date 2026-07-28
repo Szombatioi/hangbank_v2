@@ -8,5 +8,5 @@ export class CreateCorpusProjectDto{
         id: string;
         speechCharacteristics?: string | undefined | null;
     };
-    microphoneDeviceId!: string; //To tell if the mic is available for recording everytime we start the project
+    microphoneLabel!: string; // full OS label used for availability matching
 }

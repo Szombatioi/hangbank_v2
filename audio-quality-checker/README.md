@@ -1,3 +1,10 @@
+Python 3.12
+`py install 3.12`
+`py -3.12 -m venv .venv`
+`pip install -r .\onnx\requirements.txt`
+`python .\onnx\generator.py`
+
+
 Initialize onnx model:
 
 For MacOS:

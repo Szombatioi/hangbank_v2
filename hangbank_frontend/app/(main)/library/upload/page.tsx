@@ -2,10 +2,12 @@
 //TODO: file feltöltésnél nincs semmi visszajelzés, hogy sikerült-e vagy sem, illetve a feltöltés folyamatáról sincs semmilyen indikátor. Ezt mindenképp érdemes lenne megoldani, mert nagyobb fájloknál elég bizonytalan lehet a helyzet. (pl. egy 100MB-s fájl feltöltése akár több percig is eltarthat, és ha nincs semmi visszajelzés, akkor a user azt hiheti, hogy nem történik semmi, és újra megpróbálja feltölteni, ami tovább növeli a terhelést)
 import FileUpload from "@/app/components/file_upload";
 import {
+  Autocomplete,
   Avatar,
   Box,
   Button,
   Chip,
+  createFilterOptions,
   Grid,
   IconButton,
   InputAdornment,
@@ -24,7 +26,7 @@ import { ChangeEvent, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { LanguageDto } from "@/app/components/types/language.dto";
 import api from "@/app/axios";
-import { Severity, useSnackbar } from "@/app/contexts/SnackbarProvider";
+import { Severity, useSnackbar } from "@/app/providers/SnackbarProvider";
 import { useRouter } from "next/navigation";
 
 type Visibility = "private" | "public" | "protected";
@@ -61,6 +63,7 @@ export default function CorpusUploadPage() {
   ); //TODO: fetch
   const [corpusTitle, setCorpusTitle] = useState<string>("");
   const [corpusDomain, setCorpusDomain] = useState<string>("");
+  const [domainOptions, setDomainOptions] = useState<string[]>([]);
 
   // Right panel state
   const [visibility, setVisibility] = useState<Visibility>("private");
@@ -93,6 +96,20 @@ export default function CorpusUploadPage() {
     }
 
     fetchLanguages();
+  }, []);
+
+  // Existing domains offered as suggestions; the user may still type a new one (freeSolo)
+  useEffect(() => {
+    async function fetchDomains() {
+      try {
+        const response = await api.get<{ name: string }[]>("/corpus-domain");
+        setDomainOptions(response.data.map((d) => d.name));
+      } catch (error) {
+        console.error("Failed to fetch domains:", error);
+      }
+    }
+
+    fetchDomains();
   }, []);
 
   const handleLanguageChange = (event: SelectChangeEvent) => {
@@ -143,7 +160,7 @@ export default function CorpusUploadPage() {
   //TODO: handle collaborators
   const handleUpload = async () => {
     if (!file || !corpusLanguage || !corpusTitle || !corpusDomain) {
-      //TODO: snackbar
+      showMessage(t("upload.fill_all"), Severity.error);
       return;
     }
 
@@ -200,7 +217,7 @@ export default function CorpusUploadPage() {
 
           <Paper
             elevation={0}
-            sx={{ backgroundColor: "#f3f4f5", py: 4, px: 4, borderRadius: 4, display: "flex", flexDirection: "column", gap: 2 }}
+            sx={{ backgroundColor: "var(--app-surface-muted)", py: 4, px: 4, borderRadius: 4, display: "flex", flexDirection: "column", gap: 2 }}
           >
             <div style={{}}>
               <Typography
@@ -276,13 +293,20 @@ export default function CorpusUploadPage() {
               >
                 {t("upload_corpus_page.domain")}
               </Typography>
-              {/* TODO: replace with auto search for existing domain names */}
-              <TextField
-                value={corpusDomain}
-                onChange={(e) => setCorpusDomain(e.target.value)}
-                placeholder={t("upload_corpus_page.corpus_domain_placeholder")}
-                fullWidth
-                sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px" } }}
+              <Autocomplete
+                freeSolo
+                options={domainOptions}
+                filterOptions={createFilterOptions<string>({ limit: 50, trim: true })}
+                inputValue={corpusDomain}
+                onInputChange={(_, value) => setCorpusDomain(value)}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder={t("upload_corpus_page.corpus_domain_placeholder")}
+                    fullWidth
+                    sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px" } }}
+                  />
+                )}
               />
             </div>
           </Paper>
@@ -305,7 +329,7 @@ export default function CorpusUploadPage() {
           {/* Visibility Settings */}
           <Paper
             elevation={0}
-            sx={{ backgroundColor: "#f3f4f5", py: 3, px: 3, borderRadius: 4 }}
+            sx={{ backgroundColor: "var(--app-surface-muted)", py: 3, px: 3, borderRadius: 4 }}
           >
             <Typography
               variant="overline"
@@ -331,7 +355,7 @@ export default function CorpusUploadPage() {
                 return (
                   <Box
                     key={option.value}
-                    onClick={() => setVisibility(option.value)}
+                    onClick={() => option.value !== "protected" && option.value !== "public" && setVisibility(option.value)} // TODO: Implement visibility
                     sx={{
                       display: "flex",
                       alignItems: "flex-start",
@@ -339,21 +363,22 @@ export default function CorpusUploadPage() {
                       px: 2,
                       py: 1.5,
                       borderRadius: 3,
-                      cursor: "pointer",
-                      border: "1.5px solid",
+                      cursor: option.value === "protected" || option.value === "public" ? "not-allowed" : "pointer", // TODO: Implement visibility
+                      border: "1.5px solid", 
                       borderColor: isSelected ? "#b8c8e8" : "transparent",
-                      bgcolor: isSelected ? "#e8eef8" : "transparent",
+                      bgcolor: isSelected ? "var(--app-info-bg)" : "transparent",
                       transition: "all 0.15s",
                     }}
                   >
                     <Radio
                       checked={isSelected}
                       onChange={() => setVisibility(option.value)}
+                      disabled={option.value === "protected" || option.value === "public"}
                       size="small"
                       sx={{
                         p: 0,
                         mt: "2px",
-                        color: isSelected ? "#1a1a1a" : "#aaa",
+                        color: isSelected ? "var(--app-text-primary)" : "#aaa",
                       }}
                     />
                     <Box>
@@ -377,7 +402,7 @@ export default function CorpusUploadPage() {
           {visibility === "protected" && (
             <Paper
               elevation={0}
-              sx={{ backgroundColor: "#f3f4f5", py: 3, px: 3, borderRadius: 4 }}
+              sx={{ backgroundColor: "var(--app-surface-muted)", py: 3, px: 3, borderRadius: 4 }}
             >
               <Box
                 sx={{
@@ -403,8 +428,8 @@ export default function CorpusUploadPage() {
                   )}
                   size="small"
                   sx={{
-                    bgcolor: "#dde6f5",
-                    color: "#4a6fa5",
+                    bgcolor: "var(--app-info-bg)",
+                    color: "var(--app-info-fg)",
                     fontWeight: 700,
                     fontSize: "0.65rem",
                     letterSpacing: "0.08em",
@@ -430,12 +455,12 @@ export default function CorpusUploadPage() {
                       edge="end"
                       size="small"
                     >
-                      <PersonAddIcon sx={{ color: "#4a6fa5" }} />
+                      <PersonAddIcon sx={{ color: "var(--app-info-fg)" }} />
                     </IconButton>
                   </InputAdornment>
                 }
                 sx={{
-                  bgcolor: "#e8edf5",
+                  bgcolor: "var(--app-info-bg)",
                   borderRadius: 2,
                   "& fieldset": { border: "none" },
                   mb: 2,
@@ -489,7 +514,7 @@ export default function CorpusUploadPage() {
           {file && file.name.split('.').pop()?.toLowerCase() === "pdf" && (
             <>
               <Paper elevation={0}
-                sx={{ backgroundColor: "#f3f4f5", py: 3, px: 3, borderRadius: 4 }}>
+                sx={{ backgroundColor: "var(--app-surface-muted)", py: 3, px: 3, borderRadius: 4 }}>
                 <Typography
                   variant="h6"
                   sx={{ textTransform: "capitalize" }}

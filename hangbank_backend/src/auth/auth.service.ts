@@ -37,6 +37,26 @@ export class AuthService {
     return data;
   }
 
+  async updateProfile(
+    userId: string,
+    authorization: string | undefined,
+    body: {
+      firstName?: string;
+      lastName?: string;
+      username?: string;
+      gender?: string;
+      password?: string;
+      currentPassword?: string;
+    },
+  ) {
+    await firstValueFrom(
+      this.httpService.patch(`${this.authUrl}/${userId}`, body, {
+        headers: authorization ? { Authorization: authorization } : undefined,
+      }),
+    );
+    return this.getProfile(userId);
+  }
+
   async getProfile(userId: string) {
     try {
       const { data } = await firstValueFrom(

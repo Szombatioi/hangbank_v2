@@ -110,6 +110,15 @@ export class UserService {
       updated = true;
     }
 
+    if (updateUserDto.username && updateUserDto.username !== user.username) {
+      const existingUsername = await this.userRepository.findOne({ where: { username: updateUserDto.username } });
+      if (existingUsername && existingUsername.id !== user.id) {
+        throw new BadRequestException('User with this username already exists');
+      }
+      user.username = updateUserDto.username;
+      updated = true;
+    }
+
     if(updateUserDto.profilePictureUrl && updateUserDto.profilePictureUrl !== user.profilePictureUrl) {
       user.profilePictureUrl = updateUserDto.profilePictureUrl;
       updated = true;
@@ -129,10 +138,20 @@ export class UserService {
       }
     }
 
-    //Changing password endpoint
-    if(updateUserDto.password && !(await bcrypt.compare(updateUserDto.password, user.password))) {
-      user.password = await bcrypt.hash(updateUserDto.password, 10);
-      updated = true;
+    //Changing password: verify the current password before applying the new one
+    if (updateUserDto.password) {
+      if (!updateUserDto.currentPassword) {
+        throw new BadRequestException('Current password is required to change the password');
+      }
+      const currentPasswordValid = await bcrypt.compare(updateUserDto.currentPassword, user.password);
+      if (!currentPasswordValid) {
+        throw new UnauthorizedException('Current password is incorrect');
+      }
+      //Only persist if the new password actually differs from the current one
+      if (!(await bcrypt.compare(updateUserDto.password, user.password))) {
+        user.password = await bcrypt.hash(updateUserDto.password, 10);
+        updated = true;
+      }
     }
 
     if (updated) {

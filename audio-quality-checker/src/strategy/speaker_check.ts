@@ -21,24 +21,36 @@ export class SpeakerCheck implements AudioQualityCheckerStrategy {
     return this.session;
   }
 
-  async checkQuality(wavs: WavDecodeResult[]): Promise<QualityMeasure> {
+  async checkQuality(master: WavDecodeResult, wav: WavDecodeResult): Promise<QualityMeasure> {
     const session = await this.getSession();
 
-    if (!wavs[0] || !wavs[1]) {
-      throw new Error('two_files_needed'); //TODO: UI-n fordítás
+    if (!master || !wav) {
+      throw new Error('aqc.errors.two_files_needed'); //TODO: UI-n fordítás
     }
 
     const [emb1, emb2] = await Promise.all([
-      this.getEmbedding(session, wavs[0]), //unknown
-      this.getEmbedding(session, wavs[1]), //reference
+      this.getEmbedding(session, master), //reference
+      this.getEmbedding(session, wav), //unknown
     ]);
 
     const match = this.isSameSpeaker(emb1, emb2);
 
     return {
-      name: 'speaker_check',
-      result: match,
-      message: match ? 'Ugyanaz a személy beszél' : 'Különböző személy beszél',
+      name: "SpeakerCheck",
+      displayName: "aqc.speaker_check.name",
+      values: [match ? 1 : 0],
+      ranges: [
+        {
+          min: 0,
+          max: null,
+          displayName: "aqc.speaker_check.ranges.different_speaker"
+        },
+        {
+          min: 1,
+          max: null,
+          displayName: "aqc.speaker_check.ranges.same_speaker"
+        }
+      ]
     };
   }
 
@@ -71,7 +83,7 @@ export class SpeakerCheck implements AudioQualityCheckerStrategy {
   private toMono16kHz(wav: WavDecodeResult): Float32Array {
     const sampleCount = wav.channelData[0].length;
     const mono = new Float32Array(sampleCount);
-  
+
     for (let i = 0; i < sampleCount; i++) {
       let sum = 0;
       for (const channel of wav.channelData) {
@@ -79,11 +91,11 @@ export class SpeakerCheck implements AudioQualityCheckerStrategy {
       }
       mono[i] = sum / wav.channelData.length;
     }
-  
+
     if (wav.sampleRate === 16000) {
       return mono;
     }
-  
+
     const wf = new WaveFile();
     wf.fromScratch(1, wav.sampleRate, '32f', mono);
     wf.toSampleRate(16000);
@@ -94,7 +106,7 @@ export class SpeakerCheck implements AudioQualityCheckerStrategy {
   //   // Csatornák átlagolása → mono
   //   const sampleCount = wav.channelData[0].length;
   //   const mono = new Float32Array(sampleCount);
-  
+
   //   for (let i = 0; i < sampleCount; i++) {
   //     let sum = 0;
   //     for (const channel of wav.channelData) {
@@ -102,26 +114,26 @@ export class SpeakerCheck implements AudioQualityCheckerStrategy {
   //     }
   //     mono[i] = sum / wav.channelData.length;
   //   }
-  
+
   //   if (wav.sampleRate === 16000) {
   //     return mono;
   //   }
-  
+
   //   // Linear resample to 16kHz
   //   const ratio = wav.sampleRate / 16000;
   //   const outputLength = Math.floor(sampleCount / ratio);
   //   const resampled = new Float32Array(outputLength);
-  
+
   //   for (let i = 0; i < outputLength; i++) {
   //     const srcIndex = i * ratio;
   //     const srcFloor = Math.floor(srcIndex);
   //     const srcCeil = Math.min(srcFloor + 1, sampleCount - 1);
   //     const fraction = srcIndex - srcFloor;
-  
+
   //     // Linear interpollation between two neighbouring samples
   //     resampled[i] = mono[srcFloor] * (1 - fraction) + mono[srcCeil] * fraction;
   //   }
-  
+
   //   return resampled;
   // }
 

@@ -1,4 +1,23 @@
 {
+    "home": {
+        "welcome_title": "Welcome to Hangbank!",
+        "welcome_description": "This is a demo of the Hangbank project, which currently supports corpus-based projects, audio quality checks and exporting in LJSpeech format.",
+        "welcome_browser": "The app was tested in Google Chrome and in Brave. As of this demo, audio transcription does NOT work in Brave.",
+        "thesis_description": "Please help my thesis work with additional suggestions, extension ideas and error reports.",
+        "library_description": "You can upload corpora in .txt, .pdf and .docx format on",
+        "library_description_link": "the library page",
+        "project_description": "Create a new corpus-based project on",
+        "project_description_link": "the projects page",
+        "export_description": "Export your projects in LJSpeech format on",
+        "export_description_link": "the export page",
+        "settings_description": "Customize the language or your user settings on",
+        "settings_description_link": "the settings page",
+        "support_description": "Having questions? Head over to",
+        "support_description_link": "the support page",
+        "support_description_lead": "to find your answers",
+        "report_description": "Found errors? Submit your ticket on",
+        "report_description_link": "the support page"
+    },
     "login": "Login",
     "email": "Email",
     "password": "Password",
@@ -26,29 +45,31 @@
     "label_verify": "Verify",
     "button_register": "Register",
     "link_login": "Already registered? Login",
-    "login_title": "Identity Verification",
-    "login_description": "Enter your credentials to interface with the Archive.",
-    "login_hero": "Audio Intelligence\nat Scale.",
-    "login_hero_sub": "Access the global repository of processed acoustic data and high-fidelity transcriptions.",
+    "login_title": "Login to Hangbank",
+    "login_description": "Enter your credentials to work with Hangbank.",
+    "login_hero": "Structured. Global. High quality.",
+    "login_hero_sub": "Access the global repository of processed audio data for TTS training.",
     "stat_archived_nodes": "Archived Nodes",
     "stat_signal_latency": "Signal Latency",
-    "login_footer_meta": "System Protocol v4.0.2 // Encrypted Session",
-    "label_email_identifier": "Node Identifier (Email)",
-    "label_security_sequence": "Security Sequence",
-    "link_forgot": "Lost Sequence?",
-    "button_login": "Access Corpus",
-    "link_register": "New archivist? Initialize account",
+    "login_footer_meta": "System v2.0 // 2026",
+    "label_email_identifier": "Email address",
+    "label_security_sequence": "Password",
+    "link_forgot": "Forgot password?",
+    "button_login": "Login",
+    "link_register": "New to the platform? Create account",
     "secure_terminal": "Secure Terminal // S-01",
     "error_invalid_credentials": "Invalid email or password.",
     "error_passwords_mismatch": "Passwords do not match.",
     "error_register_failed": "Registration failed. Please try again.",
-    "brand_subtitle": "Technical Editorial",
+    "brand_subtitle": "Collect high-quality audio-text pairs",
     "nav_projects": "Projects",
     "nav_dashboard": "Dashboard",
     "nav_library": "Library",
     "nav_archive": "Archive",
     "nav_settings": "Settings",
     "nav_support": "Support",
+    "nav_export": "Export",
+    "nav_logout": "Logout",
     "button_new_recording": "New Recording",
     "button_new_project": "New Project",
     "upload_corpus_page": {
@@ -63,13 +84,13 @@
         "domain": "Domain",
         "skip_pages": "Skip Pages",
         "visibility": {
-            "title": "Visibility Settings",
+            "title": "Visibility Settings (only private for now)",
             "private": "Private",
-            "private_desc": "Only you can access and use this corpus for transcriptions.",
+            "private_desc": "Only you can access and use this corpus.",
             "public": "Public",
-            "public_desc": "Anyone in the Sonic Archive community can use this data.",
+            "public_desc": "Anyone in the Hangbank community can use this data.",
             "protected": "Protected",
-            "protected_desc": "Grant specific access to members via email address."
+            "protected_desc": "Grant specific access to members."
         },
         "access_control": {
             "title": "Access Control",
@@ -77,13 +98,15 @@
             "add_collaborator_placeholder": "Add collaborator by email..."
         }
     },
+    "upload": {
+        "fill_all": "Please choose a file and fill all the fields!"
+    },
     "file_upload": {
         "drag_drop_files": "Drag & drop your files here",
         "supported_formats": "Support for .txt, .docx, and .pdf files (Max 50MB per file)",
         "browse_files": "BROWSE FILES"
     },
-    "language":
-    {
+    "language": {
         "lang_en-US": "English (US)",
         "lang_hu-HU": "Hungarian (HU)",
         "lang_de-DE": "German (DE)"
@@ -104,6 +127,10 @@
         "label_domain": "Domain",
         "label_uploaded": "Uploaded",
         "label_coverage": "Coverage",
+        "filter_title": "Title",
+        "filter_domain": "Domain",
+        "filter_title_placeholder": "Search by title",
+        "filter_domain_placeholder": "Search by domain",
         "empty_filters": "No corpora match your filters.",
         "visibility": {
             "all": "All",
@@ -119,12 +146,44 @@
         "delete_success": "Corpus deleted.",
         "delete_error": "Failed to delete corpus. Please try again."
     },
-    "error":{
+    "error": {
         "language_load": "Could not load available languages."
     },
-    "corpus_upload":{
+    "export_page": {
+        "title": "Export dataset",
+        "description": "Export your dataset to one of the common dataset formats.",
+        "source_selection": "Source Selection",
+        "select_project": "Select a project",
+        "audio_files": "Audio Files",
+        "items_selected": "{{count}} selected",
+        "no_audio_files": "This project has no recorded audio files to export yet.",
+        "has_errors": "Quality issues",
+        "block_index": "Block Index",
+        "transcription": "Transcription",
+        "expand": "Show details",
+        "select_format": "Select a Format",
+        "summary_title": "Export Summary",
+        "summary_selected_blocks": "Selected blocks",
+        "summary_bitrate": "Bitrate",
+        "summary_sample_rate": "Sample rate",
+        "summary_format": "Format",
+        "initiate_export": "Initiate Export",
+        "export_success": "Export downloaded.",
+        "export_error": "Export failed. Please try again.",
+        "error_load_projects": "Failed to load your projects. Please try again.",
+        "error_load_files": "Failed to load the project's audio files. Please try again."
+    },
+    "corpus_upload": {
         "success": "Corpus uploaded successfully!",
         "failure": "Failed to upload corpus. Please try again."
+    },
+    "corpus_view": {
+        "block_count": "{{count}} blocks",
+        "not_found": "Corpus not found.",
+        "access_denied": "You do not have access to this corpus.",
+        "error_load": "Failed to load corpus. Please try again.",
+        "error_load_blocks": "Failed to load blocks. Please try again.",
+        "load_more": "Load more"
     },
     "new_project": {
         "corpus_based_title": "Corpus based",
@@ -213,7 +272,30 @@
         "error_load": "Failed to load project. Please try again.",
         "error_load_blocks": "Failed to load blocks. Please try again.",
         "load_more": "Load more",
-        "bit_depth": "Bit Depth"
+        "bit_depth": "Bit Depth",
+        "delete": "Delete",
+        "delete_title": "Delete Project",
+        "delete_description": "Are you sure you want to permanently delete \"{{name}}\"? All recordings and blocks will be removed. This action cannot be undone.",
+        "delete_forbidden": "Only the project owner can delete this project.",
+        "delete_error": "Failed to delete project. Please try again.",
+        "edit": "Edit",
+        "edit_title": "Edit Project",
+        "edit_name_label": "Project Title",
+        "edit_name_placeholder": "Project name",
+        "edit_description_label": "Description",
+        "edit_description_placeholder": "Describe the purpose of this project...",
+        "edit_save": "Save Changes",
+        "edit_cancel": "Cancel",
+        "edit_name_required": "Project name is required.",
+        "edit_success": "Project updated.",
+        "edit_forbidden": "Only the project owner can edit this project.",
+        "edit_error": "Failed to update the project. Please try again.",
+        "quality_ok": "No issues",
+        "quality_issues": "Quality issues",
+        "master_recording": "Master Recording",
+        "master_recording_desc": "The reference voice clip recorded for this project.",
+        "open_master_recording": "Open Master Recording",
+        "no_master_recording": "No master recording has been made for this project yet."
     },
     "projects": {
         "active_projects": "Active projects",
@@ -225,18 +307,18 @@
         "multi_speaker_conversation": "Multi-speaker Conversation",
         "existing_files": "Existing Files"
     },
+    "confirm_dialog": {
+        "cancel": "Cancel"
+    },
     "project_page": {
         "fetch_error": "Could not fetch project.",
         "not_found": "Project not found.",
         "access_denied": "You do not have access to this project."
     },
-    "confirm_dialog": {
-        "cancel": "Cancel",
-        "proceed": "Proceed"
-    },
+    "project_deleted": "Project deleted successfully.",
     "record": {
         "block": "Block",
-        "loading": "Loading…",
+        "loading": "Loading...",
         "session_complete": "Session Complete",
         "all_blocks_done": "All blocks in this session have been recorded.",
         "start_from_out_of_range": "The start position exceeds the total number of blocks in this project.",
@@ -248,7 +330,140 @@
         "pending_save_label": "Unsaved Recordings",
         "recordings_unsaved": "recordings pending",
         "save": "Save",
+        "saving": "Saving...",
+        "save_success": "Recordings saved.",
+        "save_error": "Could not save recordings. Please try again.",
         "hint_space": "Save & next",
-        "hint_escape": "Cancel recording"
+        "hint_escape": "Cancel recording",
+        "current_prompt": "Current Prompt",
+        "status_recording": "Recording",
+        "status_idle": "Idle",
+        "status_paused": "Paused",
+        "live": "Live",
+        "upcoming": "Upcoming",
+        "session_details": "Session Details",
+        "sample_rate": "Sample Rate",
+        "bit_depth": "Bit Depth",
+        "file_type": "File Type",
+        "source": "Source",
+        "transcription": "Transcription",
+        "transcription_placeholder": "The quick brown fox jumps over the lazy dog.",
+        "next_block_tooltip": "Go to the next block",
+        "prev_block_tooltip": "Go to the previous block",
+        "rerecord_confirm_title": "Re-record this block?",
+        "rerecord_confirm_message": "This will discard the existing recording for this block and replace it with a new take.",
+        "rerecord_confirm_proceed": "Re-record"
+    },
+    "master_recording": {
+        "title": "Record Master Sample",
+        "subtitle": "Before recording the corpus, capture a short reference sample of your voice. We use this as a baseline for quality checks throughout the project.",
+        "prompt_label": "Please read aloud (example)",
+        "loading_prompt": "Loading prompt...",
+        "save": "Save Master Recording",
+        "saving": "Saving...",
+        "no_recording_yet": "Record a take above, then save to continue.",
+        "duration_label": "Recorded length",
+        "save_error": "Could not save the master recording. Please try again.",
+        "save_not_implemented": "The backend endpoint isn't ready yet — your recording is held locally."
+    },
+    "settings": {
+        "title": "Settings",
+        "subtitle": "Manage your account and preferences.",
+        "appearance": "Appearance",
+        "dark_mode": "Dark mode",
+        "dark_mode_desc": "Switch between the light and dark theme.",
+        "language": "Language",
+        "language_label": "Interface language",
+        "lang_en": "English",
+        "lang_hu": "Hungarian",
+        "lang_de": "German",
+        "profile": "Profile",
+        "first_name": "First name",
+        "last_name": "Last name",
+        "username": "Username",
+        "gender": "Gender",
+        "save": "Save changes",
+        "profile_saved": "Profile updated.",
+        "profile_error": "Failed to update profile. Please try again.",
+        "password": "Password",
+        "current_password": "Current password",
+        "new_password": "New password",
+        "confirm_password": "Confirm password",
+        "update_password": "Update password",
+        "password_saved": "Password updated.",
+        "password_error": "Failed to update password. Please try again.",
+        "password_mismatch": "Passwords do not match.",
+        "password_too_short": "Password must be at least 6 characters.",
+        "current_password_required": "Please enter your current password.",
+        "password_incorrect": "Your current password is incorrect."
+    },
+    "support": {
+        "title": "Support",
+        "subtitle": "Browse common topics. Click a card to read more.",
+        "submit_button": "Submit errors (only in hungarian)",
+        "dialog_language": "Language"
+    },
+    "view_recording": {
+        "title": "Recording",
+        "transcription": "Transcription",
+        "not_found": "This recording was not found, or you don't have permission to view it.",
+        "transcription_label": "Transcription",
+        "mic_warning": "The project's microphone wasn't found — re-recording will use your default input device.",
+        "save_success": "Recording replaced.",
+        "save_error": "Could not save the recording. Please try again.",
+        "file_info": "File Info",
+        "label_name": "Name",
+        "label_format": "Format",
+        "label_length": "Length",
+        "label_sample_rate": "Sample Rate",
+        "label_created": "Created",
+        "label_project": "Project",
+        "label_block": "Block",
+        "quality_checks": "Quality Checks",
+        "no_quality_checks": "No quality checks have run yet.",
+        "current_prompt": "Current Prompt",
+        "save_transcription": "Save transcription",
+        "transcription_saved": "Transcription saved.",
+        "master_recording": "Master Recording",
+        "master_loading": "Loading audio…"
+    },
+    "aqc": {
+        "errors": {
+            "two_files_needed": "Two audio files are required for this check.",
+            "file_must_be_wav": "The files must be in WAV format.",
+            "not_enough_files_for_strategy": "Not enough audio files for the selected strategy."
+        },
+        "noise_check": {
+            "name": "Noise Check",
+            "snr": {
+                "bad": "Bad",
+                "acceptable": "Acceptable",
+                "excellent": "Excellent"
+            }
+        },
+        "speaker_check": {
+            "name": "Speaker Check",
+            "ranges": {
+                "different_speaker": "Different Speaker",
+                "same_speaker": "Same Speaker"
+            }
+        },
+        "volume_check": {
+            "name": "Volume Check",
+            "ranges": {
+                "too_quiet": "Too Quiet",
+                "acceptable": "Acceptable",
+                "too_loud": "Too Loud"
+            }
+        },
+        "transcription_check": {
+            "name": "Transcription Check",
+            "ranges": {
+                "mismatch": "Doesn't match prompt",
+                "match": "Matches prompt",
+                "transcription_mismatch": "Transcription mismatch",
+                "matching_transcription": "Matching transcription"
+            }
+        }
     }
 }

@@ -48,8 +48,8 @@ export default function ProjectCard({ project, featured = false }: ProjectCardPr
             sx={{
                 width: "100%",
                 minHeight: 300,
-                bgcolor: featured ? "#191c1d" : "#fff",
-                border: featured ? "none" : "1px solid #e2e8f0",
+                bgcolor: featured ? "var(--app-btn)" : "var(--app-card)",
+                border: featured ? "none" : "1px solid var(--app-border)",
                 borderRadius: 3,
                 display: "flex",
                 flexDirection: "column",
@@ -61,7 +61,7 @@ export default function ProjectCard({ project, featured = false }: ProjectCardPr
                 transition: "box-shadow 0.2s, border-color 0.2s",
                 ...(featured
                     ? { background: "linear-gradient(135deg, #1e2a3a 0%, #0f172a 100%)" }
-                    : { "&:hover": { boxShadow: "0 4px 20px rgba(0,0,0,0.07)", borderColor: "#cbd5e1" } }),
+                    : { "&:hover": { boxShadow: "0 4px 20px rgba(0,0,0,0.07)", borderColor: "var(--app-border-strong)" } }),
             }}
         >
             {/* Top row: icon + chip + timestamp */}
@@ -69,12 +69,12 @@ export default function ProjectCard({ project, featured = false }: ProjectCardPr
                 <Box
                     sx={{
                         p: 1.25,
-                        bgcolor: featured ? "rgba(255,255,255,0.08)" : "#f1f5f9",
+                        bgcolor: featured ? "rgba(255,255,255,0.08)" : "var(--app-surface-muted)",
                         borderRadius: 2,
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        color: featured ? "#94a3b8" : "#475569",
+                        color: featured ? "var(--app-text-faint)" : "var(--app-text-secondary)",
                     }}
                 >
                     {GetProjectIcon(type)}
@@ -106,7 +106,7 @@ export default function ProjectCard({ project, featured = false }: ProjectCardPr
                             fontFamily: HEADLINE,
                             fontWeight: 700,
                             fontSize: "1.125rem",
-                            color: featured ? "#f8fafc" : "#0f172a",
+                            color: featured ? "#f8fafc" : "var(--app-text-primary)",
                             lineHeight: 1.3,
                             mt: 0.5,
                         }}
@@ -120,7 +120,7 @@ export default function ProjectCard({ project, featured = false }: ProjectCardPr
                             sx={{
                                 fontFamily: BODY,
                                 fontSize: "0.8125rem",
-                                color: featured ? "#94a3b8" : "#64748b",
+                                color: featured ? "var(--app-text-faint)" : "var(--app-text-muted)",
                                 lineHeight: 1.55,
                                 display: "-webkit-box",
                                 WebkitLineClamp: 3,
@@ -138,16 +138,16 @@ export default function ProjectCard({ project, featured = false }: ProjectCardPr
                         <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
                             {speakerCount !== undefined && (
                                 <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                                    <PeopleOutlineIcon sx={{ fontSize: "0.9rem", color: featured ? "#475569" : "#94a3b8" }} />
-                                    <Typography sx={{ fontFamily: LABEL, fontSize: "0.72rem", fontWeight: 600, color: "#64748b" }}>
+                                    <PeopleOutlineIcon sx={{ fontSize: "0.9rem", color: featured ? "var(--app-text-secondary)" : "var(--app-text-faint)" }} />
+                                    <Typography sx={{ fontFamily: LABEL, fontSize: "0.72rem", fontWeight: 600, color: "var(--app-text-muted)" }}>
                                         {speakerCount} {t(speakerCount === 1 ? "project_card.speaker" : "project_card.speakers")}
                                     </Typography>
                                 </Box>
                             )}
                             {language && (
                                 <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                                    <LanguageIcon sx={{ fontSize: "0.9rem", color: featured ? "#475569" : "#94a3b8" }} />
-                                    <Typography sx={{ fontFamily: LABEL, fontSize: "0.72rem", fontWeight: 600, color: "#64748b" }}>
+                                    <LanguageIcon sx={{ fontSize: "0.9rem", color: featured ? "var(--app-text-secondary)" : "var(--app-text-faint)" }} />
+                                    <Typography sx={{ fontFamily: LABEL, fontSize: "0.72rem", fontWeight: 600, color: "var(--app-text-muted)" }}>
                                         {t(`language.${language}`)}
                                     </Typography>
                                 </Box>
@@ -158,13 +158,13 @@ export default function ProjectCard({ project, featured = false }: ProjectCardPr
                     {/* Corpus name badge */}
                     {corpusName && (
                         <Box sx={{ mt: 0.5, display: "flex", justifyContent: "start", alignItems: "center", gap: 1 }}>
-                            <MenuBook sx={{ fontSize: "0.9rem", color: featured ? "#475569" : "#94a3b8" }} />
+                            <MenuBook sx={{ fontSize: "0.9rem", color: featured ? "var(--app-text-secondary)" : "var(--app-text-faint)" }} />
                             <Typography
                                 sx={{
                                     fontFamily: LABEL,
                                     fontSize: "0.7rem",
                                     fontWeight: 600,
-                                    color: featured ? "#475569" : "#94a3b8",
+                                    color: featured ? "var(--app-text-secondary)" : "var(--app-text-faint)",
                                     textTransform: "uppercase",
                                     letterSpacing: "0.1em",
                                 }}
@@ -176,7 +176,7 @@ export default function ProjectCard({ project, featured = false }: ProjectCardPr
                 </Box>
                 <Box sx={{ display: "flex", flexShrink: 0, alignItems: "end" }}>
                     {updatedAt && (
-                        <Typography sx={{fontFamily: LABEL, fontSize: "0.65rem", fontWeight: 600, color: featured ? "#475569" : "#94a3b8", textAlign: "right", mb: 0.5 }}>
+                        <Typography sx={{fontFamily: LABEL, fontSize: "0.65rem", fontWeight: 600, color: featured ? "var(--app-text-secondary)" : "var(--app-text-faint)", textAlign: "right", mb: 0.5 }}>
                             {updatedAt}
                         </Typography>
                     )}
@@ -187,11 +187,11 @@ export default function ProjectCard({ project, featured = false }: ProjectCardPr
             <Box sx={{ mt: "auto", pt: 0 }}>
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 0.75 }}>
                     <Typography
-                        sx={{ fontFamily: LABEL, fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: featured ? "#475569" : "#94a3b8" }}
+                        sx={{ fontFamily: LABEL, fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: featured ? "var(--app-text-secondary)" : "var(--app-text-faint)" }}
                     >
                         {t("project_card.corpus_progress")}
                     </Typography>
-                    <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.8rem", color: featured ? "#e2e8f0" : "#334155" }}>
+                    <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.8rem", color: featured ? "var(--app-border)" : "var(--app-text-body)" }}>
                         {corpusProgress}%
                     </Typography>
                 </Box>
@@ -201,8 +201,8 @@ export default function ProjectCard({ project, featured = false }: ProjectCardPr
                     sx={{
                         height: 4,
                         borderRadius: 2,
-                        bgcolor: featured ? "#1e293b" : "#f1f5f9",
-                        "& .MuiLinearProgress-bar": { bgcolor: featured ? "#ed4a14" : "#191c1d" },
+                        bgcolor: featured ? "var(--app-text-body)" : "var(--app-surface-muted)",
+                        "& .MuiLinearProgress-bar": { bgcolor: featured ? "#ed4a14" : "var(--app-text-primary)" },
                     }}
                 />
             </Box>

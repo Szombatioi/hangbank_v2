@@ -22,7 +22,7 @@ export default function FileDisplay({ fileName, fileSize, onDelete }: FileCardPr
         py: 1.5,
         borderRadius: 8,
         maxWidth: 480,
-        bgcolor: "#ebebeb",
+        bgcolor: "var(--app-border)",
       }}
     >
       <Box

@@ -57,7 +57,7 @@ export default function ProjectTypeSelector({onSelect}: ProjectTypeSelectorProps
                                 width: "100%",
                                 paddingTop: "65%",
                                 border: "3px solid",
-                                borderColor: card.disabled ? "#ccc" : "black",
+                                borderColor: card.disabled ? "var(--app-border)" : "black",
                                 borderRadius: 4,
                                 transition: "transform 0.2s, border-color 0.2s",
                                 pointerEvents: card.disabled ? "none" : "auto",

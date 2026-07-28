@@ -25,8 +25,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       setMode(stored);
     } else {
       // Fall back to system preference
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      setMode(prefersDark ? "dark" : "light");
+      // No
+      // const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      // setMode(prefersDark ? "dark" : "light");
     }
   }, []);
 
