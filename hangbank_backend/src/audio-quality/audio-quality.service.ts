@@ -84,6 +84,7 @@ export class AudioQualityService {
   // service and returns the per-audio-file quality results. Resilient: a checker
   // failure returns [] so recording saves never fail because of it.
   async callAqcService(
+    requiredChecks: string[],
     master: Blob,
     wavs: { id: string; blob: Blob }[],
   ): Promise<AudioFileQuality[]> {
@@ -97,6 +98,7 @@ export class AudioQualityService {
     // ids are parallel to the `wavs` files (same order), so the checker can tell
     // which results belong to which audio file.
     formData.append('ids', JSON.stringify(wavs.map((w) => w.id)));
+    formData.append('requiredChecks', JSON.stringify(requiredChecks));
 
     try {
       const resp = await this.httpService.axiosRef.post<AudioFileQuality[]>(

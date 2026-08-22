@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 // import { QuietnessCheck } from './strategy/quietness_check';
 // import { LoudnessCheck } from './strategy/loudness_check';
 import { AudioFileQuality, AudioQualityChecker, AudioQualityCheckerStrategy, QualityMeasure, WavDecodeResult } from './strategy/audio_quality_checker';
@@ -9,23 +9,27 @@ import { SpeakerCheck } from './strategy/speaker_check';
 
 @Injectable()
 export class AppService implements AudioQualityChecker {
+  private readonly strategyMappings: Record<string, AudioQualityCheckerStrategy> = {
+    'NOISE': new NoiseCheck(),
+    'VOLUME': new VolumeCheck(),
+    'SPEAKER': new SpeakerCheck()
+  };
 
   //Returns the list of used strategies for audio quality check
-  async collectStrategies() {
-    //TODO: In a real implementation, you would dynamically load strategies from a folder or database
-    return [
-      // new QuietnessCheck(),
-      // new LoudnessCheck(),
-      new VolumeCheck(),
-      new NoiseCheck(),
-      new SpeakerCheck(),
-    ]
+  async collectStrategies(strategies: string[]) {
+    const res = strategies.map((s) => {
+      if(!this.strategyMappings[s]) throw new BadRequestException();
+      return this.strategyMappings[s];
+    });
+
+    return res;
   }
 
   async checkAudioQuality(
     master: Express.Multer.File,
     wavs: Express.Multer.File[],
     ids: string[],
+    requiredStrategies: string[]
   ): Promise<AudioFileQuality[]> {
     if (!master || wavs.length === 0) {
       throw new BadRequestException("No audio files provided");
@@ -37,8 +41,11 @@ export class AppService implements AudioQualityChecker {
         `ids length (${ids.length}) must match wavs length (${wavs.length})`,
       );
     }
+    if(requiredStrategies.length == 0){
+      throw new BadRequestException('You must provide at least required strategy!')
+    }
 
-    const strategies = await this.collectStrategies();
+    const strategies = await this.collectStrategies(requiredStrategies);
 
     const masterWav = wav.decode(master.buffer);
     const additionalWavs = wavs.map(f => wav.decode(f.buffer));

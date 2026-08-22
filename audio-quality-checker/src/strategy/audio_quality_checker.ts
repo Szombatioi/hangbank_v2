@@ -28,6 +28,7 @@ export interface AudioQualityChecker {
       masterFile: Express.Multer.File,
       additionalWavs: Express.Multer.File[],
       ids: string[],
+      requiredStrategies: string[]
     ): Promise<AudioFileQuality[]>;
 }
 

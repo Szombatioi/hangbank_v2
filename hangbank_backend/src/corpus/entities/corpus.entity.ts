@@ -60,5 +60,8 @@ export class Corpus {
   @Column({ default: 0 })
   blockCount!: number;
 
+  @Column('text', { array: true, default: [] })
+  audioChecks!: string[];
+
   // forrás??
 }

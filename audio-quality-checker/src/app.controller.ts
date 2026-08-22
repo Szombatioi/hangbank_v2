@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Post, UploadedFile, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Post, UploadedFile, UploadedFiles, UseInterceptors } from '@nestjs/common';
 import { AppService } from './app.service';
 import { FileFieldsInterceptor, FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
+import { parse } from 'path';
 
 @Controller()
 export class AppController {
@@ -20,6 +21,7 @@ export class AppController {
   async checkAudioQuality(
     @UploadedFiles() files: { master: Express.Multer.File[], wavs: Express.Multer.File[] },
     @Body('ids') idsRaw: string,
+    @Body('requiredStrategies') requiredStrategies: string[]
   ) {
     console.log("AQC called!");
     const masterFile = files.master?.[0];
@@ -39,6 +41,21 @@ export class AppController {
       throw new Error("ids must be a valid JSON array");
     }
 
-    return await this.appService.checkAudioQuality(masterFile, additionalWavs, ids);
+    let parsedStrategies: string[];
+
+  if (typeof requiredStrategies === 'string') {
+    try {
+      parsedStrategies = JSON.parse(requiredStrategies);
+    } catch {
+      // Fallback if a single raw string was sent instead of a JSON array
+      parsedStrategies = [requiredStrategies];
+    }
+  } else if (Array.isArray(requiredStrategies)) {
+    parsedStrategies = requiredStrategies;
+  } else {
+    throw new BadRequestException('Invalid strategies format');
+  }
+
+    return await this.appService.checkAudioQuality(masterFile, additionalWavs, ids, parsedStrategies);
   }
 }

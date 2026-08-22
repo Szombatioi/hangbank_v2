@@ -22,6 +22,7 @@ import { CorpusProcesserService } from './corpus-processer.service';
 import { AudioFileService } from 'src/audio-file/audio-file.service';
 import { AudioQualityService } from 'src/audio-quality/audio-quality.service';
 import { AudioQualityType } from 'src/audio-quality/entities/audio-quality.entity';
+import { first } from 'rxjs';
 
 @Injectable()
 export class CorpusService {
@@ -170,6 +171,39 @@ export class CorpusService {
   ): Promise<SavedRecording[]> {
     if (recordings.length === 0) return [];
 
+    //Get corpus from the first block, and check that all blocks belong to the same corpus
+    const firstBlock = await this.corpusBlockRepository.findOne({
+      where: { id: recordings[0].blockId },
+      relations: ['corpus'],
+    });
+
+    if (!firstBlock) {
+      throw new BadRequestException(
+        `CorpusBlock not found: ${recordings[0].blockId}`,
+      );
+    }
+
+    const corpusId = firstBlock.corpus.id;
+    for(const recording of recordings) {
+      const block = await this.corpusBlockRepository.findOne({
+        where: { id: recording.blockId },
+        relations: ['corpus'],
+      });
+      if (!block) {
+        throw new BadRequestException(
+          `CorpusBlock not found: ${recording.blockId}`,
+        );
+      }
+
+      if(block.corpus.id !== corpusId) {
+        throw new BadRequestException(
+          `CorpusBlock ${recording.blockId} does not belong to the same corpus as the first block`,
+        );
+      }
+    }
+
+    //TODO: Check user permission 
+
     // Load all referenced blocks (with any existing recording, so we can replace it)
     const blockIds = recordings.map((r) => r.blockId);
     const blocks = await this.corpusBlockRepository.find({
@@ -235,20 +269,24 @@ export class CorpusService {
 
     // Run the audio quality checker once for all recordings, then persist each
     // audio file's measures — keyed by the audio id the checker reports back.
-    const qualityMeasures = await this.audioQualityService.callAqcService(
-      masterRecording,
-      aqcInputs,
-    );
-    for (const qm of qualityMeasures) {
-      for (const measure of qm.measures) {
-        const type = measure.name as AudioQualityType;
-        if (!Object.values(AudioQualityType).includes(type)) continue;
-        await this.audioQualityService.setAudioQuality(
-          qm.audioFileId,
-          type,
-          measure,
-          requesterId,
-        );
+    const corpus = firstBlock.corpus;
+    if(corpus.audioChecks.length > 0) {
+      const qualityMeasures = await this.audioQualityService.callAqcService(
+        firstBlock.corpus.audioChecks,
+        masterRecording,
+        aqcInputs,
+      );
+      for (const qm of qualityMeasures) {
+        for (const measure of qm.measures) {
+          const type = measure.name as AudioQualityType;
+          if (!Object.values(AudioQualityType).includes(type)) continue;
+          await this.audioQualityService.setAudioQuality(
+            qm.audioFileId,
+            type,
+            measure,
+            requesterId,
+          );
+        }
       }
     }
 
