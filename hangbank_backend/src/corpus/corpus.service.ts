@@ -166,6 +166,7 @@ export class CorpusService {
   //Returns the newly created audio file per block so the client can refresh it
   async saveRecordings(
     requesterId: string,
+    projectId: string,
     masterRecording: Blob,
     recordings: BufferedRecording[],
   ): Promise<SavedRecording[]> {
@@ -219,6 +220,19 @@ export class CorpusService {
       );
     }
 
+    // All blocks must belong to the given project; the project's audioChecks
+    // then determine which quality checks to run below.
+    const foreign = blocks.filter((b) => b.corpusProject?.id !== projectId);
+    if (foreign.length > 0) {
+      throw new BadRequestException(
+        `CorpusBlock(s) do not belong to project ${projectId}: ${foreign
+          .map((b) => b.id)
+          .join(', ')}`,
+      );
+    }
+    const audioChecks = blocks[0].corpusProject?.audioChecks ?? [];
+    //TODO: add transcription API call here to whisper!
+    
     // Create an AudioFile per recording (S3 upload + DB row), point the block at
     // it, run the transcription check, and replace any previous recording.
     const blockById = new Map(blocks.map((b) => [b.id, b]));
@@ -269,10 +283,9 @@ export class CorpusService {
 
     // Run the audio quality checker once for all recordings, then persist each
     // audio file's measures — keyed by the audio id the checker reports back.
-    const corpus = firstBlock.corpus;
-    if(corpus.audioChecks.length > 0) {
+    if(audioChecks.length > 0) {
       const qualityMeasures = await this.audioQualityService.callAqcService(
-        firstBlock.corpus.audioChecks,
+        audioChecks,
         masterRecording,
         aqcInputs,
       );

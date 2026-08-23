@@ -226,13 +226,20 @@
             "label_speaker_name": "Név",
             "label_gender": "Nem",
             "label_speech_description": "Beszédjellemzők",
-            "placeholder_speech_description": "Írd le a nyelvjárásodat, akcentusodat vagy egyéb beszédjellemzőidet (pl. tájszólás, dadogás, selypítés)..."
+            "placeholder_speech_description": "Írd le a nyelvjárásodat, akcentusodat vagy egyéb beszédjellemzőidet (pl. tájszólás, dadogás, selypítés)...",
+            "label_audio_checks": "Hangellenőrzések",
+            "placeholder_audio_checks": "Ellenőrzés hozzáadása…"
         }
     },
     "gender": {
         "male": "Férfi",
         "female": "Nő",
         "other": "Egyéb"
+    },
+    "audio_checks": {
+        "volume": "Hangerő",
+        "noise": "Zaj",
+        "speaker": "Beszélő"
     },
     "microphone_select": {
         "placeholder": "Válassz mikrofont",
@@ -284,6 +291,8 @@
         "edit_name_placeholder": "Projekt neve",
         "edit_description_label": "Leírás",
         "edit_description_placeholder": "Írd le a projekt célját...",
+        "audio_checks": "Hangellenőrzések",
+        "edit_audio_checks_placeholder": "Ellenőrzés hozzáadása…",
         "edit_save": "Módosítások mentése",
         "edit_cancel": "Mégse",
         "edit_name_required": "A projekt neve kötelező.",

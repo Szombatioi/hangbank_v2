@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
     Accordion, AccordionDetails, AccordionSummary,
-    Alert, Box, Button, Chip, CircularProgress,
+    Alert, Autocomplete, Box, Button, Chip, CircularProgress,
     Dialog, DialogActions, DialogContent, DialogTitle,
     Grid, IconButton, Paper, Snackbar, TextField, Typography,
 } from "@mui/material";
@@ -25,6 +25,8 @@ import FiberManualRecord from "@mui/icons-material/FiberManualRecord";
 import { Severity, useSnackbar } from "@/app/providers/SnackbarProvider";
 
 
+
+const AVAILABLE_CHECKS = ["VOLUME", "NOISE", "SPEAKER"];
 
 export interface BlockDto {
     id: string;
@@ -74,10 +76,11 @@ export default function ProjectDetailPage() {
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
 
-    // Edit project (name + description)
+    // Edit project (name + description + audio checks)
     const [editOpen, setEditOpen] = useState(false);
     const [editName, setEditName] = useState("");
     const [editDescription, setEditDescription] = useState("");
+    const [editAudioChecks, setEditAudioChecks] = useState<string[]>([]);
     const [savingEdit, setSavingEdit] = useState(false);
 
     useEffect(() => {
@@ -130,6 +133,7 @@ export default function ProjectDetailPage() {
         if (!project) return;
         setEditName(project.name);
         setEditDescription(project.description ?? "");
+        setEditAudioChecks(project.audioChecks ?? []);
         setEditOpen(true);
     };
 
@@ -144,6 +148,7 @@ export default function ProjectDetailPage() {
             const r = await api.patch<ProjectDto>(`/project/${id}`, {
                 name,
                 description: editDescription.trim(),
+                audioChecks: editAudioChecks,
             });
             setProject(r.data);
             setEditOpen(false);
@@ -221,6 +226,22 @@ export default function ProjectDetailPage() {
                                     />
                                 </Grid>
                             </Grid>
+
+                            {/* Audio checks */}
+                            <Box>
+                                <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--app-text-faint)", mb: 0.75 }}>
+                                    {t("project_detail.audio_checks")}
+                                </Typography>
+                                {project.audioChecks && project.audioChecks.length > 0 ? (
+                                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                                        {project.audioChecks.map((check) => (
+                                            <Chip key={check} label={t(`audio_checks.${check.toLowerCase()}`)} size="small" />
+                                        ))}
+                                    </Box>
+                                ) : (
+                                    <Typography sx={{ fontFamily: BODY, fontSize: "0.925rem", fontWeight: 500, color: "var(--app-text-primary)" }}>—</Typography>
+                                )}
+                            </Box>
                         </Box>
                     </Paper>
 
@@ -425,6 +446,41 @@ export default function ProjectDetailPage() {
                             minRows={3}
                             sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px" } }}
                         />
+                    </Box>
+                    <Box>
+                        <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--app-text-faint)", mb: 0.75 }}>
+                            {t("project_detail.audio_checks")}
+                        </Typography>
+                        <Autocomplete
+                            options={AVAILABLE_CHECKS.filter((c) => !editAudioChecks.includes(c))}
+                            value={null}
+                            blurOnSelect
+                            clearOnBlur
+                            getOptionLabel={(option) => t(`audio_checks.${option.toLowerCase()}`)}
+                            onChange={(_, newValue) => {
+                                if (newValue && !editAudioChecks.includes(newValue)) {
+                                    setEditAudioChecks((prev) => [...prev, newValue]);
+                                }
+                            }}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    placeholder={t("project_detail.edit_audio_checks_placeholder")}
+                                    sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px" } }}
+                                />
+                            )}
+                        />
+                        {editAudioChecks.length > 0 && (
+                            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1.5 }}>
+                                {editAudioChecks.map((check) => (
+                                    <Chip
+                                        key={check}
+                                        label={t(`audio_checks.${check.toLowerCase()}`)}
+                                        onDelete={() => setEditAudioChecks((prev) => prev.filter((c) => c !== check))}
+                                    />
+                                ))}
+                            </Box>
+                        )}
                     </Box>
                 </DialogContent>
                 <DialogActions sx={{ px: 3, pb: 2.5 }}>

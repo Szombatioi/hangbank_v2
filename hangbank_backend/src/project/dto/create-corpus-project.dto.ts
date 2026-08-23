@@ -9,4 +9,5 @@ export class CreateCorpusProjectDto{
         speechCharacteristics?: string | undefined | null;
     };
     microphoneLabel!: string; // full OS label used for availability matching
+    audioChecks!: string[];
 }

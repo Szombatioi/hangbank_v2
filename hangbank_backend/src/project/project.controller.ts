@@ -53,7 +53,7 @@ export class ProjectController {
   updateProject(
     @Req() req: { user: IJwtPayload },
     @Param('id') id: string,
-    @Body() body: { name?: string; description?: string },
+    @Body() body: { name?: string; description?: string; audioChecks?: string[] },
   ) {
     return this.projectService.updateProject(req.user.id, id, body);
   }

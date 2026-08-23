@@ -6,6 +6,7 @@ set -e
 BACKEND_DIR="./hangbank_backend"
 FRONTEND_DIR="./hangbank_frontend"
 AQC_DIR="./audio-quality-checker"
+AUTH_DIR="./auth"
 
 
 cleanup(){
@@ -23,5 +24,6 @@ echo "Starting services..."
 (cd "$BACKEND_DIR" && npm run start:dev) &
 (cd "$FRONTEND_DIR" && npm run dev) &
 (cd "$AQC_DIR" && npm run start:dev) &
+(cd "$AUTH_DIR" && npm run start:dev) &
 
 wait

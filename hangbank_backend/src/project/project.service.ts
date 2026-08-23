@@ -56,6 +56,7 @@ export class ProjectService {
           samplingRate: data.samplingRate,
           corpus,
           roles: [],
+          audioChecks: data.audioChecks ?? [],
         }),
       );
 
@@ -395,6 +396,7 @@ export class ProjectService {
       language: project.corpus.language.name,
       speakerCount: 1,
       masterRecordingId: project.masterRecording?.id ?? null,
+      audioChecks: project.audioChecks ?? [],
     };
   }
 
@@ -403,7 +405,7 @@ export class ProjectService {
   async updateProject(
     requesterId: string,
     projectId: string,
-    data: { name?: string; description?: string },
+    data: { name?: string; description?: string; audioChecks?: string[] },
   ) {
     const project = await this.corpusBasedProjectRepository.findOne({
       where: { id: projectId },
@@ -429,6 +431,9 @@ export class ProjectService {
     }
     if (data.description !== undefined) {
       project.description = data.description.trim();
+    }
+    if (data.audioChecks !== undefined) {
+      project.audioChecks = data.audioChecks;
     }
 
     await this.corpusBasedProjectRepository.save(project);
@@ -611,6 +616,7 @@ export class ProjectService {
 
     const results = await this.corpusService.saveRecordings(
       requesterId,
+      projectId,
       masterBuffer as unknown as Blob,
       recordings,
     );

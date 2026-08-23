@@ -2,8 +2,10 @@
 //TODO: add bitdepth settings
 //TODO: recommend max OS sample rate for mic
 import {
+  Autocomplete,
   Box,
   Button,
+  Chip,
   CircularProgress,
   Dialog,
   DialogContent,
@@ -72,6 +74,9 @@ export default function CorpusBasedSettings() {
 
   const [recordingEnvorinment, setRecordingEnvironment] = useState<string | null>(null);
 
+  const availableChecks = ["VOLUME", "NOISE", "SPEAKER"];
+  const [audioChecks, setAudioChecks] = useState<string[]>([]);
+
   const errors = {
     name: !name.trim(),
     samplingRate: samplingRate === "",
@@ -129,6 +134,7 @@ export default function CorpusBasedSettings() {
           speechCharacteristics: speechDescription.trim() || undefined,
         },
         microphoneLabel: selectedMic?.label,
+        audioChecks: audioChecks,
       });
       showMessage(t("new_project.corpus_based.success"), Severity.success);
       
@@ -317,6 +323,45 @@ export default function CorpusBasedSettings() {
             fullWidth
             sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px", bgcolor: "var(--app-card)" } }}
           />
+        </Box>
+
+        {/* Audio checks */}
+        <Box>
+          <Typography variant="h6" sx={{ fontFamily: LABEL, textTransform: "capitalize", mb: 0.75 }} color="primary">
+            {t("new_project.corpus_based.label_audio_checks")}
+          </Typography>
+          <Autocomplete
+            options={availableChecks.filter((c) => !audioChecks.includes(c))}
+            value={null}
+            blurOnSelect
+            clearOnBlur
+            getOptionLabel={(option) => t(`audio_checks.${option.toLowerCase()}`)}
+            onChange={(_, newValue) => {
+              if (newValue && !audioChecks.includes(newValue)) {
+                setAudioChecks((prev) => [...prev, newValue]);
+              }
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                placeholder={t("new_project.corpus_based.placeholder_audio_checks")}
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px", bgcolor: "var(--app-card)" } }}
+              />
+            )}
+          />
+          {audioChecks.length > 0 && (
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1.5 }}>
+              {audioChecks.map((check) => (
+                <Chip
+                  key={check}
+                  label={t(`audio_checks.${check.toLowerCase()}`)}
+                  onDelete={() =>
+                    setAudioChecks((prev) => prev.filter((c) => c !== check))
+                  }
+                />
+              ))}
+            </Box>
+          )}
         </Box>
 
       </Paper>

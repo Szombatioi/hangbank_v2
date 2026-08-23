@@ -226,13 +226,20 @@
             "label_speaker_name": "Name",
             "label_gender": "Gender",
             "label_speech_description": "Speech Characteristics",
-            "placeholder_speech_description": "Describe your dialect, accent, or any speech characteristics (e.g. regional accent, stutter, lisp) ..."
+            "placeholder_speech_description": "Describe your dialect, accent, or any speech characteristics (e.g. regional accent, stutter, lisp) ...",
+            "label_audio_checks": "Audio checks",
+            "placeholder_audio_checks": "Add a check…"
         }
     },
     "gender": {
         "male": "Male",
         "female": "Female",
         "other": "Other"
+    },
+    "audio_checks": {
+        "volume": "Volume",
+        "noise": "Noise",
+        "speaker": "Speaker"
     },
     "microphone_select": {
         "placeholder": "Select a microphone",
@@ -284,6 +291,8 @@
         "edit_name_placeholder": "Project name",
         "edit_description_label": "Description",
         "edit_description_placeholder": "Describe the purpose of this project...",
+        "audio_checks": "Audio checks",
+        "edit_audio_checks_placeholder": "Add a check…",
         "edit_save": "Save Changes",
         "edit_cancel": "Cancel",
         "edit_name_required": "Project name is required.",

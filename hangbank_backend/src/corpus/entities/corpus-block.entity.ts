@@ -21,6 +21,7 @@ export class CorpusBlock {
   @JoinColumn()
   audioFile?: AudioFile;
 
+  //Only null if they are not part of a corpus-based project
   @ManyToOne(() => CorpusBasedProject, (p) => p.blocks, { nullable: true, onDelete: 'CASCADE' })
   corpusProject?: CorpusBasedProject;
 }

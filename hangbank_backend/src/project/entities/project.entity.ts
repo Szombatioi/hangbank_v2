@@ -37,4 +37,7 @@ export class Project {
 
   @OneToMany(() => ProjectRole, (r) => r.project)
   roles!: ProjectRole[]; //No default value, because on creation we MUST declare its owner
+
+  @Column('text', { array: true, default: [] })
+  audioChecks!: string[];
 }
