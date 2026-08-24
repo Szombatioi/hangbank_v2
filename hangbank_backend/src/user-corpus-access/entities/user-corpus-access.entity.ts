@@ -4,13 +4,14 @@ import { Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 @Entity()
 export class UserCorpusAccess {
     @PrimaryColumn('uuid')
-    userId!: string; //Kiről van szó
+    userId!: string; //Which user has access (only ID, since user is in another service)
 
+    
     @PrimaryColumn('uuid')
-    corpusId!: string;
+    corpusId!: string; //To which corpus the user has access
 
     @ManyToOne(() => Corpus, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'corpus_id' })
+    @JoinColumn({ name: 'corpusId' })
     corpus!: Corpus;
 
 }

@@ -17,7 +17,6 @@ import { SeederModule } from './seeder/seeder.module';
 import { ProjectModule } from './project/project.module';
 import { AudioFileModule } from './audio-file/audio-file.module';
 import { AudioQualityModule } from './audio-quality/audio-quality.module';
-import { AudioModificationModule } from './audio-modification/audio-modification.module';
 import { ExportModule } from './export/export.module';
 import { SupportTextModule } from './support-text/support-text.module';
 
@@ -58,7 +57,6 @@ import { SupportTextModule } from './support-text/support-text.module';
     ProjectModule,
     AudioFileModule,
     AudioQualityModule,
-    AudioModificationModule,
     ExportModule,
     SupportTextModule,
   ],

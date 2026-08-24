@@ -6,9 +6,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { QueryFailedError } from 'typeorm';
+import { EntityManager, QueryFailedError } from 'typeorm';
 import { CreateCorpusDto } from './dto/create-corpus.dto';
-import { InjectRepository } from '@nestjs/typeorm';
+import { UpdateCorpusDto } from './dto/update-corpus.dto';
+import { CorpusListItemDto } from './dto/corpus-list-item.dto';
+import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { Corpus } from './entities/corpus.entity';
 import { CorpusBlock } from './entities/corpus-block.entity';
 import { In, IsNull, Repository } from 'typeorm';
@@ -23,6 +25,9 @@ import { AudioFileService } from 'src/audio-file/audio-file.service';
 import { AudioQualityService } from 'src/audio-quality/audio-quality.service';
 import { AudioQualityType } from 'src/audio-quality/entities/audio-quality.entity';
 import { first } from 'rxjs';
+import { normalizeTranscript } from 'src/helpers/normalizeTranscript';
+import { UserCorpusAccess } from 'src/user-corpus-access/entities/user-corpus-access.entity';
+import { AuthService } from 'src/auth/auth.service';
 
 @Injectable()
 export class CorpusService {
@@ -37,12 +42,19 @@ export class CorpusService {
     @Inject() private readonly corpusProcesserService: CorpusProcesserService,
     @Inject() private readonly audioFileService: AudioFileService,
     @Inject() private readonly audioQualityService: AudioQualityService,
-  ) { }
+    @Inject() private readonly authService: AuthService,
+    @InjectEntityManager() private readonly entityManager: EntityManager,
+  ) {}
 
-  async findOne(id: string): Promise<Corpus> {
+  //This is an internal method that only services use!
+  async _findOne(id: string): Promise<Corpus> {
     const corpus = await this.corpusRepository.findOne({
       where: { id },
-      relations: ['language', 'domain'],
+      relations: {
+        language: true,
+        domain: true,
+        userCorpusAccesses: true,
+      }
     });
     if (!corpus) {
       throw new NotFoundException(`Corpus with id '${id}' not found`);
@@ -50,24 +62,172 @@ export class CorpusService {
     return corpus;
   }
 
-  //TODO: handle PROTECTED access via UserCorpusAccess once implemented
   async findOneForUser(id: string, userId: string): Promise<Corpus> {
-    const corpus = await this.findOne(id);
+    const corpus = await this._findOne(id);
     if (
       corpus.visibility === CorpusVisibility.PRIVATE &&
       corpus.uploaderId !== userId
+    ) {
+      throw new ForbiddenException(`No access to corpus with id '${id}'`);
+    } else if (
+      corpus.visibility === CorpusVisibility.PROTECTED &&
+      corpus.uploaderId !== userId &&
+      corpus.userCorpusAccesses.every((uca) => uca.userId !== userId)
     ) {
       throw new ForbiddenException(`No access to corpus with id '${id}'`);
     }
     return corpus;
   }
 
-  async findAll(uploaderId: string): Promise<Corpus[]> {
-    return this.corpusRepository.find({
-      where: { uploaderId },
-      relations: ['language', 'domain'],
-      order: { createdAt: 'DESC' },
+  async findAll(requesterId: string): Promise<CorpusListItemDto[]> {
+    //Fetch all accesses to the requester user
+    // const userCorpusAccesses = await this.
+
+    const corpora = (
+      await this.corpusRepository.find({
+        relations: { language: true, domain: true, userCorpusAccesses: true },
+        order: { createdAt: 'DESC' },
+      })
+    ).filter((corpus) => {
+      //Public corpus -> automatically allowed
+      if (corpus.visibility === CorpusVisibility.PUBLIC) {
+        return true;
+      } else if (
+        //Private -> only uploader allowed
+        corpus.visibility === CorpusVisibility.PRIVATE &&
+        corpus.uploaderId === requesterId
+      ) {
+        return true;
+      } else if (
+        //Protected -> only uploader + users with access
+        corpus.visibility === CorpusVisibility.PROTECTED &&
+        (corpus.uploaderId === requesterId ||
+          corpus.userCorpusAccesses.some(
+            (access) => access.userId === requesterId,
+          ))
+      ) {
+        return true;
+      }
+      return false;
     });
+
+    return corpora.map((corpus) => this._toListItemDto(corpus, requesterId));
+  }
+
+  private _toListItemDto(
+    corpus: Corpus,
+    requesterId: string,
+  ): CorpusListItemDto {
+    return {
+      id: corpus.id,
+      name: corpus.name,
+      language: { name: corpus.language.name },
+      visibility: corpus.visibility,
+      domain: corpus.domain ? { name: corpus.domain.name } : undefined,
+      phoneticalCoverage: corpus.phoneticalCoverage,
+      blockCount: corpus.blockCount,
+      createdAt: corpus.createdAt,
+      isUploader: corpus.uploaderId === requesterId,
+    };
+  }
+
+  async update(
+    id: string,
+    requesterId: string,
+    dto: UpdateCorpusDto,
+  ): Promise<CorpusListItemDto> {
+    const corpus = await this._findOne(id);
+    if (corpus.uploaderId !== requesterId) {
+      throw new ForbiddenException(`Only the uploader can edit corpus '${id}'`);
+    }
+
+    if (dto.name !== undefined) {
+      corpus.name = dto.name;
+    }
+    if (dto.domainName !== undefined) {
+      try {
+        corpus.domain = await this.corpusDomainService.findOne(dto.domainName);
+      } catch {
+        corpus.domain = await this.corpusDomainService.create({
+          name: dto.domainName,
+        });
+      }
+    }
+
+    const leavingProtected =
+      dto.visibility !== undefined &&
+      corpus.visibility === CorpusVisibility.PROTECTED &&
+      dto.visibility !== CorpusVisibility.PROTECTED;
+
+    if (dto.visibility !== undefined) {
+      corpus.visibility = dto.visibility;
+    }
+
+    await this.entityManager.transaction(async (tx) => {
+      await tx.save(corpus);
+
+      //Leaving protected visibility drops every existing access
+      if (leavingProtected) {
+        await tx.delete(UserCorpusAccess, { corpusId: corpus.id });
+        corpus.userCorpusAccesses = [];
+      }
+
+      //Grant/revoke accesses whenever the corpus is protected, regardless of
+      //whether the visibility itself changed in this request
+      if (corpus.visibility === CorpusVisibility.PROTECTED) {
+        if (dto.userAccesses && dto.userAccesses.length > 0) {
+          const existingUserIds = corpus.userCorpusAccesses.map(
+            (access) => access.userId,
+          );
+          const newUserIds = dto.userAccesses.filter(
+            (userId) => !existingUserIds.includes(userId),
+          );
+          if (newUserIds.length > 0) {
+            await tx
+              .createQueryBuilder()
+              .insert()
+              .into(UserCorpusAccess)
+              .values(
+                newUserIds.map((userId) => ({ userId, corpusId: corpus.id })),
+              )
+              .orIgnore()
+              .execute();
+          }
+        }
+
+        if (dto.revokeAccessIds && dto.revokeAccessIds.length > 0) {
+          await tx.delete(UserCorpusAccess, {
+            corpusId: corpus.id,
+            userId: In(dto.revokeAccessIds),
+          });
+        }
+      }
+    });
+
+    return this._toListItemDto(corpus, requesterId);
+  }
+
+  async getAccesses(id: string, requesterId: string) {
+    const corpus = await this._findOne(id);
+    if (corpus.uploaderId !== requesterId) {
+      throw new ForbiddenException(
+        `Only the uploader can view accesses of corpus '${id}'`,
+      );
+    }
+    const users = await Promise.all(
+      corpus.userCorpusAccesses.map((access) =>
+        this.authService.getProfile(access.userId).catch(() => null),
+      ),
+    );
+    return users
+      .filter((u): u is NonNullable<typeof u> => u !== null)
+      .map((u) => ({
+        id: u.id,
+        username: u.username,
+        firstName: u.firstName,
+        lastName: u.lastName,
+        email: u.email,
+      }));
   }
 
   async create(
@@ -76,6 +236,7 @@ export class CorpusService {
     file: Express.Multer.File,
   ): Promise<Corpus> {
     const { name, languageCode, visibility, domainName } = createCorpusDto;
+    const userAccessIds = parseUserAccesses(createCorpusDto.userAccesses);
     const language = await this.languageService.findOne(languageCode);
 
     let domain: CorpusDomain;
@@ -101,27 +262,46 @@ export class CorpusService {
     // Calculate phonetical coverage
     //     calculate phoneticalCoverage!: number;
 
-    const corpus = await this.corpusRepository.save(
-      this.corpusRepository.create({
-        name,
-        visibility,
-        language,
-        domain,
-        uploaderId: uploader.id,
-        s3Link: uploadResult.url,
-        blockCount: sentences.length,
-      }),
-    );
+    return this.entityManager.transaction(async (tx) => {
+      const corpus = await tx.save(
+        tx.create(Corpus, {
+          name,
+          visibility,
+          language,
+          domain,
+          uploaderId: uploader.id,
+          s3Link: uploadResult.url,
+          blockCount: sentences.length,
+        }),
+      );
 
-    await this.corpusBlockRepository.insert(
-      sentences.map((text, index) => ({
-        corpus,
-        blockIndex: index,
-        text,
-      })),
-    );
+      //Create accesses for protected corpora
+      if (visibility === CorpusVisibility.PROTECTED && userAccessIds.length > 0) {
+        await tx
+          .createQueryBuilder()
+          .insert()
+          .into(UserCorpusAccess)
+          .values(
+            userAccessIds.map((userId) => ({
+              userId,
+              corpusId: corpus.id,
+            })),
+          )
+          .orIgnore()
+          .execute();
+      }
 
-    return corpus;
+      await tx.insert(
+        CorpusBlock,
+        sentences.map((text, index) => ({
+          corpus,
+          blockIndex: index,
+          text,
+        })),
+      );
+
+      return corpus;
+    });
   }
 
   // Master blocks of the corpus itself (not bound to any project)
@@ -142,7 +322,7 @@ export class CorpusService {
   }
 
   async remove(id: string): Promise<void> {
-    const corpus = await this.findOne(id); // throws 404 if not found
+    const corpus = await this._findOne(id); // throws 404 if not found
 
     try {
       await this.corpusRepository.delete(id);
@@ -185,7 +365,7 @@ export class CorpusService {
     }
 
     const corpusId = firstBlock.corpus.id;
-    for(const recording of recordings) {
+    for (const recording of recordings) {
       const block = await this.corpusBlockRepository.findOne({
         where: { id: recording.blockId },
         relations: ['corpus'],
@@ -196,14 +376,14 @@ export class CorpusService {
         );
       }
 
-      if(block.corpus.id !== corpusId) {
+      if (block.corpus.id !== corpusId) {
         throw new BadRequestException(
           `CorpusBlock ${recording.blockId} does not belong to the same corpus as the first block`,
         );
       }
     }
 
-    //TODO: Check user permission 
+    //TODO: Check user permission
 
     // Load all referenced blocks (with any existing recording, so we can replace it)
     const blockIds = recordings.map((r) => r.blockId);
@@ -232,7 +412,7 @@ export class CorpusService {
     }
     const audioChecks = blocks[0].corpusProject?.audioChecks ?? [];
     //TODO: add transcription API call here to whisper!
-    
+
     // Create an AudioFile per recording (S3 upload + DB row), point the block at
     // it, run the transcription check, and replace any previous recording.
     const blockById = new Map(blocks.map((b) => [b.id, b]));
@@ -283,7 +463,7 @@ export class CorpusService {
 
     // Run the audio quality checker once for all recordings, then persist each
     // audio file's measures — keyed by the audio id the checker reports back.
-    if(audioChecks.length > 0) {
+    if (audioChecks.length > 0) {
       const qualityMeasures = await this.audioQualityService.callAqcService(
         audioChecks,
         masterRecording,
@@ -330,15 +510,6 @@ export class CorpusService {
   }
 }
 
-// Normalizes a transcript for comparison: lowercased, punctuation stripped, trimmed.
-// Exported so other modules (e.g. export) can flag transcription mismatches the same way.
-export function normalizeTranscript(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '')
-    .trim();
-}
-
 export interface BufferedRecording {
   blob: Blob;
   blockId: string;
@@ -354,4 +525,18 @@ export interface SavedRecording {
     s3Link: string;
     transcription: string;
   };
+}
+
+//Multipart sends userAccesses as a JSON string; JSON bodies send a real array.
+function parseUserAccesses(value: unknown): string[] {
+  if (Array.isArray(value)) return value as string[];
+  if (typeof value === 'string' && value.trim()) {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [value];
+    } catch {
+      return [value];
+    }
+  }
+  return [];
 }

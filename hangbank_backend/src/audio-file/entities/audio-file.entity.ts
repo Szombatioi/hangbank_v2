@@ -1,7 +1,6 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Project } from 'src/project/entities/project.entity';
 import { AudioQuality } from 'src/audio-quality/entities/audio-quality.entity';
-import { AudioModification } from 'src/audio-modification/entities/audio-modification.entity';
 
 @Entity()
 export class AudioFile {
@@ -28,7 +27,4 @@ export class AudioFile {
 
   @OneToMany(() => AudioQuality, (aq) => aq.audioFile)
   audioQualities!: AudioQuality[];
-
-  @OneToMany(() => AudioModification, (am) => am.audioFile)
-  audioModifications!: AudioModification[];
 }

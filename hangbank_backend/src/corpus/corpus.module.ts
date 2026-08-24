@@ -19,7 +19,7 @@ import { HttpModule } from '@nestjs/axios/dist/http.module';
     TypeOrmModule.forFeature([Corpus, CorpusBlock]),
     LanguageModule,
     CorpusDomainModule,
-    // AuthModule
+    AuthModule,
     S3StorageModule,
     AudioFileModule,
     AudioQualityModule,

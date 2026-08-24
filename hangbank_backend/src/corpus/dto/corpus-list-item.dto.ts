@@ -1,6 +1,6 @@
-export type CorpusVisibility = 'public' | 'protected' | 'private';
+import { CorpusVisibility } from '../entities/corpus-visibility';
 
-export interface CorpusDto {
+export class CorpusListItemDto {
   id: string;
   name: string;
   language: { name: string };
@@ -8,6 +8,6 @@ export interface CorpusDto {
   domain?: { name: string };
   phoneticalCoverage: number;
   blockCount: number;
-  createdAt: string;
-  isUploader?: boolean;
+  createdAt: Date;
+  isUploader: boolean;
 }

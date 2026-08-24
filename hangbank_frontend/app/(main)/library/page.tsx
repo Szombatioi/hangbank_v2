@@ -1,13 +1,14 @@
 "use client";
 import { useEffect, useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Box, Typography, Chip, Button, CircularProgress, Autocomplete, TextField, Grid, Collapse, createFilterOptions } from "@mui/material";
+import { Box, Typography, Chip, Button, CircularProgress, Autocomplete, TextField, Grid, Collapse, createFilterOptions, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import TuneIcon from "@mui/icons-material/Tune";
 import SortIcon from "@mui/icons-material/Sort";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import NorthEastIcon from "@mui/icons-material/NorthEast";
 import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
 import AlbumIcon from "@mui/icons-material/Album";
@@ -17,19 +18,16 @@ import api from "@/app/axios";
 import { CorpusDto, CorpusVisibility } from "@/app/components/types/corpus.dto";
 import { LanguageDto } from "@/app/components/types/language.dto";
 import ConfirmDialog from "@/app/components/confirm-dialog";
+import { VisibilitySelector } from "@/app/components/visibility-selector";
+import { UserAccessSelector, AccessUser, accessDiff } from "@/app/components/user-access-selector";
 import { useSnackbar, Severity } from "@/app/providers/SnackbarProvider";
+import { visibilityChipStyle } from "./components/visibilityChipStyle";
 
-const HEADLINE = "'Space Grotesk', sans-serif";
-const LABEL = "'Manrope', sans-serif";
-const BODY = "'Inter', sans-serif";
+export const HEADLINE = "'Space Grotesk', sans-serif";
+export const LABEL = "'Manrope', sans-serif";
+export const BODY = "'Inter', sans-serif";
 
 const VISIBILITY_OPTIONS: CorpusVisibility[] = ["public", "protected", "private"];
-
-function visibilityChipStyle(v: string) {
-  if (v === "public") return { bgcolor: "var(--app-success-bg)", color: "var(--app-success-fg)" };
-  if (v === "private") return { bgcolor: "var(--app-warn-bg)", color: "var(--app-warn-fg)" };
-  return { bgcolor: "var(--app-border)", color: "var(--app-text-secondary)" };
-}
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
@@ -84,7 +82,7 @@ function VisibilityBadge({ visibility, t }: { visibility: string; t: (k: string)
   );
 }
 
-function FeaturedCard({ corpus, t, router, onArchive }: { corpus: CorpusDto; t: (k: string) => string; router: ReturnType<typeof useRouter>; onArchive: () => void }) {
+function FeaturedCard({ corpus, t, router, onArchive, onEdit }: { corpus: CorpusDto; t: (k: string) => string; router: ReturnType<typeof useRouter>; onArchive: () => void; onEdit: () => void }) {
   const date = corpus.createdAt
     ? new Date(corpus.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
     : "—";
@@ -139,14 +137,26 @@ function FeaturedCard({ corpus, t, router, onArchive }: { corpus: CorpusDto; t: 
         >
           {t("library_page.view_corpus")}
         </Button>
-        <Button
-          variant="text"
-          startIcon={<ArchiveOutlinedIcon />}
-          onClick={onArchive}
-          sx={{ color: "var(--app-text-muted)", fontFamily: LABEL, fontWeight: 700, fontSize: "0.875rem", textTransform: "none", "&:hover": { color: "var(--app-text-primary)", bgcolor: "transparent" } }}
-        >
-          {t("library_page.archive_button")}
-        </Button>
+        {corpus.isUploader && (
+          <>
+            <Button
+              variant="text"
+              startIcon={<EditOutlinedIcon />}
+              onClick={onEdit}
+              sx={{ color: "var(--app-text-muted)", fontFamily: LABEL, fontWeight: 700, fontSize: "0.875rem", textTransform: "none", "&:hover": { color: "var(--app-text-primary)", bgcolor: "transparent" } }}
+            >
+              {t("library_page.edit_button")}
+            </Button>
+            <Button
+              variant="text"
+              startIcon={<ArchiveOutlinedIcon />}
+              onClick={onArchive}
+              sx={{ color: "var(--app-text-muted)", fontFamily: LABEL, fontWeight: 700, fontSize: "0.875rem", textTransform: "none", "&:hover": { color: "var(--app-text-primary)", bgcolor: "transparent" } }}
+            >
+              {t("library_page.archive_button")}
+            </Button>
+          </>
+        )}
       </Box>
 
       {/* Decorative icon */}
@@ -157,7 +167,7 @@ function FeaturedCard({ corpus, t, router, onArchive }: { corpus: CorpusDto; t: 
   );
 }
 
-function RegularCard({ corpus, t, router, onArchive }: { corpus: CorpusDto; t: (k: string) => string; router: ReturnType<typeof useRouter>; onArchive: () => void }) {
+function RegularCard({ corpus, t, router, onArchive, onEdit }: { corpus: CorpusDto; t: (k: string) => string; router: ReturnType<typeof useRouter>; onArchive: () => void; onEdit: () => void }) {
   return (
     <Box
       sx={{
@@ -205,13 +215,24 @@ function RegularCard({ corpus, t, router, onArchive }: { corpus: CorpusDto; t: (
         >
           {t("library_page.view_button")}
         </Button>
-        <Button
-          variant="text"
-          onClick={onArchive}
-          sx={{ color: "var(--app-text-faint)", minWidth: 0, p: 0.5, "&:hover": { color: "var(--app-error-fg)", bgcolor: "transparent" } }}
-        >
-          <ArchiveOutlinedIcon sx={{ fontSize: "1.25rem" }} />
-        </Button>
+        {corpus.isUploader && (
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Button
+              variant="text"
+              onClick={onEdit}
+              sx={{ color: "var(--app-text-faint)", minWidth: 0, p: 0.5, "&:hover": { color: "var(--app-text-primary)", bgcolor: "transparent" } }}
+            >
+              <EditOutlinedIcon sx={{ fontSize: "1.25rem" }} />
+            </Button>
+            <Button
+              variant="text"
+              onClick={onArchive}
+              sx={{ color: "var(--app-text-faint)", minWidth: 0, p: 0.5, "&:hover": { color: "var(--app-error-fg)", bgcolor: "transparent" } }}
+            >
+              <ArchiveOutlinedIcon sx={{ fontSize: "1.25rem" }} />
+            </Button>
+          </Box>
+        )}
       </Box>
     </Box>
   );
@@ -247,9 +268,9 @@ function AddCard({ t, router }: { t: (k: string) => string; router: ReturnType<t
         <Typography sx={{ fontFamily: HEADLINE, fontWeight: 700, color: "var(--app-text-primary)", fontSize: "1rem" }}>
           {t("library_page.new_corpus_title")}
         </Typography>
-        <Typography sx={{ fontFamily: BODY, fontSize: "0.75rem", color: "var(--app-text-faint)", mt: 0.5 }}>
+        {/* <Typography sx={{ fontFamily: BODY, fontSize: "0.75rem", color: "var(--app-text-faint)", mt: 0.5 }}>
           {t("library_page.new_corpus_subtitle")}
-        </Typography>
+        </Typography> */}
       </Box>
     </Box>
   );
@@ -276,9 +297,63 @@ export default function LibraryPage() {
   const [targetCorpus, setTargetCorpus] = useState<CorpusDto | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // Edit flow
+  const [editOpen, setEditOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<CorpusDto | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editDomain, setEditDomain] = useState("");
+  const [editVisibility, setEditVisibility] = useState<CorpusVisibility>("private");
+  const [editInitialAccesses, setEditInitialAccesses] = useState<AccessUser[]>([]);
+  const [editAllowed, setEditAllowed] = useState<AccessUser[]>([]);
+  const [savingEdit, setSavingEdit] = useState(false);
+
   const openDeleteConfirm = (corpus: CorpusDto) => {
     setTargetCorpus(corpus);
     setConfirmOpen(true);
+  };
+
+  const openEdit = (corpus: CorpusDto) => {
+    setEditTarget(corpus);
+    setEditName(corpus.name);
+    setEditDomain(corpus.domain?.name ?? "");
+    setEditVisibility(corpus.visibility);
+    setEditInitialAccesses([]);
+    setEditAllowed([]);
+    setEditOpen(true);
+
+    if (corpus.visibility === "protected") {
+      api.get<AccessUser[]>(`/corpus/${corpus.id}/accesses`)
+        .then((res) => { setEditInitialAccesses(res.data); setEditAllowed(res.data); })
+        .catch(() => { setEditInitialAccesses([]); setEditAllowed([]); });
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editTarget) return;
+    const name = editName.trim();
+    if (!name) {
+      showMessage(t("library_page.edit_name_required"), Severity.error);
+      return;
+    }
+    const { newUserIds, revokeUserIds } = accessDiff(editInitialAccesses, editAllowed);
+    setSavingEdit(true);
+    try {
+      const { data } = await api.patch<CorpusDto>(`/corpus/${editTarget.id}`, {
+        name,
+        domainName: editDomain.trim() || undefined,
+        visibility: editVisibility,
+        userAccesses: newUserIds,
+        revokeAccessIds: revokeUserIds,
+      });
+      setCorpora(prev => prev.map(c => (c.id === data.id ? data : c)));
+      setEditOpen(false);
+      setEditTarget(null);
+      showMessage(t("library_page.edit_success"), Severity.success);
+    } catch {
+      showMessage(t("library_page.edit_error"), Severity.error);
+    } finally {
+      setSavingEdit(false);
+    }
   };
 
   const handleDeleteProceed = async () => {
@@ -333,7 +408,7 @@ export default function LibraryPage() {
     const title = titleFilter.trim().toLowerCase();
     const domain = domainFilter.trim().toLowerCase();
     return corpora.filter((c) => {
-      if (langFilter && c.language.code !== langFilter) return false;
+      if (langFilter && c.language.name !== langFilter) return false;
       if (visFilter && c.visibility !== visFilter) return false;
       // Substring match so a freeSolo (typed) value still narrows the list
       if (title && !c.name.toLowerCase().includes(title)) return false;
@@ -416,8 +491,8 @@ export default function LibraryPage() {
           <Chip
             key={lang.code}
             label={t(`language.${lang.name}`)}
-            onClick={() => setLangFilter(langFilter === lang.code ? null : lang.code)}
-            sx={chipSx(langFilter === lang.code)}
+            onClick={() => setLangFilter(langFilter === lang.name ? null : lang.name)}
+            sx={chipSx(langFilter === lang.name)}
           />
         ))}
         <Box sx={{ width: "1px", height: 16, bgcolor: "var(--app-border)", mx: 1, alignSelf: "center" }} />
@@ -486,8 +561,8 @@ export default function LibraryPage() {
           )}
           {filtered.map((corpus, i) =>
             i === 0
-              ? <FeaturedCard key={corpus.id} corpus={corpus} t={t} router={router} onArchive={() => openDeleteConfirm(corpus)} />
-              : <RegularCard key={corpus.id} corpus={corpus} t={t} router={router} onArchive={() => openDeleteConfirm(corpus)} />
+              ? <FeaturedCard key={corpus.id} corpus={corpus} t={t} router={router} onArchive={() => openDeleteConfirm(corpus)} onEdit={() => openEdit(corpus)} />
+              : <RegularCard key={corpus.id} corpus={corpus} t={t} router={router} onArchive={() => openDeleteConfirm(corpus)} onEdit={() => openEdit(corpus)} />
           )}
           <AddCard t={t} router={router} />
         </Box>
@@ -511,6 +586,86 @@ export default function LibraryPage() {
         onProceed={handleDeleteProceed}
         onCancel={() => { if (!deleting) { setConfirmOpen(false); setTargetCorpus(null); } }}
       />
+
+      {/* Edit corpus dialog */}
+      <Dialog
+        open={editOpen}
+        onClose={() => { if (!savingEdit) setEditOpen(false); }}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{ sx: { borderRadius: 3 } }}
+      >
+        <DialogTitle sx={{ fontFamily: HEADLINE, fontWeight: 700, color: "var(--app-text-primary)" }}>
+          {t("library_page.edit_corpus_title")}
+        </DialogTitle>
+        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2.5, pt: "8px !important" }}>
+          <Box>
+            <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--app-text-faint)", mb: 0.75 }}>
+              {t("library_page.edit_title_label")}
+            </Typography>
+            <TextField
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              placeholder={t("upload_corpus_page.corpus_title_placeholder")}
+              fullWidth
+              autoFocus
+              error={!editName.trim()}
+              sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px" } }}
+            />
+          </Box>
+          <Box>
+            <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--app-text-faint)", mb: 0.75 }}>
+              {t("library_page.edit_domain_label")}
+            </Typography>
+            <Autocomplete
+              freeSolo
+              options={domainOptions}
+              filterOptions={limitOptions}
+              inputValue={editDomain}
+              onInputChange={(_, value) => setEditDomain(value)}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder={t("upload_corpus_page.corpus_domain_placeholder")}
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px" } }}
+                />
+              )}
+            />
+          </Box>
+          <Box>
+            <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--app-text-faint)", mb: 0.75 }}>
+              {t("library_page.edit_visibility_label")}
+            </Typography>
+            <VisibilitySelector value={editVisibility} onChange={setEditVisibility} />
+          </Box>
+          {editVisibility === "protected" && (
+            <Box>
+              <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--app-text-faint)", mb: 0.75 }}>
+                {t("library_page.edit_access_label")}
+              </Typography>
+              <UserAccessSelector value={editAllowed} onChange={setEditAllowed} />
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button
+            onClick={() => setEditOpen(false)}
+            disabled={savingEdit}
+            sx={{ color: "var(--app-text-muted)", fontFamily: LABEL, fontWeight: 700, fontSize: "0.78rem", textTransform: "none" }}
+          >
+            {t("library_page.edit_cancel")}
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleSaveEdit}
+            disabled={savingEdit || !editName.trim()}
+            startIcon={savingEdit ? <CircularProgress size={14} sx={{ color: "inherit" }} /> : undefined}
+            sx={{ bgcolor: "var(--app-btn)", borderRadius: 1.5, textTransform: "none", fontFamily: LABEL, fontWeight: 700, fontSize: "0.78rem", px: 2.5, "&:hover": { bgcolor: "var(--app-btn-hover)" }, "&.Mui-disabled": { bgcolor: "var(--app-border)", color: "var(--app-text-faint)" } }}
+          >
+            {t("library_page.edit_save")}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

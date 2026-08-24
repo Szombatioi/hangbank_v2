@@ -121,7 +121,7 @@
         "view_corpus": "View Corpus",
         "view_button": "View",
         "archive_button": "Archive",
-        "new_corpus_title": "Initialize New Corpus",
+        "new_corpus_title": "Upload New Corpus",
         "new_corpus_subtitle": "Start a fresh editorial repository",
         "label_language": "Language",
         "label_domain": "Domain",
@@ -144,7 +144,31 @@
         "delete_corpus_in_use": "Cannot delete: this corpus is still in use by one or more projects.",
         "delete_corpus_confirm_button": "Delete Corpus",
         "delete_success": "Corpus deleted.",
-        "delete_error": "Failed to delete corpus. Please try again."
+        "delete_error": "Failed to delete corpus. Please try again.",
+        "edit_button": "Edit",
+        "edit_corpus_title": "Edit Corpus",
+        "edit_title_label": "Title",
+        "edit_domain_label": "Domain",
+        "edit_visibility_label": "Visibility",
+        "edit_access_label": "Access",
+        "edit_name_required": "Title is required.",
+        "edit_save": "Save Changes",
+        "edit_cancel": "Cancel",
+        "edit_success": "Corpus updated.",
+        "edit_error": "Failed to update corpus. Please try again."
+    },
+    "access_selector": {
+        "search_placeholder": "Search users by name…",
+        "no_results": "No matching users",
+        "hint": "Type a name to search"
+    },
+    "httpErrors": {
+        "unauthenticated": "You must be signed in to do that.",
+        "missingProjectId": "No project was specified.",
+        "missingCorpusId": "No corpus was specified.",
+        "invalidRole": "Invalid access level requested.",
+        "corpusNotFound": "The requested corpus was not found.",
+        "noProjectAccess": "You don't have the required access to this project."
     },
     "error": {
         "language_load": "Could not load available languages."

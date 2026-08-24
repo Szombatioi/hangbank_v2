@@ -32,6 +32,7 @@ export class AudioQualityService {
 
   // Returns every quality-check result stored for an audio file (owner-checked),
   // as a plain array of { id, type, values } objects.
+  //TODO: add protected role check
   async getAudioQualities(
     audioFileId: string,
     requesterId: string,

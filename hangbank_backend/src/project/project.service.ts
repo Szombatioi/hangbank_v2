@@ -20,7 +20,7 @@ import { CorpusProjectDetailDto } from './dto/corpus-project-detail.dto';
 import { BadRequestException } from '@nestjs/common';
 import { In } from 'typeorm';
 import type { BufferedRecording } from 'src/corpus/corpus.service';
-import { normalizeTranscript } from 'src/corpus/corpus.service';
+import { normalizeTranscript } from 'src/helpers/normalizeTranscript';
 import { blob } from 'stream/consumers';
 import { audioQualitiesHaveProblems } from 'src/audio-quality/audio-quality.metadata';
 import { AudioFile } from 'src/audio-file/entities/audio-file.entity';
@@ -47,7 +47,7 @@ export class ProjectService {
   async create(requester: IJwtPayload, data: CreateCorpusProjectDto) {
     try {
       const user = await this.authService.getProfile(requester.id);
-      const corpus = await this.corpusService.findOne(data.corpusId);
+      const corpus = await this.corpusService._findOne(data.corpusId);
 
       const project = await this.corpusBasedProjectRepository.save(
         this.corpusBasedProjectRepository.create({

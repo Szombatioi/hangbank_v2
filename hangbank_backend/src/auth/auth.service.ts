@@ -57,6 +57,13 @@ export class AuthService {
     return this.getProfile(userId);
   }
 
+  async searchUsers(query: string) {
+    const { data } = await firstValueFrom(
+      this.httpService.get(`${this.authUrl}/search`, { params: { q: query } }),
+    );
+    return data;
+  }
+
   async getProfile(userId: string) {
     try {
       const { data } = await firstValueFrom(

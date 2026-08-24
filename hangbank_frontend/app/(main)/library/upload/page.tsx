@@ -3,51 +3,27 @@
 import FileUpload from "@/app/components/file_upload";
 import {
   Autocomplete,
-  Avatar,
   Box,
   Button,
   Chip,
   createFilterOptions,
   Grid,
-  IconButton,
-  InputAdornment,
   MenuItem,
-  OutlinedInput,
   Paper,
-  Radio,
   Select,
   SelectChangeEvent,
   TextField,
   Typography,
 } from "@mui/material";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
-import CloseIcon from "@mui/icons-material/Close";
 import { ChangeEvent, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { LanguageDto } from "@/app/components/types/language.dto";
+import { CorpusVisibility } from "@/app/components/types/corpus.dto";
+import { VisibilitySelector } from "@/app/components/visibility-selector";
+import { UserAccessSelector, AccessUser } from "@/app/components/user-access-selector";
 import api from "@/app/axios";
 import { Severity, useSnackbar } from "@/app/providers/SnackbarProvider";
 import { useRouter } from "next/navigation";
-
-type Visibility = "private" | "public" | "protected";
-
-const AVATAR_COLORS = ["#2f4470", "#8fa8c8", "#5a7a9e", "#3d5a80"];
-
-function getInitials(email: string): string {
-  const name = email.split("@")[0];
-  const parts = name.split(/[._-]/);
-  return parts
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase() ?? "")
-    .join("");
-}
-
-function stringToColor(str: string): string {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++)
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
-}
 
 export default function CorpusUploadPage() {
   const { t } = useTranslation("common");
@@ -66,9 +42,8 @@ export default function CorpusUploadPage() {
   const [domainOptions, setDomainOptions] = useState<string[]>([]);
 
   // Right panel state
-  const [visibility, setVisibility] = useState<Visibility>("private");
-  const [collaboratorInput, setCollaboratorInput] = useState("");
-  const [collaborators, setCollaborators] = useState<string[]>([]);
+  const [visibility, setVisibility] = useState<CorpusVisibility>("private");
+  const [accessUsers, setAccessUsers] = useState<AccessUser[]>([]);
 
   const [file, setFile] = useState<File | null>(null);
 
@@ -122,42 +97,6 @@ export default function CorpusUploadPage() {
     setCorpusLanguage(language);
   };
 
-  const addCollaborator = () => {
-    const email = collaboratorInput.trim();
-    if (email && !collaborators.includes(email)) {
-      setCollaborators([...collaborators, email]);
-      setCollaboratorInput("");
-    }
-  };
-
-  const removeCollaborator = (email: string) => {
-    setCollaborators(collaborators.filter((c) => c !== email));
-  };
-
-  //TODO: share enum type with backend
-  const visibilityOptions: {
-    value: Visibility;
-    label: string;
-    description: string;
-  }[] = [
-      {
-        value: "private",
-        label: t("upload_corpus_page.visibility.private"),
-        description: t("upload_corpus_page.visibility.private_desc"),
-      },
-      {
-        value: "public",
-        label: t("upload_corpus_page.visibility.public"),
-        description: t("upload_corpus_page.visibility.public_desc"),
-      },
-      {
-        value: "protected",
-        label: t("upload_corpus_page.visibility.protected"),
-        description: t("upload_corpus_page.visibility.protected_desc"),
-      },
-    ];
-
-  //TODO: handle collaborators
   const handleUpload = async () => {
     if (!file || !corpusLanguage || !corpusTitle || !corpusDomain) {
       showMessage(t("upload.fill_all"), Severity.error);
@@ -171,6 +110,9 @@ export default function CorpusUploadPage() {
     formData.append("languageCode", corpusLanguage?.code);
     formData.append("domainName", corpusDomain);
     formData.append("visibility", visibility);
+    if (visibility === "protected" && accessUsers.length > 0) {
+      formData.append("userAccesses", JSON.stringify(accessUsers.map((u) => u.id)));
+    }
     if (parseInt(pageSkips) > 0) {
       formData.append("pageSkips", pageSkips);
     }
@@ -342,60 +284,8 @@ export default function CorpusUploadPage() {
               {t("upload_corpus_page.visibility.title")}
             </Typography>
 
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 1.5,
-                mt: 1.5,
-              }}
-            >
-              {visibilityOptions.map((option) => {
-                const isSelected = visibility === option.value;
-                return (
-                  <Box
-                    key={option.value}
-                    onClick={() => option.value !== "protected" && option.value !== "public" && setVisibility(option.value)} // TODO: Implement visibility
-                    sx={{
-                      display: "flex",
-                      alignItems: "flex-start",
-                      gap: 1.5,
-                      px: 2,
-                      py: 1.5,
-                      borderRadius: 3,
-                      cursor: option.value === "protected" || option.value === "public" ? "not-allowed" : "pointer", // TODO: Implement visibility
-                      border: "1.5px solid", 
-                      borderColor: isSelected ? "#b8c8e8" : "transparent",
-                      bgcolor: isSelected ? "var(--app-info-bg)" : "transparent",
-                      transition: "all 0.15s",
-                    }}
-                  >
-                    <Radio
-                      checked={isSelected}
-                      onChange={() => setVisibility(option.value)}
-                      disabled={option.value === "protected" || option.value === "public"}
-                      size="small"
-                      sx={{
-                        p: 0,
-                        mt: "2px",
-                        color: isSelected ? "var(--app-text-primary)" : "#aaa",
-                      }}
-                    />
-                    <Box>
-                      <Typography
-                        variant="body1"
-                        fontWeight={700}
-                        color="text.primary"
-                      >
-                        {option.label}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {option.description}
-                      </Typography>
-                    </Box>
-                  </Box>
-                );
-              })}
+            <Box sx={{ mt: 1.5 }}>
+              <VisibilitySelector value={visibility} onChange={setVisibility} />
             </Box>
           </Paper>
 
@@ -438,76 +328,7 @@ export default function CorpusUploadPage() {
                 />
               </Box>
 
-              {/* Email input */}
-              <OutlinedInput
-                value={collaboratorInput}
-                onChange={(e) => setCollaboratorInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && addCollaborator()}
-                placeholder={t(
-                  "upload_corpus_page.access_control.add_collaborator_placeholder"
-                )}
-                fullWidth
-                size="small"
-                endAdornment={
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={addCollaborator}
-                      edge="end"
-                      size="small"
-                    >
-                      <PersonAddIcon sx={{ color: "var(--app-info-fg)" }} />
-                    </IconButton>
-                  </InputAdornment>
-                }
-                sx={{
-                  bgcolor: "var(--app-info-bg)",
-                  borderRadius: 2,
-                  "& fieldset": { border: "none" },
-                  mb: 2,
-                }}
-              />
-
-              {/* Collaborator list */}
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                {collaborators.map((email) => (
-                  <Box
-                    key={email}
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <Box
-                      sx={{ display: "flex", alignItems: "center", gap: 1.5 }}
-                    >
-                      <Avatar
-                        sx={{
-                          width: 36,
-                          height: 36,
-                          fontSize: "0.75rem",
-                          fontWeight: 700,
-                          bgcolor: stringToColor(email),
-                        }}
-                      >
-                        {getInitials(email)}
-                      </Avatar>
-                      <Typography variant="body2" color="text.primary">
-                        {email}
-                      </Typography>
-                    </Box>
-                    <IconButton
-                      size="small"
-                      onClick={() => removeCollaborator(email)}
-                    >
-                      <CloseIcon
-                        fontSize="small"
-                        sx={{ color: "text.secondary" }}
-                      />
-                    </IconButton>
-                  </Box>
-                ))}
-              </Box>
+              <UserAccessSelector value={accessUsers} onChange={setAccessUsers} />
             </Paper>
           )}
 

@@ -4,6 +4,7 @@ import {
   Get, HttpCode,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Query,
   Req,
@@ -16,6 +17,7 @@ import { AuthGuard } from 'src/guards/auth.guard';
 import type { IJwtPayload } from '@hangbank/shared';
 import { CorpusService } from './corpus.service';
 import { CreateCorpusDto } from './dto/create-corpus.dto';
+import { UpdateCorpusDto } from './dto/update-corpus.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CorpusProcesserService } from './corpus-processer.service';
 
@@ -44,6 +46,16 @@ export class CorpusController {
   }
 
   @UseGuards(AuthGuard)
+  @Patch(':id')
+  update(
+    @Req() req: Request & { user: IJwtPayload },
+    @Param('id') id: string,
+    @Body() dto: UpdateCorpusDto,
+  ) {
+    return this.corpusService.update(id, req.user.id, dto);
+  }
+
+  @UseGuards(AuthGuard)
   @Delete(':id')
   @HttpCode(204)
   remove(@Param('id') id: string) {
@@ -57,6 +69,15 @@ export class CorpusController {
     @Param('id') id: string,
   ) {
     return this.corpusService.findOneForUser(id, req.user.id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get(':id/accesses')
+  getAccesses(
+    @Req() req: Request & { user: IJwtPayload },
+    @Param('id') id: string,
+  ) {
+    return this.corpusService.getAccesses(id, req.user.id);
   }
 
   @Get(':id/blocks')

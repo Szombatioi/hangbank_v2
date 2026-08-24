@@ -48,19 +48,20 @@ export class AudioFileService {
     );
   }
 
-  //Get db entity
-  async get(id: string): Promise<AudioFile> {
-    const audioFile = await this.audioFileRepository.findOne({
-      where: { id },
-      relations: ['project', 'audioQualities'],
-    });
-    if (!audioFile) {
-      throw new NotFoundException(`AudioFile with id '${id}' not found`);
-    }
-    return audioFile;
-  }
+  // //Get db entity
+  // async get(id: string): Promise<AudioFile> {
+  //   const audioFile = await this.audioFileRepository.findOne({
+  //     where: { id },
+  //     relations: ['project', 'audioQualities'],
+  //   });
+  //   if (!audioFile) {
+  //     throw new NotFoundException(`AudioFile with id '${id}' not found`);
+  //   }
+  //   return audioFile;
+  // }
 
   // Loads an audio file and verifies the requester owns the file's project.
+  //TODO: allow protected users too?
   async getForUser(id: string, requesterId: string): Promise<AudioFile> {
     const audioFile = await this.audioFileRepository.findOne({
       where: { id },

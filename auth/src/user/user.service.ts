@@ -3,7 +3,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
@@ -192,6 +192,26 @@ export class UserService {
   // remove(id: number) {
   //   return `This action removes a #${id} user`;
   // }
+
+  async search(query: string) {
+    const q = (query ?? '').trim();
+    if (!q) return [];
+    const users = await this.userRepository.find({
+      where: [
+        { firstName: ILike(`%${q}%`) },
+        { lastName: ILike(`%${q}%`) },
+        { username: ILike(`%${q}%`) },
+      ],
+      take: 20,
+    });
+    return users.map((u) => ({
+      id: u.id,
+      username: u.username,
+      firstName: u.firstName,
+      lastName: u.lastName,
+      email: u.email,
+    }));
+  }
 
   async getProfile(id: string) {
     const user = await this.userRepository.findOne({ where: { id }, relations: ['roles'] });

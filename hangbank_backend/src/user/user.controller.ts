@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Query, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../guards/auth.guard';
 import { AuthService } from '../auth/auth.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -11,6 +11,12 @@ export class UserController {
   @Get('me')
   getMe(@Req() req: any) {
     return this.authService.getProfile(req.user.id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('search')
+  search(@Query('q') q: string) {
+    return this.authService.searchUsers(q ?? '');
   }
 
   @UseGuards(AuthGuard)

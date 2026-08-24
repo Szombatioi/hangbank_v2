@@ -144,7 +144,31 @@
         "delete_corpus_in_use": "Nem törölhető: ezt a korpuszt még használja egy vagy több projekt.",
         "delete_corpus_confirm_button": "Korpusz törlése",
         "delete_success": "A korpusz törölve.",
-        "delete_error": "A korpusz törlése nem sikerült. Kérlek, próbáld újra."
+        "delete_error": "A korpusz törlése nem sikerült. Kérlek, próbáld újra.",
+        "edit_button": "Szerkesztés",
+        "edit_corpus_title": "Korpusz szerkesztése",
+        "edit_title_label": "Cím",
+        "edit_domain_label": "Terület",
+        "edit_visibility_label": "Láthatóság",
+        "edit_access_label": "Hozzáférés",
+        "edit_name_required": "A cím megadása kötelező.",
+        "edit_save": "Módosítások mentése",
+        "edit_cancel": "Mégse",
+        "edit_success": "A korpusz frissítve.",
+        "edit_error": "A korpusz frissítése nem sikerült. Kérlek, próbáld újra."
+    },
+    "access_selector": {
+        "search_placeholder": "Felhasználók keresése név alapján…",
+        "no_results": "Nincs találat",
+        "hint": "Írj be egy nevet a kereséshez"
+    },
+    "httpErrors": {
+        "unauthenticated": "A művelethez be kell jelentkezned.",
+        "missingProjectId": "Nincs megadva projekt.",
+        "missingCorpusId": "Nincs megadva korpusz.",
+        "invalidRole": "Érvénytelen hozzáférési szint.",
+        "corpusNotFound": "A kért korpusz nem található.",
+        "noProjectAccess": "Nincs megfelelő hozzáférésed ehhez a projekthez."
     },
     "error": {
         "language_load": "Az elérhető nyelvek betöltése nem sikerült."

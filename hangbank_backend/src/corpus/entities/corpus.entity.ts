@@ -4,10 +4,12 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { CorpusVisibility } from './corpus-visibility';
 import { CorpusDomain } from 'src/corpus-domain/entities/corpus-domain.entity';
+import { UserCorpusAccess } from 'src/user-corpus-access/entities/user-corpus-access.entity';
 
 @Entity()
 export class Corpus {
@@ -60,5 +62,9 @@ export class Corpus {
   @Column({ default: 0 })
   blockCount!: number;
 
-  // forrás??
+  @OneToMany(() => UserCorpusAccess, (uca) => uca.corpus)
+  userCorpusAccesses!: UserCorpusAccess[];
+
+  // source?
+  
 }
