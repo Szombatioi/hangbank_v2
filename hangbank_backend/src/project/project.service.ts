@@ -88,13 +88,25 @@ export class ProjectService {
         })),
       );
 
-      //TODO: add role creation here for the provided people
       //Create Owner role for requester user
       await this.projectRoleService.assignToRole(
         requester.id,
         project.id,
         ProjectRoleType.OWNER,
       );
+
+      //Assign the roles chosen for the invited members (never override the creator)
+      const seen = new Set<string>([requester.id]);
+      for (const member of data.members ?? []) {
+        if (seen.has(member.userId)) continue;
+        if (!Object.values(ProjectRoleType).includes(member.role)) continue;
+        seen.add(member.userId);
+        await this.projectRoleService.assignToRole(
+          member.userId,
+          project.id,
+          member.role,
+        );
+      }
 
       return project;
     } catch (ex) {
@@ -383,6 +395,21 @@ export class ProjectService {
     const total = project.corpus.blockCount;
     const progress = total > 0 ? Math.round((recordedCount / total) * 100) : 0;
 
+    //Resolve each role's user (name/email live in the auth service)
+    const roles = await Promise.all(
+      project.roles.map(async (r) => {
+        const profile = await this.authService.getProfile(r.userId).catch(() => null);
+        return {
+          userId: r.userId,
+          role: r.role,
+          firstName: profile?.firstName,
+          lastName: profile?.lastName,
+          username: profile?.username,
+          email: profile?.email ?? '',
+        };
+      }),
+    );
+
     return {
       id: project.id,
       name: project.name,
@@ -397,6 +424,7 @@ export class ProjectService {
       speakerCount: 1,
       masterRecordingId: project.masterRecording?.id ?? null,
       audioChecks: project.audioChecks ?? [],
+      roles,
     };
   }
 

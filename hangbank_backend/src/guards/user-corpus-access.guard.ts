@@ -50,6 +50,6 @@ export class UserCorpusAccessGuard implements CanActivate {
     if(corpus.visibility === CorpusVisibility.PUBLIC) return true;
     if(corpus.visibility === CorpusVisibility.PROTECTED) return corpus.userCorpusAccesses.some(access => access.userId === user.id);
 
-    return false;
+    throw new ForbiddenException('httpErrors.noCorpusAccess'); //TODO: translate
   }
 }

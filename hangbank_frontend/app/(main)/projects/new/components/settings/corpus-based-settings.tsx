@@ -38,6 +38,14 @@ import { CorpusRow } from "./components/corpus-row";
 import { CorpusPickerDialog } from "./components/corpus-picker-dialog";
 import { useAuth } from "@/app/contexts/auth-context";
 import { computeAge } from "@/app/components/helpers/compute-age";
+import {
+  UserSearchAutocomplete,
+  AccessUser,
+  fullName,
+} from "@/app/components/user-access-selector";
+
+type ProjectRole = "VIEW" | "EDITOR";
+const PROJECT_ROLES: ProjectRole[] = ["VIEW", "EDITOR"];
 
 export const HEADLINE = "'Space Grotesk', sans-serif";
 export const LABEL = "'Manrope', sans-serif";
@@ -85,6 +93,28 @@ export default function CorpusBasedSettings() {
 
   const availableChecks = ["VOLUME", "NOISE", "SPEAKER"];
   const [audioChecks, setAudioChecks] = useState<string[]>([]);
+
+  // Project members (user + role)
+  const [projectMembers, setProjectMembers] = useState<
+    { user: AccessUser; role: ProjectRole }[]
+  >([]);
+  const [memberUser, setMemberUser] = useState<AccessUser | null>(null);
+  const [memberRole, setMemberRole] = useState<ProjectRole>("VIEW");
+
+  const addMember = () => {
+    if (!memberUser) return;
+    if (projectMembers.some((m) => m.user.id === memberUser.id)) return;
+    setProjectMembers((prev) => [
+      ...prev,
+      { user: memberUser, role: memberRole },
+    ]);
+    setMemberUser(null);
+    setMemberRole("VIEW");
+  };
+
+  const removeMember = (id: string) => {
+    setProjectMembers((prev) => prev.filter((m) => m.user.id !== id));
+  };
 
   const errors = {
     name: !name.trim(),
@@ -153,6 +183,7 @@ export default function CorpusBasedSettings() {
         },
         microphoneLabel: selectedMic?.label,
         audioChecks: audioChecks,
+        members: projectMembers.map((m) => ({ userId: m.user.id, role: m.role })),
       });
       showMessage(t("new_project.corpus_based.success"), Severity.success);
 
@@ -858,6 +889,126 @@ export default function CorpusBasedSettings() {
           </Paper>
 
           {/* TODO: Here comes the visibility paper */}
+          <Paper
+            elevation={0}
+            sx={{
+              bgcolor: "var(--app-surface-muted)",
+              borderRadius: 4,
+              py: 4,
+              px: 4,
+              mb: 3,
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <Typography
+              variant="overline"
+              sx={{
+                fontFamily: LABEL,
+                fontWeight: 700,
+                letterSpacing: "0.12em",
+                color: "text.secondary",
+                mb: 2,
+              }}
+            >
+              {t("new_project.corpus_based.section_roles")}
+            </Typography>
+            {/* <Box
+              sx={{
+                display: "flex",
+                gap: 1.5,
+                alignItems: "flex-start",
+                flexWrap: "wrap",
+                border: '1px solid red'
+              }}
+            >
+              
+            </Box> */}
+            {/* User search */}
+            <Box sx={{ mb: 2, minWidth: 0 }}>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontFamily: LABEL,
+                    textTransform: "capitalize",
+                    mb: 0.75,
+                  }}
+                  color="primary"
+                >
+                  {t("new_project.corpus_based.label_user_name")}
+                </Typography>
+                <UserSearchAutocomplete
+                  value={memberUser}
+                  onChange={setMemberUser}
+                  excludeIds={projectMembers.map((m) => m.user.id)}
+                />
+              </Box>
+
+              {/* Role */}
+              <Box sx={{ mb: 2 }}>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontFamily: LABEL,
+                    textTransform: "capitalize",
+                    mb: 0.75,
+                  }}
+                  color="primary"
+                >
+                  {t("new_project.corpus_based.label_user_role")}
+                </Typography>
+                <Select
+                  value={memberRole}
+                  onChange={(e) => setMemberRole(e.target.value as ProjectRole)}
+                  fullWidth
+                  sx={{ borderRadius: "8px", bgcolor: "var(--app-card)" }}
+                >
+                  {PROJECT_ROLES.map((role) => (
+                    <MenuItem key={role} value={role}>
+                      {t(`project_roles.${role.toLowerCase()}`)}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </Box>
+
+              {/* Add */}
+              <Button
+                variant="contained"
+                onClick={addMember}
+                disabled={!memberUser}
+                sx={{
+                  bgcolor: "var(--app-btn)",
+                  borderRadius: 2,
+                  textTransform: "none",
+                  fontFamily: LABEL,
+                  fontWeight: 700,
+                  mt: 2,
+                  px: 2.5,
+                  py: 1.5,
+                  "&:hover": { bgcolor: "var(--app-btn-hover)" },
+                  "&.Mui-disabled": {
+                    bgcolor: "var(--app-border)",
+                    color: "var(--app-text-faint)",
+                  },
+                }}
+              >
+                {t("new_project.corpus_based.add_member")}
+              </Button>
+
+            {projectMembers.length > 0 && (
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 2 }}>
+                {projectMembers.map((m) => (
+                  <Chip
+                    key={m.user.id}
+                    label={`${fullName(m.user)} · ${t(
+                      `project_roles.${m.role.toLowerCase()}`
+                    )}`}
+                    onDelete={() => removeMember(m.user.id)}
+                  />
+                ))}
+              </Box>
+            )}
+          </Paper>
         </Box>
       </Stack>
 

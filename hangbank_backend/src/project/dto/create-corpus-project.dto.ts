@@ -1,3 +1,5 @@
+import { ProjectRoleType } from '../entities/project-role.enum';
+
 export class CreateCorpusProjectDto{
     projectName!: string;
     description?: string | undefined | null;
@@ -10,4 +12,5 @@ export class CreateCorpusProjectDto{
     };
     microphoneLabel!: string; // full OS label used for availability matching
     audioChecks!: string[];
+    members?: { userId: string; role: ProjectRoleType }[];
 }

@@ -136,10 +136,8 @@ export class CorpusService {
     requesterId: string,
     dto: UpdateCorpusDto,
   ): Promise<CorpusListItemDto> {
+    // Ownership is enforced by CorpusOwnerGuard on the route.
     const corpus = await this._findOne(id);
-    if (corpus.uploaderId !== requesterId) {
-      throw new ForbiddenException(`Only the uploader can edit corpus '${id}'`);
-    }
 
     if (dto.name !== undefined) {
       corpus.name = dto.name;
@@ -209,11 +207,6 @@ export class CorpusService {
 
   async getAccesses(id: string, requesterId: string) {
     const corpus = await this._findOne(id);
-    if (corpus.uploaderId !== requesterId) {
-      throw new ForbiddenException(
-        `Only the uploader can view accesses of corpus '${id}'`,
-      );
-    }
     const users = await Promise.all(
       corpus.userCorpusAccesses.map((access) =>
         this.authService.getProfile(access.userId).catch(() => null),
@@ -311,7 +304,8 @@ export class CorpusService {
     from: number,
     to: number,
   ): Promise<string[]> {
-    await this.findOneForUser(corpusId, userId);
+    // Access is enforced by UserCorpusAccessGuard on the route; just ensure it exists.
+    await this._findOne(corpusId);
     const blocks = await this.corpusBlockRepository.find({
       where: { corpus: { id: corpusId }, corpusProject: IsNull() },
       order: { blockIndex: 'ASC' },
@@ -327,9 +321,8 @@ export class CorpusService {
     try {
       await this.corpusRepository.delete(id);
     } catch (err) {
-      // Postgres FK violation (23503): corpus is still referenced by one or more projects
       if (err instanceof QueryFailedError && (err as any).code === '23503') {
-        throw new ConflictException('corpus_in_use');
+        throw new ConflictException('httpErrors.corpus_in_use'); //TODO: translate
       }
       throw err;
     }

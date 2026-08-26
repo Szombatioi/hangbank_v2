@@ -14,4 +14,14 @@ export interface ProjectDto {
   speakerCount?: number;
   masterRecordingId?: string | null; // audio-file id of the project's master recording, if any
   audioChecks?: string[];  // enabled recording quality checks, e.g. ["VOLUME","NOISE"]
+  roles?: ProjectMemberDto[];
+}
+
+export interface ProjectMemberDto {
+  userId: string;
+  role: string;            // VIEW | EDITOR | OWNER
+  firstName?: string;
+  lastName?: string;
+  username?: string;
+  email: string;
 }

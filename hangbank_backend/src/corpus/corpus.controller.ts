@@ -20,6 +20,8 @@ import { CreateCorpusDto } from './dto/create-corpus.dto';
 import { UpdateCorpusDto } from './dto/update-corpus.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CorpusProcesserService } from './corpus-processer.service';
+import { UserCorpusAccessGuard } from 'src/guards/user-corpus-access.guard';
+import { CorpusOwnerGuard } from 'src/guards/corpus-owner.guard';
 
 @Controller('corpus')
 export class CorpusController {
@@ -28,7 +30,7 @@ export class CorpusController {
     private readonly corpusProcesserService: CorpusProcesserService,
   ) {}
 
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard) //This endpoint does not require UserCorpusAccess, it filters the corpora within the service
   @Get()
   findAll(@Req() req: Request & { user: IJwtPayload }) {
     return this.corpusService.findAll(req.user.id);
@@ -45,7 +47,7 @@ export class CorpusController {
     return this.corpusService.create(req.user, createCorpusDto, file);
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, CorpusOwnerGuard)
   @Patch(':id')
   update(
     @Req() req: Request & { user: IJwtPayload },
@@ -55,14 +57,14 @@ export class CorpusController {
     return this.corpusService.update(id, req.user.id, dto);
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, CorpusOwnerGuard)
   @Delete(':id')
   @HttpCode(204)
   remove(@Param('id') id: string) {
     return this.corpusService.remove(id);
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, UserCorpusAccessGuard)
   @Get(':id')
   findOne(
     @Req() req: Request & { user: IJwtPayload },
@@ -71,7 +73,7 @@ export class CorpusController {
     return this.corpusService.findOneForUser(id, req.user.id);
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, CorpusOwnerGuard)
   @Get(':id/accesses')
   getAccesses(
     @Req() req: Request & { user: IJwtPayload },
@@ -81,7 +83,7 @@ export class CorpusController {
   }
 
   @Get(':id/blocks')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, UserCorpusAccessGuard)
   async getCorpusBlocks(
     @Req() req: Request & { user: IJwtPayload },
     @Param('id') id: string,

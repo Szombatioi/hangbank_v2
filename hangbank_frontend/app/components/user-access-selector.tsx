@@ -1,4 +1,5 @@
 "use client";
+//TODO: delete this..
 import { Autocomplete, Avatar, Box, CircularProgress, IconButton, TextField, Typography } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { useEffect, useState } from "react";
@@ -39,12 +40,20 @@ export function accessDiff(initial: AccessUser[], allowed: AccessUser[]) {
   };
 }
 
-export function UserAccessSelector({
+export function UserSearchAutocomplete({
   value,
   onChange,
+  excludeIds = [],
+  placeholder,
+  clearOnSelect = false,
+  background
 }: {
-  value: AccessUser[];
-  onChange: (next: AccessUser[]) => void;
+  value: AccessUser | null;
+  onChange: (user: AccessUser | null) => void;
+  excludeIds?: string[];
+  placeholder?: string;
+  clearOnSelect?: boolean;
+  background?: string
 }) {
   const { t } = useTranslation("common");
   const { user } = useAuth();
@@ -71,6 +80,62 @@ export function UserAccessSelector({
     return () => { ignore = true; clearTimeout(handle); };
   }, [inputValue]);
 
+  const selectableOptions = options.filter(
+    (o) => o.id !== user?.id && !excludeIds.includes(o.id),
+  );
+
+  return (
+    <Autocomplete<AccessUser>
+      options={selectableOptions}
+      loading={loading}
+      filterOptions={(x) => x}
+      getOptionLabel={(o) => fullName(o)}
+      isOptionEqualToValue={(o, v) => o.id === v.id}
+      inputValue={inputValue}
+      onInputChange={(_, v) => setInputValue(v)}
+      value={value}
+      onChange={(_, v) => { onChange(v); if (clearOnSelect) setInputValue(""); }}
+      blurOnSelect
+      noOptionsText={inputValue.trim() ? t("access_selector.no_results") : t("access_selector.hint")}
+      renderOption={(props, option) => (
+        <Box component="li" {...props} key={option.id}>
+          <Box>
+            <Typography sx={{ fontFamily: "'Manrope', sans-serif", fontWeight: 700, fontSize: "0.875rem" }}>
+              {fullName(option)}
+            </Typography>
+            <Typography sx={{ fontSize: "0.72rem", color: "var(--app-text-muted)" }}>
+              {option.email}
+            </Typography>
+          </Box>
+        </Box>
+      )}
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          placeholder={placeholder ?? t("access_selector.search_placeholder")}
+          sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px" } }}
+          InputProps={{
+            ...params.InputProps,
+            endAdornment: (
+              <>
+                {loading ? <CircularProgress size={16} /> : null}
+                {params.InputProps.endAdornment}
+              </>
+            ),
+          }}
+        />
+      )}
+    />
+  );
+}
+
+export function UserAccessSelector({
+  value,
+  onChange,
+}: {
+  value: AccessUser[];
+  onChange: (next: AccessUser[]) => void;
+}) {
   const addUser = (candidate: AccessUser | null) => {
     if (!candidate) return;
     if (value.some((u) => u.id === candidate.id)) return;
@@ -81,53 +146,13 @@ export function UserAccessSelector({
     onChange(value.filter((u) => u.id !== id));
   };
 
-  const selectableOptions = options.filter(
-    (o) => o.id !== user?.id && !value.some((a) => a.id === o.id),
-  );
-
   return (
     <Box>
-      <Autocomplete<AccessUser>
-        options={selectableOptions}
-        loading={loading}
-        filterOptions={(x) => x}
-        getOptionLabel={(o) => fullName(o)}
-        isOptionEqualToValue={(o, v) => o.id === v.id}
-        inputValue={inputValue}
-        onInputChange={(_, v) => setInputValue(v)}
+      <UserSearchAutocomplete
         value={null}
-        onChange={(_, v) => { addUser(v); setInputValue(""); }}
-        blurOnSelect
-        clearOnBlur
-        noOptionsText={inputValue.trim() ? t("access_selector.no_results") : t("access_selector.hint")}
-        renderOption={(props, option) => (
-          <Box component="li" {...props} key={option.id}>
-            <Box>
-              <Typography sx={{ fontFamily: "'Manrope', sans-serif", fontWeight: 700, fontSize: "0.875rem" }}>
-                {fullName(option)}
-              </Typography>
-              <Typography sx={{ fontSize: "0.72rem", color: "var(--app-text-muted)" }}>
-                {option.email}
-              </Typography>
-            </Box>
-          </Box>
-        )}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            placeholder={t("access_selector.search_placeholder")}
-            sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px" } }}
-            InputProps={{
-              ...params.InputProps,
-              endAdornment: (
-                <>
-                  {loading ? <CircularProgress size={16} /> : null}
-                  {params.InputProps.endAdornment}
-                </>
-              ),
-            }}
-          />
-        )}
+        onChange={addUser}
+        excludeIds={value.map((u) => u.id)}
+        clearOnSelect
       />
 
       <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 1.5 }}>

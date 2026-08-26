@@ -17,6 +17,7 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { AxiosError } from "axios";
 import api from "@/app/axios";
 import { ProjectDto } from "@/app/components/types/project.dto";
+import { fullName } from "@/app/components/user-access-selector";
 import { BODY, HEADLINE, LABEL, ORANGE } from "@/app/components/style-constants";
 import SectionHeader from "./components/section-header";
 import BlockCard from "./components/block-card";
@@ -271,6 +272,29 @@ export default function ProjectDetailPage() {
                                 />
                             </Grid>
                         </Grid>
+                    </Paper>
+
+                    {/* Paper: Roles */}
+                    <Paper elevation={0} sx={{ border: "1px solid var(--app-border)", borderRadius: 3, p: 3 }}>
+                        <SectionHeader label={t("project_detail.roles")} />
+                        {project.roles && project.roles.length > 0 ? (
+                            <Grid container spacing={2.5}>
+                                {project.roles.map((member) => (
+                                    <Grid key={member.userId} size={{ xs: 12, sm: 6, md: 4 }}>
+                                        <Typography sx={{ fontFamily: BODY, fontSize: "0.925rem", fontWeight: 600, color: "var(--app-text-primary)" }}>
+                                            {fullName({ ...member, id: member.userId })}
+                                        </Typography>
+                                        <Typography variant="subtitle2" sx={{ color: "var(--app-text-muted)" }}>
+                                            {t(`project_roles.${member.role.toLowerCase()}`)}
+                                        </Typography>
+                                    </Grid>
+                                ))}
+                            </Grid>
+                        ) : (
+                            <Typography sx={{ fontFamily: BODY, fontSize: "0.875rem", color: "var(--app-text-faint)" }}>
+                                {t("project_detail.no_roles")}
+                            </Typography>
+                        )}
                     </Paper>
 
                     {/* Master recording */}

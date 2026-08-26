@@ -168,7 +168,14 @@
         "missingCorpusId": "Nincs megadva korpusz.",
         "invalidRole": "Érvénytelen hozzáférési szint.",
         "corpusNotFound": "A kért korpusz nem található.",
-        "noProjectAccess": "Nincs megfelelő hozzáférésed ehhez a projekthez."
+        "noProjectAccess": "Nincs megfelelő hozzáférésed ehhez a projekthez.",
+        "noCorpusAccess": "Nincs hozzáférésed ehhez a korpuszhoz.",
+        "notCorpusOwner": "Ezt csak a korpusz tulajdonosa teheti meg."
+    },
+    "project_roles": {
+        "view": "Megtekintő",
+        "editor": "Szerkesztő",
+        "owner": "Tulajdonos"
     },
     "error": {
         "language_load": "Az elérhető nyelvek betöltése nem sikerült."
@@ -246,13 +253,18 @@
             "error_microphone_required": "Kérlek, válassz mikrofont.",
             "error_corpus_required": "Kérlek, válassz korpuszt.",
             "section_speaker": "Beszélő adatai",
+            "section_roles": "Szerepek",
             "label_age": "Életkor",
             "label_speaker_name": "Név",
             "label_gender": "Nem",
             "label_speech_description": "Beszédjellemzők",
             "placeholder_speech_description": "Írd le a nyelvjárásodat, akcentusodat vagy egyéb beszédjellemzőidet (pl. tájszólás, dadogás, selypítés)...",
             "label_audio_checks": "Hangellenőrzések",
-            "placeholder_audio_checks": "Ellenőrzés hozzáadása…"
+            "placeholder_audio_checks": "Ellenőrzés hozzáadása…",
+            "label_user_name": "Felhasználó neve",
+            "label_user_role": "Felhasználó szerepe",
+            "members_label": "Projekt tagjai",
+            "add_member": "Hozzáadás"
         }
     },
     "gender": {
@@ -285,6 +297,8 @@
         "title": "Projekt részletei",
         "basic_info": "Alapadatok",
         "technical_info": "Technikai adatok",
+        "roles": "Szerepek",
+        "no_roles": "Nincsenek hozzárendelt tagok.",
         "blocks": "Blokkok",
         "project_title": "Projekt címe",
         "description": "Leírás",

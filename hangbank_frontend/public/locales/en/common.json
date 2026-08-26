@@ -168,7 +168,14 @@
         "missingCorpusId": "No corpus was specified.",
         "invalidRole": "Invalid access level requested.",
         "corpusNotFound": "The requested corpus was not found.",
-        "noProjectAccess": "You don't have the required access to this project."
+        "noProjectAccess": "You don't have the required access to this project.",
+        "noCorpusAccess": "You don't have access to this corpus.",
+        "notCorpusOwner": "Only the corpus owner can do that."
+    },
+    "project_roles": {
+        "view": "Viewer",
+        "editor": "Editor",
+        "owner": "Owner"
     },
     "error": {
         "language_load": "Could not load available languages."
@@ -246,13 +253,18 @@
             "error_microphone_required": "Please select a microphone.",
             "error_corpus_required": "Please select a corpus.",
             "section_speaker": "Speaker Info",
+            "section_roles": "Roles",
             "label_age": "Age",
             "label_speaker_name": "Name",
             "label_gender": "Gender",
             "label_speech_description": "Speech Characteristics",
             "placeholder_speech_description": "Describe your dialect, accent, or any speech characteristics (e.g. regional accent, stutter, lisp) ...",
             "label_audio_checks": "Audio checks",
-            "placeholder_audio_checks": "Add a check…"
+            "placeholder_audio_checks": "Add a check…",
+            "label_user_name": "User's name",
+            "label_user_role": "User's role",
+            "members_label": "Project members",
+            "add_member": "Add"
         }
     },
     "gender": {
@@ -285,6 +297,8 @@
         "title": "Project Details",
         "basic_info": "Basic Information",
         "technical_info": "Technical Info",
+        "roles": "Roles",
+        "no_roles": "No members assigned.",
         "blocks": "Blocks",
         "project_title": "Project Title",
         "description": "Description",
