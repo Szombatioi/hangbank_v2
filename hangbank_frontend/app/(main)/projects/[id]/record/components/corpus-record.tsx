@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import api from "@/app/axios";
+import { translateHttpError } from "@/app/components/helpers/http-error";
 import { useSnackbar, Severity } from "@/app/providers/SnackbarProvider";
 import { BODY } from "@/app/components/style-constants";
 import { CorpusProjectDetailDto } from "./corpus-project-details";
@@ -151,8 +152,8 @@ function CorpusRecordInner() {
                 }
 
                 await fetchBlocks(startFrom, false);
-            } catch {
-                showMessage(t("project_page.fetch_error"), Severity.error);
+            } catch (err) {
+                showMessage(translateHttpError(err, t, t("project_page.fetch_error")), Severity.error);
             } finally {
                 setLoading(false);
             }
@@ -257,8 +258,8 @@ function CorpusRecordInner() {
 
             showMessage(t("record.save_success"), Severity.success);
             void reloadProjectDetail();
-        } catch {
-            showMessage(t("record.save_error"), Severity.error);
+        } catch (err) {
+            showMessage(translateHttpError(err, t, t("record.save_error")), Severity.error);
         } finally {
             setSaving(false);
         }

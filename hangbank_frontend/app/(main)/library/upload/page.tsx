@@ -21,6 +21,7 @@ import { LanguageDto } from "@/app/components/types/language.dto";
 import { CorpusVisibility } from "@/app/components/types/corpus.dto";
 import { VisibilitySelector } from "@/app/components/visibility-selector";
 import { UserAccessSelector, AccessUser } from "@/app/components/user-access-selector";
+import { translateHttpError } from "@/app/components/helpers/http-error";
 import api from "@/app/axios";
 import { Severity, useSnackbar } from "@/app/providers/SnackbarProvider";
 import { useRouter } from "next/navigation";
@@ -66,7 +67,7 @@ export default function CorpusUploadPage() {
         setSupportedLanguages(response.data);
       } catch (error) {
         console.error("Failed to fetch languages:", error);
-        showMessage(t("error.language_load"), Severity.error)
+        showMessage(translateHttpError(error, t, t("error.language_load")), Severity.error)
       }
     }
 
@@ -123,9 +124,8 @@ export default function CorpusUploadPage() {
       showMessage(t("corpus_upload.success"), Severity.success);
       router.replace("/library");
     } catch (ex) {
-      //TODO: snackbar
       console.error("Upload failed:", ex);
-      showMessage(t("corpus_upload.failure"), Severity.error);
+      showMessage(translateHttpError(ex, t, t("corpus_upload.failure")), Severity.error);
     }
   };
 

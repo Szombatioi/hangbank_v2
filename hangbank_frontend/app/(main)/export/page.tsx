@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 import api from "@/app/axios";
+import { translateHttpError } from "@/app/components/helpers/http-error";
 import { ProjectDto } from "@/app/components/types/project.dto";
 import { useSnackbar, Severity } from "@/app/providers/SnackbarProvider";
 import { BODY, HEADLINE, LABEL, ORANGE } from "@/app/components/style-constants";
@@ -58,17 +59,22 @@ function ExportPageInner() {
     // Load the projects the user owns; preselect one if ?project= is present.
     useEffect(() => {
         let cancelled = false;
-        api.get<ProjectDto[]>("/project")
-            .then(({ data }) => {
+        const loadProjects = async () => {
+            try {
+                const { data } = await api.get<ProjectDto[]>("/project");
                 if (cancelled) return;
                 setProjects(data);
                 const paramId = searchParams.get("project");
                 if (paramId && data.some((p) => p.id === paramId)) {
                     setSelectedProjectId(paramId);
                 }
-            })
-            .catch(() => { if (!cancelled) showMessage(t("export_page.error_load_projects"), Severity.error); })
-            .finally(() => { if (!cancelled) setLoadingProjects(false); });
+            } catch (err) {
+                if (!cancelled) showMessage(translateHttpError(err, t, t("export_page.error_load_projects")), Severity.error);
+            } finally {
+                if (!cancelled) setLoadingProjects(false);
+            }
+        };
+        loadProjects();
         return () => { cancelled = true; };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -82,19 +88,22 @@ function ExportPageInner() {
         }
         let cancelled = false;
         setLoadingFiles(true);
-        api.get<ExportableAudioFile[]>(`/project/${selectedProjectId}/audio-files`)
-            .then(({ data }) => {
+        const loadFiles = async () => {
+            try {
+                const { data } = await api.get<ExportableAudioFile[]>(`/project/${selectedProjectId}/audio-files`);
                 if (cancelled) return;
                 setAudioFiles(data);
                 setSelectedIds(new Set(data.map((f) => f.audioFileId)));
-            })
-            .catch(() => {
+            } catch (err) {
                 if (cancelled) return;
                 setAudioFiles([]);
                 setSelectedIds(new Set());
-                showMessage(t("export_page.error_load_files"), Severity.error);
-            })
-            .finally(() => { if (!cancelled) setLoadingFiles(false); });
+                showMessage(translateHttpError(err, t, t("export_page.error_load_files")), Severity.error);
+            } finally {
+                if (!cancelled) setLoadingFiles(false);
+            }
+        };
+        loadFiles();
         return () => { cancelled = true; };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedProjectId]);
@@ -138,8 +147,8 @@ function ExportPageInner() {
             URL.revokeObjectURL(url);
 
             showMessage(t("export_page.export_success"), Severity.success);
-        } catch {
-            showMessage(t("export_page.export_error"), Severity.error);
+        } catch (err) {
+            showMessage(translateHttpError(err, t, t("export_page.export_error")), Severity.error);
         } finally {
             setExporting(false);
         }

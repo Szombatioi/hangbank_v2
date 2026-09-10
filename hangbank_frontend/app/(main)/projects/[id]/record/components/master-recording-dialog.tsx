@@ -9,6 +9,7 @@ import GraphicEqIcon from "@mui/icons-material/GraphicEq";
 import SaveIcon from "@mui/icons-material/Save";
 import { AxiosError } from "axios";
 import api from "@/app/axios";
+import { translateHttpError } from "@/app/components/helpers/http-error";
 import Recorder from "@/app/components/recorder";
 import { Severity, useSnackbar } from "@/app/providers/SnackbarProvider";
 import { BODY, HEADLINE, LABEL, ORANGE } from "@/app/components/style-constants";
@@ -54,10 +55,17 @@ export default function MasterRecordingDialog({
         }
         let cancelled = false;
         setPromptLoading(true);
-        api.get<{ languageCode: string; text: string }>(`/project/${projectId}/master-recording-prompt`)
-            .then(resp => { if (!cancelled) setPrompt(resp.data.text); })
-            .catch(() => { if (!cancelled) setPrompt(t("master_recording.loading_prompt")); })
-            .finally(() => { if (!cancelled) setPromptLoading(false); });
+        const loadPrompt = async () => {
+            try {
+                const resp = await api.get<{ languageCode: string; text: string }>(`/project/${projectId}/master-recording-prompt`);
+                if (!cancelled) setPrompt(resp.data.text);
+            } catch {
+                if (!cancelled) setPrompt(t("master_recording.loading_prompt"));
+            } finally {
+                if (!cancelled) setPromptLoading(false);
+            }
+        };
+        loadPrompt();
         return () => { cancelled = true; };
     }, [open, projectId, t]);
 
@@ -81,7 +89,7 @@ export default function MasterRecordingDialog({
             if (status === 501) {
                 showMessage(t("master_recording.save_not_implemented"), Severity.warning);
             } else {
-                showMessage(t("master_recording.save_error"), Severity.error);
+                showMessage(translateHttpError(err, t, t("master_recording.save_error")), Severity.error);
             }
         } finally {
             setSaving(false);

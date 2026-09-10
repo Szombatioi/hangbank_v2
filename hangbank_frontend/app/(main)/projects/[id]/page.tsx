@@ -6,7 +6,7 @@ import {
     Accordion, AccordionDetails, AccordionSummary,
     Alert, Autocomplete, Box, Button, Chip, CircularProgress,
     Dialog, DialogActions, DialogContent, DialogTitle,
-    Grid, IconButton, Paper, Snackbar, TextField, Typography,
+    Grid, IconButton, MenuItem, Paper, Select, Snackbar, TextField, Typography,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
@@ -16,8 +16,9 @@ import GraphicEqIcon from "@mui/icons-material/GraphicEq";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { AxiosError } from "axios";
 import api from "@/app/axios";
-import { ProjectDto } from "@/app/components/types/project.dto";
-import { fullName } from "@/app/components/user-access-selector";
+import { ProjectDto, ProjectMemberDto } from "@/app/components/types/project.dto";
+import { fullName, AccessUser, UserSearchAutocomplete } from "@/app/components/user-access-selector";
+import { translateHttpError } from "@/app/components/helpers/http-error";
 import { BODY, HEADLINE, LABEL, ORANGE } from "@/app/components/style-constants";
 import SectionHeader from "./components/section-header";
 import BlockCard from "./components/block-card";
@@ -28,6 +29,9 @@ import { Severity, useSnackbar } from "@/app/providers/SnackbarProvider";
 
 
 const AVAILABLE_CHECKS = ["VOLUME", "NOISE", "SPEAKER"];
+const ASSIGNABLE_ROLES = ["VIEW", "EDITOR"];
+
+type MemberRow = { user: AccessUser; role: string };
 
 export interface BlockDto {
     id: string;
@@ -82,13 +86,36 @@ export default function ProjectDetailPage() {
     const [editName, setEditName] = useState("");
     const [editDescription, setEditDescription] = useState("");
     const [editAudioChecks, setEditAudioChecks] = useState<string[]>([]);
+    const [editMembers, setEditMembers] = useState<MemberRow[]>([]);
+    const [editInitialMembers, setEditInitialMembers] = useState<ProjectMemberDto[]>([]);
+    const [memberUser, setMemberUser] = useState<AccessUser | null>(null);
+    const [memberRole, setMemberRole] = useState<string>("VIEW");
     const [savingEdit, setSavingEdit] = useState(false);
 
+    const addMember = () => {
+        if (!memberUser) return;
+        if (editMembers.some((m) => m.user.id === memberUser.id)) return;
+        setEditMembers((prev) => [...prev, { user: memberUser, role: memberRole }]);
+        setMemberUser(null);
+        setMemberRole("VIEW");
+    };
+
+    const removeMember = (userId: string) => {
+        setEditMembers((prev) => prev.filter((m) => m.user.id !== userId));
+    };
+
     useEffect(() => {
-        api.get<ProjectDto>(`/project/${id}`)
-            .then(r => setProject(r.data))
-            .catch(() => setError(t("project_detail.error_load")))
-            .finally(() => setLoading(false));
+        const loadProject = async () => {
+            try {
+                const r = await api.get<ProjectDto>(`/project/${id}`);
+                setProject(r.data);
+            } catch (err) {
+                setError(translateHttpError(err, t, t("project_detail.error_load")));
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadProject();
     }, [id]);
 
     const fetchBlocks = async (from: number, isLoadMore: boolean = false) => {
@@ -99,8 +126,8 @@ export default function ProjectDetailPage() {
             });
             setBlocks(prev => [...prev, ...r.data.data]);
             setBlocksTotal(r.data.total);
-        } catch {
-            setError(t("project_detail.error_load_blocks"));
+        } catch (err) {
+            setError(translateHttpError(err, t, t("project_detail.error_load_blocks")));
         } finally {
             isLoadMore ? setLoadingMore(false) : setBlocksLoading(false);
         }
@@ -123,7 +150,7 @@ export default function ProjectDetailPage() {
             showMessage(t("project_deleted"), Severity.info);
         } catch (err) {
             const status = (err as AxiosError).response?.status;
-            setError(status === 403 ? t("project_detail.delete_forbidden") : t("project_detail.delete_error"));
+            setError(status === 403 ? t("project_detail.delete_forbidden") : translateHttpError(err, t, t("project_detail.delete_error")));
             setConfirmOpen(false);
         } finally {
             setDeleting(false);
@@ -135,6 +162,14 @@ export default function ProjectDetailPage() {
         setEditName(project.name);
         setEditDescription(project.description ?? "");
         setEditAudioChecks(project.audioChecks ?? []);
+        const members = project.roles ?? [];
+        setEditInitialMembers(members);
+        setEditMembers(members.map((r) => ({
+            user: { id: r.userId, firstName: r.firstName, lastName: r.lastName, username: r.username, email: r.email },
+            role: r.role,
+        })));
+        setMemberUser(null);
+        setMemberRole("VIEW");
         setEditOpen(true);
     };
 
@@ -144,12 +179,25 @@ export default function ProjectDetailPage() {
             showMessage(t("project_detail.edit_name_required"), Severity.error);
             return;
         }
+        const initialIds = new Set(editInitialMembers.map((m) => m.userId));
+        const ownerIds = new Set(
+            editInitialMembers.filter((m) => m.role === "OWNER").map((m) => m.userId),
+        );
+        const addMembers = editMembers
+            .filter((m) => !initialIds.has(m.user.id))
+            .map((m) => ({ userId: m.user.id, role: m.role }));
+        const removeMemberIds = editInitialMembers
+            .filter((m) => !ownerIds.has(m.userId) && !editMembers.some((em) => em.user.id === m.userId))
+            .map((m) => m.userId);
+
         setSavingEdit(true);
         try {
             const r = await api.patch<ProjectDto>(`/project/${id}`, {
                 name,
                 description: editDescription.trim(),
                 audioChecks: editAudioChecks,
+                addMembers,
+                removeMemberIds,
             });
             setProject(r.data);
             setEditOpen(false);
@@ -157,7 +205,7 @@ export default function ProjectDetailPage() {
         } catch (err) {
             const status = (err as AxiosError).response?.status;
             showMessage(
-                status === 403 ? t("project_detail.edit_forbidden") : t("project_detail.edit_error"),
+                status === 403 ? t("project_detail.edit_forbidden") : translateHttpError(err, t, t("project_detail.edit_error")),
                 Severity.error,
             );
         } finally {
@@ -503,6 +551,51 @@ export default function ProjectDetailPage() {
                                         onDelete={() => setEditAudioChecks((prev) => prev.filter((c) => c !== check))}
                                     />
                                 ))}
+                            </Box>
+                        )}
+                    </Box>
+                    <Box>
+                        <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--app-text-faint)", mb: 0.75 }}>
+                            {t("project_detail.roles")}
+                        </Typography>
+                        <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start", flexWrap: "wrap" }}>
+                            <Box sx={{ flex: "1 1 200px", minWidth: 0 }}>
+                                <UserSearchAutocomplete
+                                    value={memberUser}
+                                    onChange={setMemberUser}
+                                    excludeIds={editMembers.map((m) => m.user.id)}
+                                />
+                            </Box>
+                            <Select
+                                value={memberRole}
+                                onChange={(e) => setMemberRole(e.target.value)}
+                                sx={{ minWidth: 140, borderRadius: "8px" }}
+                            >
+                                {ASSIGNABLE_ROLES.map((role) => (
+                                    <MenuItem key={role} value={role}>{t(`project_roles.${role.toLowerCase()}`)}</MenuItem>
+                                ))}
+                            </Select>
+                            <Button
+                                variant="contained"
+                                onClick={addMember}
+                                disabled={!memberUser}
+                                sx={{ bgcolor: "var(--app-btn)", borderRadius: 1.5, textTransform: "none", fontFamily: LABEL, fontWeight: 700, px: 2.5, py: 1.75, "&:hover": { bgcolor: "var(--app-btn-hover)" }, "&.Mui-disabled": { bgcolor: "var(--app-border)", color: "var(--app-text-faint)" } }}
+                            >
+                                {t("new_project.corpus_based.add_member")}
+                            </Button>
+                        </Box>
+                        {editMembers.length > 0 && (
+                            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1.5 }}>
+                                {editMembers.map((m) => {
+                                    const isOwner = m.role === "OWNER";
+                                    return (
+                                        <Chip
+                                            key={m.user.id}
+                                            label={`${fullName(m.user)} · ${t(`project_roles.${m.role.toLowerCase()}`)}`}
+                                            onDelete={isOwner ? undefined : () => removeMember(m.user.id)}
+                                        />
+                                    );
+                                })}
                             </Box>
                         )}
                     </Box>

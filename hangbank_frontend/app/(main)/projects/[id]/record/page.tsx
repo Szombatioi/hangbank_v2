@@ -1,6 +1,7 @@
 "use client";
 
 import api from "@/app/axios";
+import { translateHttpError } from "@/app/components/helpers/http-error";
 import { ProjectDto } from "@/app/components/types/project.dto";
 import { Severity, useSnackbar } from "@/app/providers/SnackbarProvider";
 import { Box, CircularProgress, Typography } from "@mui/material";
@@ -27,18 +28,17 @@ export default function RecordPage() {
         const response = await api.get(`/project/${id}`);
         setProject(response.data);
       } catch (error) {
-        const axiosError = error as AxiosError;
-        if (axiosError.response) {
-          if (axiosError.response.status === 404) {
-            showMessage(t("project_page.not_found"), Severity.error);
-            setLoadError(t("project_page.not_found"));
-          } else if (axiosError.response.status === 401) {
-            showMessage(t("project_page.access_denied"), Severity.error);
-            setLoadError(t("project_page.access_denied"));
-          }
+        const status = (error as AxiosError).response?.status;
+        if (status === 404) {
+          showMessage(t("project_page.not_found"), Severity.error);
+          setLoadError(t("project_page.not_found"));
+        } else if (status === 401) {
+          showMessage(t("project_page.access_denied"), Severity.error);
+          setLoadError(t("project_page.access_denied"));
         } else {
-          showMessage(t("project_page.fetch_error"), Severity.error);
-          setLoadError(t("project_page.fetch_error"));
+          const msg = translateHttpError(error, t, t("project_page.fetch_error"));
+          showMessage(msg, Severity.error);
+          setLoadError(msg);
         }
       }
     }

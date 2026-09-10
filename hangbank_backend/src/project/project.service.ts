@@ -433,7 +433,13 @@ export class ProjectService {
   async updateProject(
     requesterId: string,
     projectId: string,
-    data: { name?: string; description?: string; audioChecks?: string[] },
+    data: {
+      name?: string;
+      description?: string;
+      audioChecks?: string[];
+      addMembers?: { userId: string; role: ProjectRoleType }[];
+      removeMemberIds?: string[];
+    },
   ) {
     const project = await this.corpusBasedProjectRepository.findOne({
       where: { id: projectId },
@@ -465,6 +471,26 @@ export class ProjectService {
     }
 
     await this.corpusBasedProjectRepository.save(project);
+
+    //Remove members (never the owner)
+    for (const userId of data.removeMemberIds ?? []) {
+      const target = project.roles.find((r) => r.userId === userId);
+      if (!target || target.role === ProjectRoleType.OWNER) continue;
+      await this.projectRoleService.revokeRoleForProject(userId, projectId);
+    }
+
+    //Add members (skip existing roles, ignore invalid role values)
+    const existingIds = new Set(project.roles.map((r) => r.userId));
+    for (const member of data.addMembers ?? []) {
+      if (existingIds.has(member.userId)) continue;
+      if (!Object.values(ProjectRoleType).includes(member.role)) continue;
+      existingIds.add(member.userId);
+      await this.projectRoleService.assignToRole(
+        member.userId,
+        projectId,
+        member.role,
+      );
+    }
 
     return this.findOne(projectId);
   }

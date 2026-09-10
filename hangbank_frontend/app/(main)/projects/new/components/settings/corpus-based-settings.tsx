@@ -43,6 +43,7 @@ import {
   AccessUser,
   fullName,
 } from "@/app/components/user-access-selector";
+import { translateHttpError } from "@/app/components/helpers/http-error";
 
 type ProjectRole = "VIEW" | "EDITOR";
 const PROJECT_ROLES: ProjectRole[] = ["VIEW", "EDITOR"];
@@ -155,16 +156,20 @@ export default function CorpusBasedSettings() {
   }, []);
 
   useEffect(() => {
-    api
-      .get<CorpusDto[]>("/corpus")
-      .then((res) => setCorpora(res.data))
-      .catch(() =>
+    const loadCorpora = async () => {
+      try {
+        const res = await api.get<CorpusDto[]>("/corpus");
+        setCorpora(res.data);
+      } catch (err) {
         showMessage(
-          t("new_project.corpus_based.error_load_corpora"),
-          Severity.error
-        )
-      )
-      .finally(() => setCorporaLoading(false));
+          translateHttpError(err, t, t("new_project.corpus_based.error_load_corpora")),
+          Severity.error,
+        );
+      } finally {
+        setCorporaLoading(false);
+      }
+    };
+    loadCorpora();
   }, []);
 
   const handleCreate = async () => {
@@ -190,8 +195,11 @@ export default function CorpusBasedSettings() {
       //TODO: redirect to the new project!
       console.log(res.data.id);
       router.push("/projects");
-    } catch {
-      showMessage(t("new_project.corpus_based.error_create"), Severity.error);
+    } catch (err) {
+      showMessage(
+        translateHttpError(err, t, t("new_project.corpus_based.error_create")),
+        Severity.error,
+      );
     } finally {
       setSubmitting(false);
     }

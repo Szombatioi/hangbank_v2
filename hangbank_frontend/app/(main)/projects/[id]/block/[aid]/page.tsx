@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Box, Button, CircularProgress, Paper, TextField, Typography } from "@mui/material";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import api from "@/app/axios";
+import { translateHttpError } from "@/app/components/helpers/http-error";
 import Recorder, { RecorderAudioFile } from "@/app/components/recorder";
 import { useSnackbar, Severity } from "@/app/providers/SnackbarProvider";
 import { resolveMicrophone } from "../../record/helpers/mic-resolver";
@@ -143,10 +144,15 @@ export default function ViewRecording() {
             return;
         }
         let cancelled = false;
-        api
-            .get<{ url: string }>(`/project/audio-file/${masterId}/url`)
-            .then(({ data }) => { if (!cancelled) setMasterUrl(data.url); })
-            .catch(() => { if (!cancelled) setMasterUrl(null); });
+        const loadMasterUrl = async () => {
+            try {
+                const { data } = await api.get<{ url: string }>(`/project/audio-file/${masterId}/url`);
+                if (!cancelled) setMasterUrl(data.url);
+            } catch {
+                if (!cancelled) setMasterUrl(null);
+            }
+        };
+        loadMasterUrl();
         return () => { cancelled = true; };
     }, [audioFile?.masterRecording?.id]);
 
@@ -194,8 +200,8 @@ export default function ViewRecording() {
                 router.replace(`/projects/${id}/block/${saved.audioFile.id}`);
             }
             showMessage(t("view_recording.save_success"), Severity.success);
-        } catch {
-            showMessage(t("view_recording.save_error"), Severity.error);
+        } catch (err) {
+            showMessage(translateHttpError(err, t, t("view_recording.save_error")), Severity.error);
         } finally {
             setSaving(false);
         }
@@ -209,8 +215,8 @@ export default function ViewRecording() {
             setAudioFile((prev) => (prev ? { ...prev, transcription } : prev));
             await refreshQualities();
             showMessage(t("view_recording.transcription_saved"), Severity.success);
-        } catch {
-            showMessage(t("view_recording.save_error"), Severity.error);
+        } catch (err) {
+            showMessage(translateHttpError(err, t, t("view_recording.save_error")), Severity.error);
         } finally {
             setSavingTranscription(false);
         }

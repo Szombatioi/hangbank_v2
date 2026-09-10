@@ -20,6 +20,7 @@ import { LanguageDto } from "@/app/components/types/language.dto";
 import ConfirmDialog from "@/app/components/confirm-dialog";
 import { VisibilitySelector } from "@/app/components/visibility-selector";
 import { UserAccessSelector, AccessUser, accessDiff } from "@/app/components/user-access-selector";
+import { translateHttpError } from "@/app/components/helpers/http-error";
 import { useSnackbar, Severity } from "@/app/providers/SnackbarProvider";
 import { visibilityChipStyle } from "./components/visibilityChipStyle";
 
@@ -322,9 +323,16 @@ export default function LibraryPage() {
     setEditOpen(true);
 
     if (corpus.visibility === "protected") {
-      api.get<AccessUser[]>(`/corpus/${corpus.id}/accesses`)
-        .then((res) => { setEditInitialAccesses(res.data); setEditAllowed(res.data); })
-        .catch(() => { setEditInitialAccesses([]); setEditAllowed([]); });
+      (async () => {
+        try {
+          const res = await api.get<AccessUser[]>(`/corpus/${corpus.id}/accesses`);
+          setEditInitialAccesses(res.data);
+          setEditAllowed(res.data);
+        } catch {
+          setEditInitialAccesses([]);
+          setEditAllowed([]);
+        }
+      })();
     }
   };
 
@@ -349,8 +357,8 @@ export default function LibraryPage() {
       setEditOpen(false);
       setEditTarget(null);
       showMessage(t("library_page.edit_success"), Severity.success);
-    } catch {
-      showMessage(t("library_page.edit_error"), Severity.error);
+    } catch (err) {
+      showMessage(translateHttpError(err, t, t("library_page.edit_error")), Severity.error);
     } finally {
       setSavingEdit(false);
     }
@@ -370,7 +378,7 @@ export default function LibraryPage() {
       if (status === 409) {
         showMessage(t("library_page.delete_corpus_in_use"), Severity.error);
       } else {
-        showMessage(t("library_page.delete_error"), Severity.error);
+        showMessage(translateHttpError(err, t, t("library_page.delete_error")), Severity.error);
       }
     } finally {
       setDeleting(false);
@@ -378,16 +386,21 @@ export default function LibraryPage() {
   };
 
   useEffect(() => {
-    Promise.all([
-      api.get<CorpusDto[]>("/corpus"),
-      api.get<LanguageDto[]>("/language"),
-    ])
-      .then(([corpusRes, langRes]) => {
+    const loadData = async () => {
+      try {
+        const [corpusRes, langRes] = await Promise.all([
+          api.get<CorpusDto[]>("/corpus"),
+          api.get<LanguageDto[]>("/language"),
+        ]);
         setCorpora(corpusRes.data);
         setLanguages(langRes.data);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
   }, []);
 
   // Distinct, sorted options for the searchable filter fields, derived from the

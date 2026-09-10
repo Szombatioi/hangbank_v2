@@ -8,6 +8,7 @@ import {
 } from "@mui/material";
 import { AxiosError } from "axios";
 import api from "@/app/axios";
+import { translateHttpError } from "@/app/components/helpers/http-error";
 import { useAuth } from "@/app/contexts/auth-context";
 import { useCustomTheme } from "@/app/contexts/theme-context";
 import { useLanguage } from "@/app/providers/language-provider";
@@ -81,9 +82,15 @@ export default function SettingsPage() {
     // Fetch the translated languages offered as interface options
     useEffect(() => {
         let ignore = false;
-        api.get<UiLanguage[]>("/language/translated")
-            .then(({ data }) => { if (!ignore) setLanguages(data); })
-            .catch(() => { /* leave empty — language picker just won't list options */ });
+        const loadLanguages = async () => {
+            try {
+                const { data } = await api.get<UiLanguage[]>("/language/translated");
+                if (!ignore) setLanguages(data);
+            } catch {
+                /* leave empty — language picker just won't list options */
+            }
+        };
+        loadLanguages();
         return () => { ignore = true; };
     }, []);
 
@@ -106,7 +113,7 @@ export default function SettingsPage() {
             showMessage(t("settings.profile_saved"), Severity.success);
         } catch (err) {
             const msg = (err as AxiosError<{ message?: string }>).response?.data?.message;
-            showMessage(msg ?? t("settings.profile_error"), Severity.error);
+            showMessage(translateHttpError(err, t, msg ?? t("settings.profile_error")), Severity.error);
         } finally {
             setSavingProfile(false);
         }
@@ -134,7 +141,7 @@ export default function SettingsPage() {
             setConfirmPassword("");
         } catch (err) {
             const status = (err as AxiosError).response?.status;
-            showMessage(status === 401 ? t("settings.password_incorrect") : t("settings.password_error"), Severity.error);
+            showMessage(status === 401 ? t("settings.password_incorrect") : translateHttpError(err, t, t("settings.password_error")), Severity.error);
         } finally {
             setSavingPassword(false);
         }

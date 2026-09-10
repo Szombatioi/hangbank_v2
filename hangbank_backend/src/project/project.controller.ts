@@ -18,6 +18,7 @@ import {
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { Blob } from 'buffer';
 import { ProjectService } from './project.service';
+import { ProjectRoleType } from './entities/project-role.enum';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { CreateCorpusProjectDto } from './dto/create-corpus-project.dto';
 import type { IJwtPayload } from '@hangbank/shared';
@@ -53,7 +54,14 @@ export class ProjectController {
   updateProject(
     @Req() req: { user: IJwtPayload },
     @Param('id') id: string,
-    @Body() body: { name?: string; description?: string; audioChecks?: string[] },
+    @Body()
+    body: {
+      name?: string;
+      description?: string;
+      audioChecks?: string[];
+      addMembers?: { userId: string; role: ProjectRoleType }[];
+      removeMemberIds?: string[];
+    },
   ) {
     return this.projectService.updateProject(req.user.id, id, body);
   }

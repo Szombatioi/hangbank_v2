@@ -6,6 +6,7 @@ import { Pause, PlayArrow, Replay, Stop } from "@mui/icons-material";
 import WaveSurfer from "wavesurfer.js";
 import { useTranslation } from "react-i18next";
 import api from "@/app/axios";
+import { translateHttpError } from "@/app/components/helpers/http-error";
 import { Severity, useSnackbar } from "@/app/providers/SnackbarProvider";
 import ConfirmDialog from "@/app/components/confirm-dialog";
 import Transcriber, { TranscriberHandle } from "@/app/components/transcriber";
@@ -131,8 +132,8 @@ export default function Recorder({
         await waveSurferRef.current?.load(data.url);
         if (cancelled) return;
         setAudioLoaded(true);
-      } catch {
-        if (!cancelled) showMessage("Failed to load the recording", Severity.error);
+      } catch (err) {
+        if (!cancelled) showMessage(translateHttpError(err, t, "Failed to load the recording"), Severity.error);
       }
     })();
     return () => {
