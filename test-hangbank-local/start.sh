@@ -3,10 +3,11 @@
 
 set -e
 
-BACKEND_DIR="./hangbank_backend"
+BACKEND_DIR="./hangbank_backend" #DB: 5433
 FRONTEND_DIR="./hangbank_frontend"
 AQC_DIR="./audio-quality-checker"
-AUTH_DIR="./auth"
+AUTH_DIR="./auth" #DB: 5434
+S3_DIR="./s3-storage-manager" #Minio: 9000
 
 
 cleanup(){
@@ -28,5 +29,7 @@ echo "Starting aqc"
 (cd "$AQC_DIR" && npm run start:dev) &
 echo "Starting auth"
 (cd "$AUTH_DIR" && npm run start:dev) &
+echo "Starting s3 manager"
+(cd "$S3_DIR" && npm run start:dev) &
 
 wait
