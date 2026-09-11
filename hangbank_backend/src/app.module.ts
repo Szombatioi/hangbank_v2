@@ -12,13 +12,14 @@ import { CorpusModule } from './corpus/corpus.module';
 import { LanguageModule } from './language/language.module';
 import { UserCorpusAccessModule } from './user-corpus-access/user-corpus-access.module';
 import { CorpusDomainModule } from './corpus-domain/corpus-domain.module';
-import { S3StorageModule } from './s3-storage/s3-storage.module';
+import { S3StorageClientModule } from './s3-storage-client/s3-storage-client.module';
 import { SeederModule } from './seeder/seeder.module';
 import { ProjectModule } from './project/project.module';
 import { AudioFileModule } from './audio-file/audio-file.module';
 import { AudioQualityModule } from './audio-quality/audio-quality.module';
 import { ExportModule } from './export/export.module';
 import { SupportTextModule } from './support-text/support-text.module';
+import { ExistingAudioProjectModule } from './existing-audio-project/existing-audio-project.module';
 
 @Module({
   imports: [
@@ -52,13 +53,14 @@ import { SupportTextModule } from './support-text/support-text.module';
     LanguageModule,
     UserCorpusAccessModule,
     CorpusDomainModule,
-    S3StorageModule,
+    S3StorageClientModule,
     SeederModule,
     ProjectModule,
     AudioFileModule,
     AudioQualityModule,
     ExportModule,
     SupportTextModule,
+    ExistingAudioProjectModule,
   ],
   controllers: [AppController],
   providers: [AppService],

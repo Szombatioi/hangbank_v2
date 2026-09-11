@@ -9,8 +9,8 @@ import * as path from 'path';
 import * as stream from 'stream';
 
 @Injectable()
-export class S3StorageService implements OnModuleInit {
-  private readonly logger = new Logger(S3StorageService.name);
+export class AppService {
+  private readonly logger = new Logger(AppService.name);
 
   public readonly audioBucket = 'audio';
   public readonly originalCorpusBucket = 'corpus-original';
@@ -21,9 +21,6 @@ export class S3StorageService implements OnModuleInit {
     this.originalCorpusBucket,
   ];
   private readonly minioClient: Client;
-  // Base URL the minio client signs from (internal docker hostname), and the public
-  // base the browser can actually reach (e.g. via the reverse proxy). Presigned URLs
-  // are rewritten from the former to the latter so they work outside the network.
   private readonly internalBaseUrl: string;
   private readonly publicBaseUrl?: string;
 
@@ -57,7 +54,7 @@ export class S3StorageService implements OnModuleInit {
   }
 
   async uploadObject(file: Express.Multer.File, bucket: string) {
-    console.log(file);
+    // console.log(file);
     const objectName = `${Date.now()}-${path.basename(file.originalname)}`; //Creating unique object name
 
     //Validating if bucket exists
@@ -128,9 +125,6 @@ export class S3StorageService implements OnModuleInit {
         path.basename(objectName),
         expirySeconds,
       );
-      // Rewrite the internal endpoint to the public one (when configured) so the
-      // browser can fetch the object — the signature stays valid as long as the
-      // proxy forwards the request to MinIO with the original Host header.
       return this.publicBaseUrl
         ? url.replace(this.internalBaseUrl, this.publicBaseUrl)
         : url;
@@ -140,7 +134,6 @@ export class S3StorageService implements OnModuleInit {
     }
   }
 
-  //Deletes a specific object
   async deleteObject(objectName: string, bucket: string): Promise<void> {
     //Validating if bucket exists
     if (!this.bucketNames.includes(bucket)) {

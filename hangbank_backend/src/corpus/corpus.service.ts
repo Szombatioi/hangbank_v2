@@ -19,7 +19,7 @@ import { CorpusDomainService } from 'src/corpus-domain/corpus-domain.service';
 import { LanguageService } from 'src/language/language.service';
 import { CorpusDomain } from 'src/corpus-domain/entities/corpus-domain.entity';
 import type { IJwtPayload } from '@hangbank/shared';
-import { S3StorageService } from 'src/s3-storage/s3-storage.service';
+import { S3StorageService } from 'src/s3-storage-client/s3-storage-client.service';
 import { CorpusProcesserService } from './corpus-processer.service';
 import { AudioFileService } from 'src/audio-file/audio-file.service';
 import { AudioQualityService } from 'src/audio-quality/audio-quality.service';

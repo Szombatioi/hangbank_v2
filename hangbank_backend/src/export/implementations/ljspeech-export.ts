@@ -4,7 +4,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { ExportBase } from "./export-base";
-import { S3StorageService } from "src/s3-storage/s3-storage.service";
+import { S3StorageService } from "src/s3-storage-client/s3-storage-client.service";
 import { ZipArchive } from "archiver";
 
 @Injectable()

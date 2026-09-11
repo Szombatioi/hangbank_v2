@@ -55,6 +55,9 @@ services:
       ENABLED_URLS: https://${PUBLIC_HOST}
       AUTH_SERVICE_URL: http://auth-service:8888
       AQC_SERVICE_URL: http://audio-quality-checker:3002
+      # All S3/MinIO traffic is proxied through the s3-storage-manager service;
+      # the backend itself no longer holds MinIO credentials.
+      S3_STORAGE_SERVICE_URL: http://s3-storage-manager:3005
       # Database
       DB_TYPE: postgres
       DB_HOST: hangbank-db
@@ -62,16 +65,9 @@ services:
       DB_USERNAME: ${HANGBANK_DB_USER}
       DB_PASSWORD: ${HANGBANK_DB_PASSWORD}
       DB_DATABASE: ${HANGBANK_DB_NAME}
-      # MinIO — internal endpoint for server-side ops, public base for presigned URLs
-      MINIO_ENDPOINT: minio
-      MINIO_PORT: 9000
-      MINIO_USE_SSL: "false"
-      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
-      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
-      MINIO_PUBLIC_URL: https://${PUBLIC_HOST}/minio
     depends_on:
       - hangbank-db
-      - minio
+      - s3-storage-manager
       - auth-service
       - audio-quality-checker
 
@@ -104,6 +100,28 @@ services:
     restart: unless-stopped
     environment:
       PORT: 3002
+
+  # ---- S3 storage manager (NestJS) ----
+  # Sole owner of the MinIO client — holds the credentials, ensures buckets
+  # exist, and exposes upload/download/presign/delete over HTTP so app services
+  # never talk to MinIO directly.
+  s3-storage-manager:
+    build:
+      context: ./s3-storage-manager
+      dockerfile: Dockerfile
+    container_name: hangbank_s3_storage_manager
+    restart: unless-stopped
+    environment:
+      PORT: 3005
+      # MinIO — internal endpoint for server-side ops, public base for presigned URLs
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_USE_SSL: "false"
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      MINIO_PUBLIC_URL: https://${PUBLIC_HOST}/minio
+    depends_on:
+      - minio
 
   # ---- Backend database ----
   hangbank-db:

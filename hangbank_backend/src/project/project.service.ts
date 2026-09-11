@@ -14,7 +14,7 @@ import type { IJwtPayload } from '@hangbank/shared';
 import { computeAge } from 'src/helpers/compute-age';
 import { Readable } from 'stream';
 // import { Blob } from 'buffer';
-import { S3StorageService } from 'src/s3-storage/s3-storage.service';
+import { S3StorageService } from 'src/s3-storage-client/s3-storage-client.service';
 import { AudioFileService } from 'src/audio-file/audio-file.service';
 import { CorpusProjectDetailDto } from './dto/corpus-project-detail.dto';
 import { BadRequestException } from '@nestjs/common';
@@ -178,8 +178,6 @@ export class ProjectService {
     return audioFile;
   }
 
-  //Returns the audio file's metadata (owner-checked), plus the block it belongs
-  //to and the project's recording settings — enough to re-record it in place
   async getAudioFile(requesterId: string, audioFileId: string) {
     const audioFile = await this.loadAuthorizedAudioFile(
       requesterId,
