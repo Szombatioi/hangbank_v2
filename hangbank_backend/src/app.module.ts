@@ -20,6 +20,7 @@ import { AudioQualityModule } from './audio-quality/audio-quality.module';
 import { ExportModule } from './export/export.module';
 import { SupportTextModule } from './support-text/support-text.module';
 import { ExistingAudioProjectModule } from './existing-audio-project/existing-audio-project.module';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [
@@ -47,6 +48,18 @@ import { ExistingAudioProjectModule } from './existing-audio-project/existing-au
         synchronize: true,
       }),
     }),
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        connection: {
+          host: config.get('REDIS_HOST', 'localhost'),
+          port: config.get<number>('REDIS_PORT', 6379),
+          password: config.get('REDIS_PASSWORD') || undefined,
+        },
+      }),
+    }),
+    BullModule.registerQueue({ name: "jobs" }),
     AuthModule,
     UserModule,
     CorpusModule,
