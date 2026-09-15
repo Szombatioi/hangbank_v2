@@ -234,3 +234,121 @@
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 /backend/report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+################################ S3 ############################
+
+# compiled output
+/s3-storage-manager/dist
+/s3-storage-manager/node_modules
+/s3-storage-manager/build
+
+# Logs
+/s3-storage-manager/logs
+/s3-storage-manager/*.log
+/s3-storage-manager/npm-debug.log*
+/s3-storage-manager/pnpm-debug.log*
+/s3-storage-manager/yarn-debug.log*
+/s3-storage-manager/yarn-error.log*
+/s3-storage-manager/lerna-debug.log*
+
+# OS
+/s3-storage-manager/.DS_Store
+
+# Tests
+/s3-storage-manager/coverage
+/s3-storage-manager/.nyc_output
+
+# IDEs and editors
+/s3-storage-manager/.idea
+/s3-storage-manager/.project
+/s3-storage-manager/.classpath
+/s3-storage-manager/.c9/
+/s3-storage-manager/*.launch
+/s3-storage-manager/.settings/
+/s3-storage-manager/*.sublime-workspace
+
+# IDE - VSCode
+/s3-storage-manager/.vscode/*
+/s3-storage-manager/!.vscode/settings.json
+/s3-storage-manager/!.vscode/tasks.json
+/s3-storage-manager/!.vscode/launch.json
+/s3-storage-manager/!.vscode/extensions.json
+
+# dotenv environment variable files
+/s3-storage-manager/.env
+/s3-storage-manager/.env.development.local
+/s3-storage-manager/.env.test.local
+/s3-storage-manager/.env.production.local
+/s3-storage-manager/.env.local
+
+# temp directory
+/s3-storage-manager/.temp
+/s3-storage-manager/.tmp
+
+# Runtime data
+/s3-storage-manager/pids
+/s3-storage-manager/*.pid
+/s3-storage-manager/*.seed
+/s3-storage-manager/*.pid.lock
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+/s3-storage-manager/report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+################################ TPM ############################
+
+# compiled output
+/transcript-process-manager/dist
+/transcript-process-manager/node_modules
+/transcript-process-manager/build
+
+# Logs
+/transcript-process-manager/logs
+/transcript-process-manager/*.log
+/transcript-process-manager/npm-debug.log*
+/transcript-process-manager/pnpm-debug.log*
+/transcript-process-manager/yarn-debug.log*
+/transcript-process-manager/yarn-error.log*
+/transcript-process-manager/lerna-debug.log*
+
+# OS
+/transcript-process-manager/.DS_Store
+
+# Tests
+/transcript-process-manager/coverage
+/transcript-process-manager/.nyc_output
+
+# IDEs and editors
+/transcript-process-manager/.idea
+/transcript-process-manager/.project
+/transcript-process-manager/.classpath
+/transcript-process-manager/.c9/
+/transcript-process-manager/*.launch
+/transcript-process-manager/.settings/
+/transcript-process-manager/*.sublime-workspace
+
+# IDE - VSCode
+/transcript-process-manager/.vscode/*
+/transcript-process-manager/!.vscode/settings.json
+/transcript-process-manager/!.vscode/tasks.json
+/transcript-process-manager/!.vscode/launch.json
+/transcript-process-manager/!.vscode/extensions.json
+
+# dotenv environment variable files
+/transcript-process-manager/.env
+/transcript-process-manager/.env.development.local
+/transcript-process-manager/.env.test.local
+/transcript-process-manager/.env.production.local
+/transcript-process-manager/.env.local
+
+# temp directory
+/transcript-process-manager/.temp
+/transcript-process-manager/.tmp
+
+# Runtime data
+/transcript-process-manager/pids
+/transcript-process-manager/*.pid
+/transcript-process-manager/*.seed
+/transcript-process-manager/*.pid.lock
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+/transcript-process-manager/report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
