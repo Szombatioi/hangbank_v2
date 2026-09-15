@@ -1,0 +1,15 @@
+# Fixes the CUDA-Torch regression in hwdsl2/whisper-live-server.
+#
+# Recent PyTorch (>=2.11) ships a CUDA-13 wheel as the DEFAULT on PyPI for
+# linux/aarch64. That build preloads libcudart.so.13 on import and crashes on
+# any machine without CUDA (e.g. an Apple Silicon Mac). We replace it with a
+# CPU-only Torch. Torch is only used here for Silero VAD, so an older CPU build
+# is perfectly fine.
+FROM hwdsl2/whisper-live-server
+
+# "torch<2.8" resolves, on aarch64 PyPI, to a CPU-only wheel.
+# (If pip reports a resolver conflict, bump the pin — e.g. "torch<2.9".)
+RUN /opt/venv/bin/pip install --no-cache-dir --force-reinstall "torch<2.8"
+
+# Sanity check at build time: fail the build if Torch still can't import.
+RUN /opt/venv/bin/python -c "import torch; print('CPU torch OK:', torch.__version__)"

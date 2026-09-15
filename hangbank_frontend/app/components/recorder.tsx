@@ -56,6 +56,7 @@ export default function Recorder({
   const [audioLoaded, setAudioLoaded] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [reRecordConfirmOpen, setReRecordConfirmOpen] = useState(false);
+  const [allowLiveTranscription, setAllowLiveTranscription] = useState(false);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const actualSampleRateRef = useRef<number>(sampleRate);
@@ -66,6 +67,7 @@ export default function Recorder({
   const onAudioBlobRef = useRef(onAudioBlob);
   const waveformRef = useRef<HTMLDivElement>(null);
   const waveSurferRef = useRef<WaveSurfer | null>(null);
+  const liveTranscriptionWsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
     isRecordingRef.current = isRecording;
@@ -193,6 +195,76 @@ export default function Recorder({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  //Attempt connecting to the Live-Transcription service on page load
+  useEffect(() => {
+    const WS_URL = 'ws://localhost:8080/' //TODO: env variable!!
+    const ws = new WebSocket(WS_URL);
+    ws.binaryType = 'arraybuffer';
+    liveTranscriptionWsRef.current = ws;
+    const uid = crypto.randomUUID();
+
+    const lang = 'en'; //transcriptionLang
+
+    ws.onopen = () => {
+      console.log("WS opening...")
+      ws.send(
+        JSON.stringify({
+          uid: uid,
+          language: lang,
+          task: 'transcribe',
+          model: 'tiny',        // TODO: must match WHISPERLIVE_MODEL on the server, ENV variable!!
+          use_vad: true,
+          audio_format: 'int16', // (signed 16-bit PCM)
+        }),
+      );
+      console.log("WS opening message sent...")
+    };
+
+    ws.onmessage = async (evt) => {
+      if (typeof evt.data !== 'string') return;
+      let msg: any;
+
+      try {
+        msg = JSON.parse(evt.data);
+      } catch {
+        return;
+      }
+      if (msg.uid && msg.uid !== uid) return;
+
+      console.log("WS message: ", msg)
+
+      if (msg.message === 'SERVER_READY') {
+        // await allowRecording();
+        setAllowLiveTranscription(true);
+        showMessage("Ready for recording!", Severity.success);
+        return;
+      }
+
+      if (msg.status === 'WAIT' || msg.message === 'WAIT') {
+        // setError('Server is at capacity — try again shortly.');
+        return;
+      }
+      // WhisperLive resends the running list of segments; last one may be partial.
+      if (Array.isArray(msg.segments)) {
+        console.log(msg.segments)
+        // setSegments(msg.segments);
+      }
+    };
+
+    ws.onerror = () => {
+      //TODO: display text
+      console.log("Server unreachable / full")
+      // setError('WebSocket error — is the server reachable, or is it full (all 4 slots taken)?');
+    };
+    ws.onclose = () => {
+      //TODO: global cleanup method
+      liveTranscriptionWsRef.current?.close();
+      liveTranscriptionWsRef.current = null;
+    };
+  }, []);
+
+  
+
   function visualizePCM(chunks: Float32Array[]) {
     if (!audioContextRef.current || !waveSurferRef.current) return;
     const totalLength = chunks.reduce((sum, c) => sum + c.length, 0);
@@ -271,6 +343,10 @@ export default function Recorder({
 
     workletNode.port.onmessage = (e) => {
       pcmChunksRef.current.push(e.data as Float32Array);
+      if(liveTranscriptionWsRef.current?.readyState == WebSocket.OPEN) {
+        console.log("Sending audio chunks");
+        liveTranscriptionWsRef.current?.send(e.data); //TODO: this will not be good i think
+      }
     };
 
     source.connect(workletNode);

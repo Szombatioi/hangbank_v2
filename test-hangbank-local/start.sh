@@ -3,11 +3,11 @@
 
 set -e
 
-BACKEND_DIR="./hangbank_backend" #DB: 5433
-FRONTEND_DIR="./hangbank_frontend"
-AQC_DIR="./audio-quality-checker"
-AUTH_DIR="./auth" #DB: 5434
-S3_DIR="./s3-storage-manager" #Minio: 9000
+BACKEND_DIR="../hangbank_backend" #DB: 5433
+FRONTEND_DIR="../hangbank_frontend"
+AQC_DIR="../audio-quality-checker"
+AUTH_DIR="../auth" #DB: 5434
+S3_DIR="../s3-storage-manager" #Minio: 9000
 
 
 cleanup(){

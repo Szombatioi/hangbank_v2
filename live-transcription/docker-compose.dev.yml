@@ -1,0 +1,47 @@
+services:
+  whisper-live-1:
+    image: whisper-live-cpu-fixed
+    container_name: whisper-live-1
+    platform: linux/arm64
+    restart: always
+    environment:
+      WHISPERLIVE_MODEL: tiny
+      WHISPERLIVE_MAX_CLIENTS: "2"
+      WHISPERLIVE_THREADS: "2"
+      WHISPERLIVE_API_KEY: ""                # auth disabled
+    volumes:
+      - whisper-live-data:/var/lib/whisper-live
+    networks: [wl]
+    # No published ports
+
+  whisper-live-2:
+    image: whisper-live-cpu-fixed   # hwdsl2/whisper-live-server
+    container_name: whisper-live-2
+    platform: linux/arm64
+    restart: always
+    environment:
+      WHISPERLIVE_MODEL: tiny
+      WHISPERLIVE_MAX_CLIENTS: "2"
+      WHISPERLIVE_THREADS: "2"
+      WHISPERLIVE_API_KEY: ""
+    volumes:
+      - whisper-live-data:/var/lib/whisper-live
+    networks: [wl]
+
+  nginx:
+    image: nginx:alpine
+    container_name: whisper-live-nginx
+    restart: always
+    depends_on: [whisper-live-1, whisper-live-2]
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    networks: [wl]
+
+networks:
+  wl:
+
+volumes:
+  whisper-live-data:
+    name: whisper-live-data
