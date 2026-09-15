@@ -5,6 +5,7 @@
 /audio-quality-checker/onnx/ecapa_tdnn.onnx.data
 *.venv*
 .claude/*
+.DS_Store
 
 ############################## Frontend ############################
 
