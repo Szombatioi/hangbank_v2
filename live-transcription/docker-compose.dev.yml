@@ -9,13 +9,14 @@ services:
       WHISPERLIVE_MAX_CLIENTS: "2"
       WHISPERLIVE_THREADS: "2"
       WHISPERLIVE_API_KEY: ""                # auth disabled
+      WHISPERLIVE_MAX_CONNECTION_TIME: "3600" #1 hour of connection allowed
     volumes:
       - whisper-live-data:/var/lib/whisper-live
     networks: [wl]
     # No published ports
 
   whisper-live-2:
-    image: whisper-live-cpu-fixed   # hwdsl2/whisper-live-server
+    image: whisper-live-cpu-fixed
     container_name: whisper-live-2
     platform: linux/arm64
     restart: always
@@ -24,6 +25,7 @@ services:
       WHISPERLIVE_MAX_CLIENTS: "2"
       WHISPERLIVE_THREADS: "2"
       WHISPERLIVE_API_KEY: ""
+      WHISPERLIVE_MAX_CONNECTION_TIME: "3600"
     volumes:
       - whisper-live-data:/var/lib/whisper-live
     networks: [wl]

@@ -395,6 +395,8 @@
         "source": "Forrás",
         "transcription": "Átirat",
         "transcription_placeholder": "Ma délután sétálni indultunk a parkba.",
+    "transcription_full": "Sajnáljuk, az élő leiratozó szolgáltatás jelenleg megtelt. Kérjük, próbáld újra később.",
+    "transcription_lost": "A leiratozó szolgáltatással megszakadt a kapcsolat. Kérjük, tölts újra az oldalt.",
         "next_block_tooltip": "Ugrás a következő blokkra",
         "prev_block_tooltip": "Ugrás az előző blokkra",
         "rerecord_confirm_title": "Újra felveszed ezt a blokkot?",

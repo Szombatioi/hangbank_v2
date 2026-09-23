@@ -395,6 +395,8 @@
         "source": "Source",
         "transcription": "Transcription",
         "transcription_placeholder": "The quick brown fox jumps over the lazy dog.",
+    "transcription_full": "Sorry, the live transcription service is full at the moment. Please try again later.",
+    "transcription_lost": "The connection to the transcription service was lost. Please reload the page.",
         "next_block_tooltip": "Go to the next block",
         "prev_block_tooltip": "Go to the previous block",
         "rerecord_confirm_title": "Re-record this block?",

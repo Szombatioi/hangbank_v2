@@ -25,11 +25,11 @@ echo "Starting backend"
 (cd "$BACKEND_DIR" && npm run start:dev) &
 echo "Starting frontend"
 (cd "$FRONTEND_DIR" && npm run dev) &
-echo "Starting aqc"
-(cd "$AQC_DIR" && npm run start:dev) &
 echo "Starting auth"
 (cd "$AUTH_DIR" && npm run start:dev) &
 echo "Starting s3 manager"
 (cd "$S3_DIR" && npm run start:dev) &
+# echo "Starting aqc"
+# (cd "$AQC_DIR" && npm run start:dev) &
 
 wait
