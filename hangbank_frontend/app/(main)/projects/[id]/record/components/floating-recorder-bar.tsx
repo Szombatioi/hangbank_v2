@@ -2,7 +2,7 @@
 
 import { Box, Grid, IconButton, Paper, Tooltip, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import Recorder, { RecorderAudioFile } from "@/app/components/recorder";
+import Recorder, { RecorderAudioFile, UseTranscription } from "@/app/components/recorder";
 import SaveButton from "@/app/components/save-button";
 import { BODY, LABEL } from "@/app/components/style-constants";
 import { useColors } from "../helpers/colors";
@@ -12,7 +12,7 @@ interface FloatingRecorderBarProps {
     showRecorder: boolean;
     deviceId: string;
     sampleRate?: number;
-    onAudioBlob: (blob: Blob, durationSeconds: number) => void;
+    onAudioBlob: (blob: Blob, durationSeconds: number, takeId: number) => void;
     bufferSize: number;
     saving: boolean;
     onSave: () => void;
@@ -25,14 +25,13 @@ interface FloatingRecorderBarProps {
     canPrev: boolean;
     canNext: boolean;
     /** Live transcription output + language (BCP-47) */
-    onTranscript?: (text: string) => void;
-    transcriptionLang?: string;
+    useTranscription?: UseTranscription;
 }
 
 export default function FloatingRecorderBar({
     showRecorder, deviceId, sampleRate, onAudioBlob, bufferSize, saving, onSave,
     recordedAudio, recorderKey, onPrev, onNext, canPrev, canNext,
-    onTranscript, transcriptionLang,
+    useTranscription,
 }: FloatingRecorderBarProps) {
     const { t } = useTranslation("common");
     const COLOR = useColors();
@@ -41,7 +40,7 @@ export default function FloatingRecorderBar({
         <Box
             sx={{
                 position: "absolute",
-                bottom: 24,
+                bottom: 0,
                 left: "50%",
                 transform: "translateX(-50%)",
                 width: "min(720px, calc(100% - 96px))",
@@ -54,7 +53,7 @@ export default function FloatingRecorderBar({
                     bgcolor: COLOR.glassBg,
                     backdropFilter: "blur(16px)",
                     borderRadius: 4,
-                    border: `1px solid ${COLOR.glassBorder}`,
+                    border: `1px solid grey`,
                     boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
                     p: 3,
                     display: "flex",
@@ -70,8 +69,7 @@ export default function FloatingRecorderBar({
                         bitDepth={16}
                         recordedAudio={recordedAudio}
                         sessionKey={recorderKey}
-                        onTranscript={onTranscript}
-                        transcriptionLang={transcriptionLang}
+                        useTranscription={useTranscription}
                     />
                 )}
 

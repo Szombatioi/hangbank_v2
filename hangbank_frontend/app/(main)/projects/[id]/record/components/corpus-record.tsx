@@ -61,6 +61,9 @@ function CorpusRecordInner() {
     const blobBufferRef = useRef<Map<string, BufferedRecording>>(new Map());
     const [blobBufferSize, setBlobBufferSize] = useState(0);
 
+    // Maps a recorder "take" to the block it recorded
+    const takeToBlockRef = useRef<Map<number, { blockId: string; blockIndex: number }>>(new Map());
+
     // Transcription draft (per-block); TODO: persist when backend supports it
     const [transcription, setTranscription] = useState("");
     const transcriptionRef = useRef(""); // latest value for stable access in callbacks
@@ -85,10 +88,26 @@ function CorpusRecordInner() {
         }
     }, []);
 
-    // Load the active block's transcription whenever it changes (navigation, auto-advance,
-    // or first load): prefer a buffered (unsaved) take's transcription, then the saved
-    // recording's, else empty. Keyed on the block id so it never fires mid-recording
-    // (same block) and won't be clobbered by load-ahead appends.
+    const getOrCreateBuffer = useCallback((blockId: string, blockIndex: number): BufferedRecording => {
+        let entry = blobBufferRef.current.get(blockId);
+        if (!entry) {
+            entry = { blockId, blockIndex, durationSeconds: 0, transcription: "" };
+            blobBufferRef.current.set(blockId, entry);
+        }
+        return entry;
+    }, []);
+
+    const handleTranscript = useCallback((takeId: number, text: string, _isFinal: boolean) => {
+        const mapped = takeToBlockRef.current.get(takeId);
+        const curr = blocksRef.current[currentIdxRef.current];
+        const target = mapped ?? (curr ? { blockId: curr.id, blockIndex: curr.blockIndex } : null);
+        if (!target) return;
+        const entry = getOrCreateBuffer(target.blockId, target.blockIndex);
+        entry.transcription = text;
+        if (curr && curr.id === target.blockId) setTranscription(text); // mirror active block to display
+        setBlobBufferSize(blobBufferRef.current.size); // trigger re-render
+    }, [getOrCreateBuffer]);
+
     useEffect(() => {
         const block = blocksRef.current[currentIdx];
         const buffered = block ? blobBufferRef.current.get(block.id) : undefined;
@@ -176,17 +195,14 @@ function CorpusRecordInner() {
         }
     }, [fetchBlocks, startFrom]);
 
-    const handleAudioBlob = useCallback((blob: Blob, durationSeconds: number) => {
+    const handleAudioBlob = useCallback((blob: Blob, durationSeconds: number, takeId: number) => {
         setCurrentIdx(prev => {
             const block = blocksRef.current[prev];
             if (block) {
-                blobBufferRef.current.set(block.id, {
-                    blob,
-                    blockId: block.id,
-                    blockIndex: block.blockIndex,
-                    durationSeconds,
-                    transcription: transcriptionRef.current,
-                });
+                takeToBlockRef.current.set(takeId, { blockId: block.id, blockIndex: block.blockIndex });
+                const entry = getOrCreateBuffer(block.id, block.blockIndex);
+                entry.blob = blob;
+                entry.durationSeconds = durationSeconds;
                 setBlobBufferSize(blobBufferRef.current.size);
             }
             const next = prev + 1;
@@ -194,7 +210,7 @@ function CorpusRecordInner() {
             maybeLoadAhead(next + UPCOMING_PREVIEW);
             return next;
         });
-    }, [maybeLoadAhead]);
+    }, [maybeLoadAhead, getOrCreateBuffer]);
 
     // Move one block back/forward; fetch more blocks when nearing the loaded edge.
     // (Prev never needs a fetch — pagination only runs forward from startFrom.)
@@ -215,7 +231,8 @@ function CorpusRecordInner() {
     }, [maybeLoadAhead, startFrom]);
 
     const handleSave = async () => {
-        const recordings = Array.from(blobBufferRef.current.values());
+        const recordings = Array.from(blobBufferRef.current.values())
+            .filter((r): r is BufferedRecording & { blob: Blob } => !!r.blob);
         if (recordings.length === 0 || saving) return;
 
         const form = new FormData();
@@ -324,19 +341,19 @@ function CorpusRecordInner() {
                     display: "grid",
                     gridTemplateColumns: "1fr 8fr 3fr",
                     overflow: "hidden",
-                    pb: 18, // leave room for the floating recorder
+                    pb: 0,
                 }}
             >
                 <Box sx={{ p: 4, display: "flex", flexDirection: "column", gap: 4 }}>
                     <StatusPill label={t("record.status_recording")} />
                 </Box>
 
-                <Box sx={{ px: 8, py: 6, overflowY: "auto", display: "flex", flexDirection: "column", gap: 12 }}>
+                <Box sx={{ px: 8, py: 6, overflowY: "auto", display: "flex", flexDirection: "column", gap: 6 }}>
                     <PromptHeader
                         countLabel={currentCountLabel}
                         promptText={promptText}
                         isRecorded={!isSessionDone && !!currentBlock?.isRecorded}
-                        isBuffered={!isSessionDone && !!currentBlock && bufferedRecordings.has(currentBlock.id)}
+                        isBuffered={!isSessionDone && !!currentBlock && !!bufferedRecordings.get(currentBlock.id)?.blob}
                     />
 
                     {!isSessionDone && (
@@ -376,8 +393,14 @@ function CorpusRecordInner() {
                 onNext={handleNext}
                 canPrev={canPrev}
                 canNext={canNext}
-                onTranscript={setTranscription}
-                transcriptionLang={project?.languageCode}
+                useTranscription={
+                    project?.languageCode && currentBlock
+                      ? {
+                          onTranscript: handleTranscript,
+                          transcriptionLang: project.languageCode.split("-")[0],
+                        }
+                      : undefined
+                  }
             />
 
             {/* Blocking master-recording gate — only after mic is resolved so the dialog has a deviceId */}

@@ -73,8 +73,8 @@ export default function SurroundingBlocks({ blocks, currentIdx, bufferedRecordin
                     const buffered = bufferedRecordings.get(block.id);
                     const isRecorded = block.isRecorded; // a previously recorded (saved) audio file
                     const text = block.text || `${t("record.block")} #${block.blockIndex + 1}`;
-                    const durationLabel = buffered ? formatDuration(buffered.durationSeconds) : "";
-                    const hasChip = isRecorded || !!buffered;
+                    const durationLabel = buffered?.blob ? formatDuration(buffered.durationSeconds) : "";
+                    const hasChip = isRecorded || !!buffered?.blob;
 
                     return (
                         <Box

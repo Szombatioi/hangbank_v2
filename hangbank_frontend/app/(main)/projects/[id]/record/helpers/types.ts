@@ -2,7 +2,7 @@ export interface RecordingBlockDto {
     id: string;
     blockIndex: number;
     isRecorded: boolean;
-    text?: string; // populated when backend provides corpus text per block
+    text?: string;
     audioFile?: {
         id: string;
         s3Link: string;
@@ -11,7 +11,7 @@ export interface RecordingBlockDto {
 }
 
 export interface BufferedRecording {
-    blob: Blob;
+    blob?: Blob; // null until recording is finished
     blockId: string;
     blockIndex: number;
     durationSeconds: number;

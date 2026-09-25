@@ -21,7 +21,7 @@ export default function RightPanel({
     return (
         <Box
             sx={{
-                p: 6,
+                p: 2,
                 display: "flex",
                 flexDirection: "column",
                 gap: 6,

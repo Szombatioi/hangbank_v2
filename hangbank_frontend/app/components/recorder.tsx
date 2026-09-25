@@ -4,7 +4,7 @@
 //1. Per-block transcription (return segments with time,iscompleted and block)
 //2. merge transcription parameters into one object in the interface, do not send one-by-one, send all or nothing
 import { useEffect, useRef, useState } from "react";
-import { CircularProgress, IconButton, Paper } from "@mui/material";
+import { Box, IconButton, Paper } from "@mui/material";
 import { Pause, PlayArrow, Replay, Stop } from "@mui/icons-material";
 import WaveSurfer from "wavesurfer.js";
 import { useTranslation } from "react-i18next";
@@ -12,35 +12,39 @@ import api from "@/app/axios";
 import { translateHttpError } from "@/app/components/helpers/http-error";
 import { Severity, useSnackbar } from "@/app/providers/SnackbarProvider";
 import ConfirmDialog from "@/app/components/confirm-dialog";
-import Transcriber, { TranscriberHandle } from "@/app/components/transcriber";
 import { formatDuration } from "./helpers/formatDuration";
 
-// Same shape as BlockDto's audioFile
+// one connection per block
+const WLK_URL = "ws://localhost:8000/asr"; //TODO: env variable
+
 export interface RecorderAudioFile {
   id: string;
   s3Link: string;
   transcription: string;
 }
 
-export interface TranscriptionSegment{
+export interface TranscriptionSegment {
   start: string;
   end: string;
   text: string;
   completed: boolean;
 }
 
+export interface UseTranscription {
+  onTranscript: (takeId: number, text: string, isFinal: boolean) => void;
+  transcriptionLang: string;
+}
+
 interface RecorderProps {
   deviceId: string;
-  onAudioBlob: (blob: Blob, durationSeconds: number) => void;
+  onAudioBlob: (blob: Blob, durationSeconds: number, takeId: number) => void;
   sampleRate?: number;
   bitDepth?: number;
-  //When present, the recorder loads this existing audio and shows its waveform
+  //When present, loads this existing audio
   recordedAudio?: RecorderAudioFile | null;
-  //Changes when the active block changes, so the recorder resets/reloads per block */
+  //Block identification, change = reset record
   sessionKey?: string;
-  //When provided, live speech-to-text runs alongside recording */
-  onTranscript?: (text: string) => void;
-  transcriptionLang?: string;
+  useTranscription?: UseTranscription;
 }
 
 export default function Recorder({
@@ -50,14 +54,11 @@ export default function Recorder({
   bitDepth = 16,
   recordedAudio = null,
   sessionKey,
-  onTranscript,
-  transcriptionLang,
+  useTranscription,
 }: RecorderProps) {
   const { showMessage } = useSnackbar();
   const { t } = useTranslation("common");
   const transcriptionSampleRate = 16000;
-  const wantsTranscription =
-    onTranscript !== undefined && transcriptionLang !== undefined;
 
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -66,12 +67,6 @@ export default function Recorder({
   const [audioLoaded, setAudioLoaded] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [reRecordConfirmOpen, setReRecordConfirmOpen] = useState(false);
-  // UI state for the live-transcription connection (the send gate uses the ref below)
-  const [transcriptionStatus, setTranscriptionStatus] = useState<
-    "connecting" | "ready" | "full" | "disconnected"
-  >("connecting");
-
-  // const transcriberRef = useRef<TranscriberHandle>(null); //TODO: may be useless
   const transcriptionContextRef = useRef<AudioContext | null>(null);
   const transcriptionWorkletRef = useRef<AudioWorkletNode | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -83,8 +78,9 @@ export default function Recorder({
   const onAudioBlobRef = useRef(onAudioBlob);
   const waveformRef = useRef<HTMLDivElement>(null);
   const waveSurferRef = useRef<WaveSurfer | null>(null);
-  const liveTranscriptionWsRef = useRef<WebSocket | null>(null); //WebSocket
-  const transcriptionReadyRef = useRef(false); //<-> allowLiveTranscription
+  const activeWsRef = useRef<WebSocket | null>(null);
+  const takeIdRef = useRef(-1);
+  const useTranscriptionRef = useRef(useTranscription);
 
   useEffect(() => {
     isRecordingRef.current = isRecording;
@@ -165,7 +161,7 @@ export default function Recorder({
     };
   }, [recordedAudio?.id, sessionKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  //Drawing the waveform every 0.5s
+  //Drawing the waveform
   useEffect(() => {
     if (!isRecording || isPaused) return;
     const interval = setInterval(() => visualizePCM(pcmChunksRef.current), 500);
@@ -193,12 +189,14 @@ export default function Recorder({
     const handleKeyDown = async (e: KeyboardEvent) => {
       if (e.code === "Space" && isRecordingRef.current) {
         e.preventDefault();
+        const takeId = takeIdRef.current;
         const { blob, durationSeconds: dur } = buildBlob();
         cleanupRecording();
+        finalizeTranscription();
         setIsRecording(false);
         setIsPaused(false);
-        onAudioBlobRef.current(blob, dur);
-        await startRecordingInternal();
+        onAudioBlobRef.current(blob, dur, takeId);
+        await startRecordingInternal(); // fresh socket + audio
       }
       if (e.code === "Enter" && isRecordingRef.current) {
         e.preventDefault();
@@ -208,9 +206,10 @@ export default function Recorder({
       if (e.code === "Escape" && isRecordingRef.current) {
         e.preventDefault();
         cleanupRecording();
+        activeWsRef.current?.close(); // discard transcription
+        activeWsRef.current = null;
         setIsRecording(false);
         setIsPaused(false);
-        // transcriberRef.current?.stop();
         // Cancel: do NOT send audio data back
       }
     };
@@ -218,90 +217,16 @@ export default function Recorder({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  //Attempt connecting to the Live-Transcription service on page load
   useEffect(() => {
-    if (!wantsTranscription) return;
-    const WS_URL = "ws://localhost:8080/"; //TODO: env variable!!
-    const ws = new WebSocket(WS_URL);
-    ws.binaryType = "arraybuffer";
-    liveTranscriptionWsRef.current = ws;
-    const uid = crypto.randomUUID();
+    useTranscriptionRef.current = useTranscription;
+  }, [useTranscription]);
 
-    const lang = transcriptionLang?.split("-")[0]; //transcription lang
-
-    ws.onopen = () => {
-      console.log("WS opening...");
-      ws.send(
-        JSON.stringify({
-          uid: uid,
-          language: lang,
-          task: "transcribe",
-          model: "tiny", // TODO: must match WHISPERLIVE_MODEL on the server, ENV variable!!
-          use_vad: true,
-          //audio_format: 'int16', // (signed 16-bit PCM)
-        })
-      );
-      console.log("WS opening message sent...");
-    };
-
-    ws.onmessage = async (evt) => {
-      if (typeof evt.data !== "string") return;
-      let msg: any;
-
-      try {
-        msg = JSON.parse(evt.data);
-      } catch {
-        return;
-      }
-      if (msg.uid && msg.uid !== uid) return;
-
-      console.log("WS message: ", msg);
-
-      if (msg.message === "SERVER_READY") {
-        setTranscriptionStatus("ready");
-        transcriptionReadyRef.current = true;
-        showMessage("Ready for recording!", Severity.success);
-        return;
-      }
-
-      if (msg.status === "WAIT" || msg.message === "WAIT") {
-        // Server is at capacity (all slots taken)
-        setTranscriptionStatus("full");
-        return;
-      }
-      // list of segments arrived
-      if (Array.isArray(msg.segments)) {
-        console.log(msg.segments);
-        onTranscript(msg.segments.map((s: TranscriptionSegment) => s.text).join(" "));
-        // setSegments(msg.segments);
-      }
-    };
-
-    ws.onerror = () => {
-      // Ignore errors from a superseded socket (e.g. React StrictMode remount)
-      if (liveTranscriptionWsRef.current === ws) {
-        setTranscriptionStatus("disconnected");
-      }
-    };
-    ws.onclose = () => {
-      // Only react to the socket we currently hold; a superseded socket
-      // (React StrictMode remount) must not flip the UI or null the new ref.
-      if (liveTranscriptionWsRef.current === ws) {
-        liveTranscriptionWsRef.current = null;
-        transcriptionReadyRef.current = false;
-        setTranscriptionStatus("disconnected");
-      }
-    };
-
+  useEffect(() => {
     return () => {
-      ws.close();
-      if (liveTranscriptionWsRef.current === ws) {
-        liveTranscriptionWsRef.current = null;
-        transcriptionReadyRef.current = false;
-        setTranscriptionStatus("connecting");
-      }
+      activeWsRef.current?.close();
+      activeWsRef.current = null;
     };
-  }, [onTranscript, transcriptionLang]);
+  }, []);
 
   //Visualizes the current blob waveform
   function visualizePCM(chunks: Float32Array[]) {
@@ -337,27 +262,72 @@ export default function Recorder({
     };
   }
 
+  function openTranscriptionSocket(takeId: number): WebSocket {
+    const lang =
+      useTranscriptionRef.current?.transcriptionLang?.split("-")[0] || "auto";
+    const ws = new WebSocket(`${WLK_URL}?language=${encodeURIComponent(lang)}`);
+    ws.binaryType = "arraybuffer";
+    let committed = ""; // finalized lines
+
+    ws.onmessage = (evt) => {
+      if (typeof evt.data !== "string") return;
+      let msg: any;
+      try {
+        msg = JSON.parse(evt.data);
+      } catch {
+        return;
+      }
+
+      if (msg.type === "ready_to_stop") {
+        useTranscriptionRef.current?.onTranscript(takeId, committed, true);
+        ws.close();
+        return;
+      }
+      if (msg.status === "active_transcription") {
+        committed = (msg.lines ?? [])
+          .map((l: { text?: string }) => l.text)
+          .filter(Boolean)
+          .join(" ")
+          .replace(/\s+/g, " ")
+          .trim();
+        const live = (committed + " " + (msg.buffer_transcription ?? ""))
+          .replace(/\s+/g, " ")
+          .trim();
+        useTranscriptionRef.current?.onTranscript(takeId, live, false);
+      }
+    };
+    ws.onerror = () =>
+      showMessage(t("record.transcription_lost"), Severity.error);
+    return ws;
+  }
+
+  function finalizeTranscription() {
+    const ws = activeWsRef.current;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(new ArrayBuffer(0));
+    }
+    activeWsRef.current = null;
+  }
+
   function cleanupRecording() {
     workletNodeRef.current?.disconnect();
     mediaStreamRef.current?.getTracks().forEach((t) => t.stop());
     audioContextRef.current?.close();
 
-    //Close transcription
-    if (wantsTranscription) {
+    if (useTranscription) {
       transcriptionWorkletRef.current?.disconnect();
       transcriptionContextRef.current?.close();
     }
   }
 
-  //Main method to start the recording
   async function startRecordingInternal() {
-    // Drop any previously recorded playback when (re-)recording
     waveSurferRef.current?.stop();
     setIsPlaying(false);
     setRecordedBlob(null);
     setAudioLoaded(false);
     pcmChunksRef.current = [];
     setDurationSeconds(0);
+    takeIdRef.current += 1;
 
     let stream: MediaStream;
     try {
@@ -377,13 +347,17 @@ export default function Recorder({
     audioContextRef.current = audioContext;
     actualSampleRateRef.current = audioContext.sampleRate;
 
-    //Create for transcription
-    if (wantsTranscription) {
+    if (useTranscription) {
       const transcriptionAudioContext = new AudioContext({
         sampleRate: transcriptionSampleRate,
       });
       transcriptionContextRef.current = transcriptionAudioContext;
-      //TODO: actual sample rate here as well?
+      if (transcriptionAudioContext.sampleRate !== transcriptionSampleRate) {
+        showMessage(
+          `Transcription needs ${transcriptionSampleRate} Hz but the browser gave ${transcriptionAudioContext.sampleRate} Hz`,
+          Severity.error
+        );
+      }
 
       await transcriptionAudioContext.audioWorklet.addModule(
         "/recorder-worklet.js"
@@ -397,28 +371,22 @@ export default function Recorder({
       transcriptionSource.connect(transcriptionWorkletNode);
       transcriptionWorkletRef.current = transcriptionWorkletNode;
 
-      //16kHz chunks
+      const ws = openTranscriptionSocket(takeIdRef.current);
+      activeWsRef.current = ws;
+
+      // 16kHz float32 -> s16le int16
       transcriptionWorkletNode.port.onmessage = (e) => {
-        // console.log(
-        //   "[TR] chunk",
-        //   (e.data as Float32Array).length,
-        //   "ready:",
-        //   transcriptionReadyRef.current,
-        //   "ws:",
-        //   liveTranscriptionWsRef.current?.readyState
-        // );
-        if (
-          transcriptionReadyRef.current &&
-          liveTranscriptionWsRef.current?.readyState == WebSocket.OPEN
-        ) {
-          const chunk = e.data as Float32Array;
-          liveTranscriptionWsRef.current?.send(chunk.buffer);
-          // console.log("Buffer sent for transcription");
+        if (ws.readyState !== WebSocket.OPEN) return;
+        const f32 = e.data as Float32Array;
+        const i16 = new Int16Array(f32.length);
+        for (let i = 0; i < f32.length; i++) {
+          const s = Math.max(-1, Math.min(1, f32[i]));
+          i16[i] = s * 0x7fff;
         }
+        ws.send(i16.buffer);
       };
     }
 
-    //Checking if sample rate is supported by the AudioContext.
     if (audioContext.sampleRate !== sampleRate) {
       showMessage(
         //TODO add permanent warning
@@ -444,9 +412,6 @@ export default function Recorder({
     source.connect(workletNode);
     setIsRecording(true);
     setIsPaused(false);
-
-    // Drive live transcription from the same start action (no-op when disabled)
-    // transcriberRef.current?.start();
   }
 
   async function handleStart() {
@@ -457,26 +422,24 @@ export default function Recorder({
     audioContextRef.current?.suspend();
     transcriptionContextRef.current?.suspend();
     setIsPaused(true);
-    // transcriberRef.current?.pause();
   }
 
   function handleResume() {
     audioContextRef.current?.resume();
     transcriptionContextRef.current?.resume();
     setIsPaused(false);
-    // transcriberRef.current?.resume();
   }
 
-  // Stop recording, keep the blob locally so it can be played back, and emit it
   function stopAndEmit() {
+    const takeId = takeIdRef.current;
     const { blob, durationSeconds: dur } = buildBlob();
     cleanupRecording();
+    finalizeTranscription();
     setIsRecording(false);
     setIsPaused(false);
     setRecordedBlob(blob);
     waveSurferRef.current?.loadBlob(blob);
-    // transcriberRef.current?.stop();
-    onAudioBlobRef.current(blob, dur);
+    onAudioBlobRef.current(blob, dur, takeId);
   }
 
   function handleStop() {
@@ -488,8 +451,6 @@ export default function Recorder({
     waveSurferRef.current?.playPause();
   }
 
-  // Re-record: confirm first when an existing audio file is loaded, so we don't
-  // discard a saved recording by accident
   function handleReRecord() {
     if (audioLoaded) {
       setReRecordConfirmOpen(true);
@@ -499,166 +460,121 @@ export default function Recorder({
   }
 
   return (
-    <>
-      {wantsTranscription && transcriptionStatus !== "ready" ? (
-        <Paper
-          elevation={0}
-          sx={{
-            display: "flex",
-            flexDirection: "column",
+    <Box sx={{ position: "relative" }}>
+      <Paper
+        elevation={0}
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          border: "1px solid var(--app-border)",
+          borderRadius: 2,
+          p: 2,
+          gap: 1,
+        }}
+      >
+        <div ref={waveformRef} />
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr auto 1fr",
             alignItems: "center",
-            justifyContent: "center",
-            gap: 1.5,
-            border: "1px solid var(--app-border)",
-            borderRadius: 2,
-            p: 4,
-            minHeight: 160,
-            textAlign: "center",
-            color: "var(--app-text-primary)",
+            gap: 8,
           }}
         >
-          {transcriptionStatus === "full" ? (
-            <span>{t("record.transcription_full")}</span>
-          ) : transcriptionStatus === "disconnected" ? (
-            <span>{t("record.transcription_lost")}</span>
-          ) : (
-            <CircularProgress />
-          )}
-        </Paper>
-      ) : (
-        <>
-          <Paper
-            elevation={0}
-            sx={{
+          <div
+            style={{
               display: "flex",
               flexDirection: "column",
-              border: "1px solid var(--app-border)",
-              borderRadius: 2,
-              p: 2,
-              gap: 1,
+              justifySelf: "start",
             }}
           >
-            {/* {onTranscript && (
-      <Transcriber
-        ref={transcriberRef}
-        lang={transcriptionLang}
-        onTranscript={onTranscript}
-        onError={(err) => {
-          const message =
-            err === "unsupported" ? "Live transcription isn't supported in this browser"
-              : err === "not-allowed" || err === "service-not-allowed" ? "Live transcription was blocked (check microphone permission)"
-                : err === "language-not-supported" ? `Live transcription doesn't support this language (${transcriptionLang ?? "default"})`
-                  : err === "network" ? "Live transcription failed (network)"
-                    : `Transcription error: ${err}`;
-          showMessage(message, Severity.error);
-        }}
-      />
-    )} */}
-            <div ref={waveformRef} />
-            <div
+            <span
               style={{
-                display: "grid",
-                gridTemplateColumns: "1fr auto 1fr",
-                alignItems: "center",
-                gap: 8,
+                fontFamily: "'Space Grotesk', sans-serif",
+                fontWeight: 900,
+                fontSize: "1.25rem",
+                fontVariantNumeric: "tabular-nums",
+                letterSpacing: "-0.025em",
+                color: "var(--app-text-primary)",
               }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  justifySelf: "start",
-                }}
-              >
-                <span
-                  style={{
-                    fontFamily: "'Space Grotesk', sans-serif",
-                    fontWeight: 900,
-                    fontSize: "1.25rem",
-                    fontVariantNumeric: "tabular-nums",
-                    letterSpacing: "-0.025em",
-                    color: "var(--app-text-primary)",
-                  }}
-                >
-                  {formatDuration(durationSeconds)}
-                </span>
-                <span
-                  style={{
-                    fontFamily: "'Manrope', sans-serif",
-                    fontSize: "0.625rem",
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.12em",
-                    color: "rgba(68,71,76,0.6)",
-                  }}
-                >
-                  Duration
-                </span>
-              </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                {isRecording ? (
-                  <>
-                    <IconButton
-                      onClick={isPaused ? handleResume : handlePause}
-                      size="medium"
-                      sx={{ boxShadow: "0px 0px 10px rgba(0,0,0,0.2)" }}
-                    >
-                      {isPaused ? <PlayArrow /> : <Pause />}
-                    </IconButton>
-                    <IconButton
-                      onClick={handleStop}
-                      size="medium"
-                      sx={{ boxShadow: "0px 0px 10px rgba(0,0,0,0.2)" }}
-                    >
-                      <Stop />
-                    </IconButton>
-                  </>
-                ) : recordedBlob || audioLoaded ? (
-                  <>
-                    <IconButton
-                      onClick={handlePlayPause}
-                      size="medium"
-                      sx={{ boxShadow: "0px 0px 10px rgba(0,0,0,0.2)" }}
-                    >
-                      {isPlaying ? <Pause /> : <PlayArrow />}
-                    </IconButton>
-                    <IconButton
-                      onClick={handleReRecord}
-                      size="medium"
-                      sx={{ boxShadow: "0px 0px 10px rgba(0,0,0,0.2)" }}
-                    >
-                      <Replay />
-                    </IconButton>
-                  </>
-                ) : (
-                  <IconButton
-                    onClick={handleStart}
-                    size="medium"
-                    sx={{ boxShadow: "0px 0px 10px rgba(0,0,0,0.2)" }}
-                  >
-                    <PlayArrow />
-                  </IconButton>
-                )}
-              </div>
-              <div />
-            </div>
-
-            <ConfirmDialog
-              open={reRecordConfirmOpen}
-              title={t("record.rerecord_confirm_title")}
-              description={t("record.rerecord_confirm_message")}
-              proceedLabel={t("record.rerecord_confirm_proceed")}
-              dangerous
-              onProceed={() => {
-                setReRecordConfirmOpen(false);
-                handleStart();
+              {formatDuration(durationSeconds)}
+            </span>
+            <span
+              style={{
+                fontFamily: "'Manrope', sans-serif",
+                fontSize: "0.625rem",
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: "0.12em",
+                color: "rgba(68,71,76,0.6)",
               }}
-              onCancel={() => setReRecordConfirmOpen(false)}
-            />
-          </Paper>
-        </>
-      )}
-    </>
+            >
+              Duration
+            </span>
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            {isRecording ? (
+              <>
+                <IconButton
+                  onClick={isPaused ? handleResume : handlePause}
+                  size="medium"
+                  sx={{ boxShadow: "0px 0px 10px rgba(0,0,0,0.2)" }}
+                >
+                  {isPaused ? <PlayArrow /> : <Pause />}
+                </IconButton>
+                <IconButton
+                  onClick={handleStop}
+                  size="medium"
+                  sx={{ boxShadow: "0px 0px 10px rgba(0,0,0,0.2)" }}
+                >
+                  <Stop />
+                </IconButton>
+              </>
+            ) : recordedBlob || audioLoaded ? (
+              <>
+                <IconButton
+                  onClick={handlePlayPause}
+                  size="medium"
+                  sx={{ boxShadow: "0px 0px 10px rgba(0,0,0,0.2)" }}
+                >
+                  {isPlaying ? <Pause /> : <PlayArrow />}
+                </IconButton>
+                <IconButton
+                  onClick={handleReRecord}
+                  size="medium"
+                  sx={{ boxShadow: "0px 0px 10px rgba(0,0,0,0.2)" }}
+                >
+                  <Replay />
+                </IconButton>
+              </>
+            ) : (
+              <IconButton
+                onClick={handleStart}
+                size="medium"
+                sx={{ boxShadow: "0px 0px 10px rgba(0,0,0,0.2)" }}
+              >
+                <PlayArrow />
+              </IconButton>
+            )}
+          </div>
+          <div />
+        </div>
+
+        <ConfirmDialog
+          open={reRecordConfirmOpen}
+          title={t("record.rerecord_confirm_title")}
+          description={t("record.rerecord_confirm_message")}
+          proceedLabel={t("record.rerecord_confirm_proceed")}
+          dangerous
+          onProceed={() => {
+            setReRecordConfirmOpen(false);
+            handleStart();
+          }}
+          onCancel={() => setReRecordConfirmOpen(false)}
+        />
+      </Paper>
+    </Box>
   );
 }
 

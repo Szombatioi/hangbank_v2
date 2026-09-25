@@ -19,7 +19,7 @@ export default function PromptHeader({ countLabel, promptText, isRecorded, isBuf
 
     return (
         <Box>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1 }}>
                 <Typography
                     sx={{
                         fontFamily: LABEL,
