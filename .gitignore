@@ -353,3 +353,7 @@
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 /transcript-process-manager/report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+
+live-transcription/whisperlivekit/repo/
+live-transcription/whisperlivekit/README.md
