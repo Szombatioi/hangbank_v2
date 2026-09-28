@@ -15,7 +15,7 @@ import ConfirmDialog from "@/app/components/confirm-dialog";
 import { formatDuration } from "./helpers/formatDuration";
 
 // one connection per block
-const WLK_URL = "ws://localhost:8000/asr"; //TODO: env variable
+const WLK_URL = process.env.NEXT_PUBLIC_TRANSCRIPTION_URL || "ws://localhost:8000/asr"; //TODO: env variable
 
 export interface RecorderAudioFile {
   id: string;
@@ -296,8 +296,10 @@ export default function Recorder({
         useTranscriptionRef.current?.onTranscript(takeId, live, false);
       }
     };
-    ws.onerror = () =>
+    ws.onerror = (e) => {
+      console.log(e);
       showMessage(t("record.transcription_lost"), Severity.error);
+    }
     return ws;
   }
 
