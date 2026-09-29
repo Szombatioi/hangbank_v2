@@ -8,14 +8,14 @@ export class ExistingAudioProjectController {
     private readonly existingAudioProjectService: ExistingAudioProjectService,
   ) {}
 
-  @Post()
-  // @UseInterceptors(FileInterceptor('audio'))
-  async testQueue(@Body() dto: {
-    audioId: string,
-    s3Url: string,
-    language?: string
-  }) {
-    //Local test to upload a new audio file and append task queue
-    await this.existingAudioProjectService.testQueue({dto});
-  }
+  // @Post()
+  // // @UseInterceptors(FileInterceptor('audio'))
+  // async testQueue(@Body() dto: {
+  //   audioId: string,
+  //   s3Url: string,
+  //   language?: string
+  // }) {
+  //   //Local test to upload a new audio file and append task queue
+  //   await this.existingAudioProjectService.testQueue({dto});
+  // }
 }

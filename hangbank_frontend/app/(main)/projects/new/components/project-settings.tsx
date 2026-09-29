@@ -4,6 +4,7 @@ import React from "react";
 import { ProjectType } from "./project-type-selector";
 import ProjectBasedSettings from "./settings/corpus-based-settings";
 import CorpusBasedSettings from "./settings/corpus-based-settings";
+import ExistingFilesSettings from "./settings/existing-files-settings";
 
 interface ProjectSettingsComponentTypes{
     key: ProjectType,
@@ -19,7 +20,7 @@ export default function NewProjectSettings({type}: NewProjectSettingsProps){
         [ProjectType.CORPUS]: <CorpusBasedSettings />,
         [ProjectType.AI_CHAT]: <></>,
         [ProjectType.MULTI_SPEAKER]: <></>,
-        [ProjectType.EXISTING_FILES]: <></>,
+        [ProjectType.EXISTING_FILES]: <ExistingFilesSettings />,
     };
 
     return projectSettingsComponents[type];

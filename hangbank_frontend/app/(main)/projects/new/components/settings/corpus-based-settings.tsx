@@ -2,7 +2,6 @@
 //TODO: add bitdepth settings
 //TODO: recommend max OS sample rate for mic
 import {
-  Autocomplete,
   Box,
   Button,
   Chip,
@@ -44,23 +43,19 @@ import {
   fullName,
 } from "@/app/components/user-access-selector";
 import { translateHttpError } from "@/app/components/helpers/http-error";
+import { SamplingRateSelect } from "./components/sampling-rate-select";
+import { AudioChecksSelect } from "./components/audio-checks-select";
+import {
+  ProjectRole,
+  PROJECT_ROLES,
+  HEADLINE,
+  LABEL,
+  BODY,
+  SAMPLING_RATES,
+} from "./constants";
 
-type ProjectRole = "VIEW" | "EDITOR";
-const PROJECT_ROLES: ProjectRole[] = ["VIEW", "EDITOR"];
-
-export const HEADLINE = "'Space Grotesk', sans-serif";
-export const LABEL = "'Manrope', sans-serif";
-export const BODY = "'Inter', sans-serif";
-
-const SAMPLING_RATES: { value: number; label: string; recommended: boolean }[] =
-  [
-    { value: 8000, label: "8,000 Hz", recommended: false },
-    { value: 16000, label: "16,000 Hz", recommended: false },
-    { value: 24000, label: "24,000 Hz", recommended: false },
-    { value: 32000, label: "32,000 Hz", recommended: false },
-    { value: 44100, label: "44,100 Hz", recommended: false },
-    { value: 48000, label: "48,000 Hz", recommended: true },
-  ];
+export type { ProjectRole };
+export { PROJECT_ROLES, HEADLINE, LABEL, BODY, SAMPLING_RATES };
 
 export default function CorpusBasedSettings() {
   const { t } = useTranslation("common");
@@ -92,7 +87,6 @@ export default function CorpusBasedSettings() {
     string | null
   >(null);
 
-  const availableChecks = ["VOLUME", "NOISE", "SPEAKER"];
   const [audioChecks, setAudioChecks] = useState<string[]>([]);
 
   // Project members (user + role)
@@ -396,60 +390,12 @@ export default function CorpusBasedSettings() {
               )}
             </Box>
             {/* Sampling rate */}
-            <Box>
-              <Typography
-                variant="h6"
-                sx={{
-                  fontFamily: LABEL,
-                  textTransform: "capitalize",
-                  mb: 0.75,
-                }}
-                color="primary"
-              >
-                {t("new_project.corpus_based.label_sampling_rate")}
-              </Typography>
-              <Select
-                value={samplingRate}
-                disabled={selectedMic === null}
-                onChange={(e: SelectChangeEvent<number | "">) =>
-                  setSamplingRate(e.target.value as number | "")
-                }
-                fullWidth
-                displayEmpty
-                error={submitted && errors.samplingRate}
-                sx={{ borderRadius: "8px", bgcolor: "var(--app-card)" }}
-                renderValue={(val) =>
-                  val === "" ? (
-                    <em style={{ color: "#aaa", fontStyle: "normal" }}>
-                      {t("new_project.corpus_based.placeholder_sampling_rate")}
-                    </em>
-                  ) : (
-                    SAMPLING_RATES.find((r) => r.value === val)?.label ??
-                    String(val)
-                  )
-                }
-              >
-                {SAMPLING_RATES.map((rate) => (
-                  <MenuItem key={rate.value} value={rate.value}>
-                    {rate.label}
-                    {rate.recommended && ` (${t("recommended")})`}
-                  </MenuItem>
-                ))}
-              </Select>
-              {submitted && errors.samplingRate ? (
-                <FormHelperText error sx={{ mx: "14px" }}>
-                  {t("new_project.corpus_based.error_sampling_rate_required")}
-                </FormHelperText>
-              ) : (
-                <Typography
-                  sx={{ mt: 1, ml: 1 }}
-                  variant="subtitle2"
-                  color="var(--app-text-muted)"
-                >
-                  {t("sampling_rate_explanation")}
-                </Typography>
-              )}
-            </Box>
+            <SamplingRateSelect
+              value={samplingRate}
+              onChange={setSamplingRate}
+              disabled={selectedMic === null}
+              error={submitted && errors.samplingRate}
+            />
 
             {/* Recording environment */}
             <Box>
@@ -483,66 +429,7 @@ export default function CorpusBasedSettings() {
             </Box>
 
             {/* Audio checks */}
-            <Box>
-              <Typography
-                variant="h6"
-                sx={{
-                  fontFamily: LABEL,
-                  textTransform: "capitalize",
-                  mb: 0.75,
-                }}
-                color="primary"
-              >
-                {t("new_project.corpus_based.label_audio_checks")}
-              </Typography>
-              <Autocomplete
-                options={availableChecks.filter(
-                  (c) => !audioChecks.includes(c)
-                )}
-                value={null}
-                blurOnSelect
-                clearOnBlur
-                getOptionLabel={(option) =>
-                  t(`audio_checks.${option.toLowerCase()}`)
-                }
-                onChange={(_, newValue) => {
-                  if (newValue && !audioChecks.includes(newValue)) {
-                    setAudioChecks((prev) => [...prev, newValue]);
-                  }
-                }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    placeholder={t(
-                      "new_project.corpus_based.placeholder_audio_checks"
-                    )}
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        borderRadius: "8px",
-                        bgcolor: "var(--app-card)",
-                      },
-                    }}
-                  />
-                )}
-              />
-              {audioChecks.length > 0 && (
-                <Box
-                  sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1.5 }}
-                >
-                  {audioChecks.map((check) => (
-                    <Chip
-                      key={check}
-                      label={t(`audio_checks.${check.toLowerCase()}`)}
-                      onDelete={() =>
-                        setAudioChecks((prev) =>
-                          prev.filter((c) => c !== check)
-                        )
-                      }
-                    />
-                  ))}
-                </Box>
-              )}
-            </Box>
+            <AudioChecksSelect value={audioChecks} onChange={setAudioChecks} />
           </Paper>
 
           {/* TODO Speaker info */}

@@ -1,2 +1,6 @@
 # What needs to be changed
 * On corpus record page, when pressing Save, popup a dialog to display which blocks were recorded. Be able to listen and read the transcription. Be able to select the ones to be actually saved
+
+
+## Questions
+* Was the inheritance of Project handled well? (reusing SampleRate for mode 4, but not always doing anything with it)

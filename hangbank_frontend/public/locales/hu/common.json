@@ -104,7 +104,9 @@
     "file_upload": {
         "drag_drop_files": "Húzd ide a fájljaidat",
         "supported_formats": ".txt, .docx és .pdf fájlok támogatottak (fájlonként legfeljebb 50 MB)",
-        "browse_files": "FÁJLOK TALLÓZÁSA"
+        "browse_files": "FÁJLOK TALLÓZÁSA",
+        "unsupported_format": "A(z) {{name}} fájl formátuma nem támogatott.",
+        "too_large": "A(z) {{name}} nagyobb, mint {{max}} MB."
     },
     "language": {
         "lang_en-US": "Angol (USA)",
@@ -265,6 +267,20 @@
             "label_user_role": "Felhasználó szerepe",
             "members_label": "Projekt tagjai",
             "add_member": "Hozzáadás"
+        },
+        "existing_files": {
+            "title": "Új projekt meglévő hangfájlokból",
+            "subtitle": "Állíts be egy projektet a már meglévő hangfelvételeidhez, és rendeld hozzá a beszélőt és a projekt tagjait.",
+            "placeholder_name": "pl. Archivált interjúfelvételek",
+            "label_resample": "Egységes mintavételezési frekvencia",
+            "sampling_rate_explanation": "A meglévő hangfájlok eltérő mintavételezési frekvenciájúak lehetnek. A rendszer minden fájlt a megadott mintavételezési frekvenciára alakít át.",
+            "placeholder_speaker_search": "Beszélő keresése...",
+            "error_speaker_required": "Kérlek, válassz beszélőt.",
+            "placeholder_speech_description": "Írd le a beszélő nyelvjárását, akcentusát vagy egyéb beszédjellemzőit (pl. tájszólás, dadogás, selypítés)...",
+            "speaker_tag": "beszélő",
+            "speaker_editor_hint": "A beszélő automatikusan Szerkesztő szerepkörrel kerül a projektbe.",
+            "success": "A projekt sikeresen létrejött!",
+            "error_create": "A projekt létrehozása nem sikerült. Kérlek, próbáld újra."
         }
     },
     "gender": {
@@ -355,7 +371,8 @@
         "existing_files": "Meglévő fájlok"
     },
     "confirm_dialog": {
-        "cancel": "Mégse"
+        "cancel": "Mégse",
+        "proceed": "Tovább"
     },
     "project_page": {
         "fetch_error": "A projekt lekérése nem sikerült.",
@@ -395,8 +412,8 @@
         "source": "Forrás",
         "transcription": "Átirat",
         "transcription_placeholder": "Ma délután sétálni indultunk a parkba.",
-    "transcription_full": "Sajnáljuk, az élő leiratozó szolgáltatás jelenleg megtelt. Kérjük, próbáld újra később.",
-    "transcription_lost": "A leiratozó szolgáltatással megszakadt a kapcsolat. Kérjük, tölts újra az oldalt.",
+        "transcription_full": "Sajnáljuk, az élő leiratozó szolgáltatás jelenleg megtelt. Kérjük, próbáld újra később.",
+        "transcription_lost": "A leiratozó szolgáltatással megszakadt a kapcsolat. Kérjük, tölts újra az oldalt.",
         "next_block_tooltip": "Ugrás a következő blokkra",
         "prev_block_tooltip": "Ugrás az előző blokkra",
         "rerecord_confirm_title": "Újra felveszed ezt a blokkot?",
@@ -514,5 +531,44 @@
                 "matching_transcription": "Egyező átirat"
             }
         }
+    },
+    "uploaded_file": {
+        "play": "Lejátszás",
+        "pause": "Szünet",
+        "error_play": "A hangfájl lejátszása nem sikerült.",
+        "set_master_tooltip": "Beállítás mesterfájlként",
+        "master_tooltip": "Mesterfájl",
+        "set_master_title": "Hangfájl beállítása mesterfájlként",
+        "set_master_description": "Biztosan ezt a fájlt szeretnéd a projekt mesterfájljává tenni? Az összes többi fájl beszélőjét ehhez fogjuk hasonlítani.",
+        "remove_title": "Hangfájl eltávolítása",
+        "remove_description": "Biztosan eltávolítod ezt a fájlt a projektből?",
+        "set_master_confirm": "Beállítás",
+        "remove_confirm": "Eltávolítás",
+        "save": "Módosítások mentése",
+        "buffered": "Pufferelve",
+        "restore_tooltip": "Visszaállítás",
+        "modified_tooltip": "Nem mentett módosítások"
+    },
+    "upload_page": {
+        "supported_audio_formats": ".wav, .aiff, .flac, .mp3, .ogg, .opus fájlok támogatottak (fájlonként max. 200MB)",
+        "upload_button": "Feltöltés",
+        "uploaded_files_title": "Feltöltött fájlok",
+        "no_files": "Még nincsenek hangfájlok. Tölts fel néhányat a bal oldalon.",
+        "project_details_title": "Projekt adatai",
+        "speaker": "Beszélő",
+        "speech_dialect": "Nyelvjárás",
+        "target_sampling_rate": "Cél mintavételezési frekvencia",
+        "error_delete_master": "Mesterfájlt nem lehet törölni!",
+        "upload_title": "Meglévő fájlok feltöltése"
+    },
+    "uploaded_file_details": {
+        "label_type": "Típus",
+        "label_sampling_rate": "Eredeti mintavételezési frekvencia",
+        "label_transcription": "Leirat",
+        "placeholder_transcription": "A hangfájl leirata...",
+        "transcribe": "Leiratozás",
+        "transcribe_sent": "A fájl leiratozásra került. Ha elkészült, töltsd újra az oldalt, és nézd meg itt",
+        "label_emotion": "Érzelem",
+        "save": "Mentés"
     }
 }

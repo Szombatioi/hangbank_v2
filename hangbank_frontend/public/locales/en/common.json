@@ -104,7 +104,9 @@
     "file_upload": {
         "drag_drop_files": "Drag & drop your files here",
         "supported_formats": "Support for .txt, .docx, and .pdf files (Max 50MB per file)",
-        "browse_files": "BROWSE FILES"
+        "browse_files": "BROWSE FILES",
+        "unsupported_format": "{{name}} has an unsupported file format.",
+        "too_large": "{{name}} is larger than {{max}} MB."
     },
     "language": {
         "lang_en-US": "English (US)",
@@ -265,6 +267,20 @@
             "label_user_role": "User's role",
             "members_label": "Project members",
             "add_member": "Add"
+        },
+        "existing_files": {
+            "title": "New Project From Existing Audio Files",
+            "subtitle": "Configure a project for audio recordings you already have, and assign the speaker and project members.",
+            "placeholder_name": "e.g. Archived interview recordings",
+            "label_resample": "Unify sampling rate",
+            "sampling_rate_explanation": "Existing audio files may have different sampling rates. The system will adjust all files' sampling rate to the provided sampling rate.",
+            "placeholder_speaker_search": "Search for the speaker...",
+            "error_speaker_required": "Please select a speaker.",
+            "placeholder_speech_description": "Describe the speaker's dialect, accent, or any speech characteristics (e.g. regional accent, stutter, lisp) ...",
+            "speaker_tag": "speaker",
+            "speaker_editor_hint": "The speaker is automatically added to the project as Editor.",
+            "success": "Project created successfully!",
+            "error_create": "Failed to create project. Please try again."
         }
     },
     "gender": {
@@ -355,7 +371,8 @@
         "existing_files": "Existing Files"
     },
     "confirm_dialog": {
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "proceed": "Proceed"
     },
     "project_page": {
         "fetch_error": "Could not fetch project.",
@@ -395,8 +412,8 @@
         "source": "Source",
         "transcription": "Transcription",
         "transcription_placeholder": "The quick brown fox jumps over the lazy dog.",
-    "transcription_full": "Sorry, the live transcription service is full at the moment. Please try again later.",
-    "transcription_lost": "The connection to the transcription service was lost. Please reload the page.",
+        "transcription_full": "Sorry, the live transcription service is full at the moment. Please try again later.",
+        "transcription_lost": "The connection to the transcription service was lost. Please reload the page.",
         "next_block_tooltip": "Go to the next block",
         "prev_block_tooltip": "Go to the previous block",
         "rerecord_confirm_title": "Re-record this block?",
@@ -514,5 +531,44 @@
                 "matching_transcription": "Matching transcription"
             }
         }
+    },
+    "uploaded_file": {
+        "play": "Play",
+        "pause": "Pause",
+        "error_play": "Could not play the audio file.",
+        "set_master_tooltip": "Set as Master File",
+        "master_tooltip": "Master File",
+        "set_master_title": "Set audio file as Master File",
+        "set_master_description": "Are you sure to set this file to be the project's Master File? All other files will be compared by speaker for this one.",
+        "remove_title": "Remove audio file",
+        "remove_description": "Are you sure to remove this file from the project?",
+        "set_master_confirm": "Set as Master",
+        "remove_confirm": "Remove",
+        "save": "Save changes",
+        "buffered": "Buffered",
+        "restore_tooltip": "Restore",
+        "modified_tooltip": "Unsaved changes"
+    },
+    "upload_page": {
+        "supported_audio_formats": "Support for .wav, .aiff, .flac, .mp3, .ogg, .opus (Max 200MB per file)",
+        "upload_button": "Upload",
+        "uploaded_files_title": "Uploaded files",
+        "no_files": "No audio files yet. Upload some on the left.",
+        "project_details_title": "Project details",
+        "speaker": "Speaker",
+        "speech_dialect": "Speech dialect",
+        "target_sampling_rate": "Target sample rate",
+        "error_delete_master": "You cannot delete a Master File!",
+        "upload_title": "Upload Existing Files"
+    },
+    "uploaded_file_details": {
+        "label_type": "Type",
+        "label_sampling_rate": "Original sample rate",
+        "label_transcription": "Transcription",
+        "placeholder_transcription": "The transcription of this audio file...",
+        "transcribe": "Transcribe",
+        "transcribe_sent": "The file was sent to transcription. Once it is done, check again here by reloading the page",
+        "label_emotion": "Emotion",
+        "save": "Save"
     }
 }

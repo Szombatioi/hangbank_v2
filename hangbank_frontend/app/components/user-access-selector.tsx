@@ -13,6 +13,8 @@ export interface AccessUser {
   lastName?: string;
   username?: string;
   email: string;
+  gender?: string | null;
+  birthDate?: string | null;
 }
 
 export function fullName(u: AccessUser): string {
@@ -46,6 +48,7 @@ export function UserSearchAutocomplete({
   excludeIds = [],
   placeholder,
   clearOnSelect = false,
+  includeSelf = false,
   background
 }: {
   value: AccessUser | null;
@@ -53,6 +56,7 @@ export function UserSearchAutocomplete({
   excludeIds?: string[];
   placeholder?: string;
   clearOnSelect?: boolean;
+  includeSelf?: boolean;
   background?: string
 }) {
   const { t } = useTranslation("common");
@@ -81,7 +85,7 @@ export function UserSearchAutocomplete({
   }, [inputValue]);
 
   const selectableOptions = options.filter(
-    (o) => o.id !== user?.id && !excludeIds.includes(o.id),
+    (o) => (includeSelf || o.id !== user?.id) && !excludeIds.includes(o.id),
   );
 
   return (

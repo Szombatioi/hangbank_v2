@@ -40,7 +40,7 @@ export default function ProjectTypeSelector({onSelect}: ProjectTypeSelectorProps
         },
         { 
             title: t("new_project.existing_files_title"), 
-            disabled: true,
+            disabled: false,
             onClick: () => {onSelect(ProjectType.EXISTING_FILES)}
         },
     ];
