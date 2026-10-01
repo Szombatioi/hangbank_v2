@@ -1,6 +1,7 @@
 # Reverse proxy + TLS terminator for the whole app on a single HTTPS origin.
-# Everything the browser touches (frontend, backend API, MinIO audio) is served
-# same-origin over HTTPS, so there's no mixed-content blocking.
+# Everything the browser touches (frontend, backend API, MinIO audio, live
+# transcription WebSocket) is served same-origin over HTTPS, so there's no
+# mixed-content blocking. Caddy is the only container with published ports.
 
 {
 	# Present the right internal cert even when the client sends no SNI — which is
@@ -10,10 +11,12 @@
 
 # Site address comes from $SITE_ADDRESS (the public host/IP), defaulting to localhost.
 {$SITE_ADDRESS:localhost} {
-	# Self-signed certificate issued by Caddy's built-in (internal) CA — works for
-	# both hostnames and IP addresses. The browser shows a one-time "not trusted"
-	# warning (expected). To trust it, import Caddy's root CA from the caddy_data volume.
-	tls internal
+	# $CADDY_TLS defaults to "internal": a self-signed certificate from Caddy's
+	# built-in CA — works for both hostnames and IP addresses. The browser shows a
+	# one-time "not trusted" warning (expected). To trust it, import Caddy's root CA
+	# from the caddy_data volume. With a real domain name, set CADDY_TLS to an
+	# e-mail address to get a publicly trusted Let's Encrypt certificate instead.
+	tls {$CADDY_TLS:internal}
 
 	# Backend API — the browser calls /api/*, the backend serves routes without the prefix.
 	handle_path /api/* {
@@ -21,10 +24,19 @@
 	}
 
 	# MinIO object storage — presigned audio URLs are rewritten to /minio/* by the
-	# backend. The signature was computed for the MinIO host, so forward it unchanged.
+	# s3-storage-manager. The signature was computed for the MinIO host, so forward it unchanged.
 	handle_path /minio/* {
 		reverse_proxy minio:9000 {
 			header_up Host minio:9000
+		}
+	}
+
+	# Live transcription (WhisperLiveKit) — the recorder opens a WebSocket to /asr.
+	# Caddy proxies the WebSocket upgrade automatically; the path is kept as-is.
+	handle /asr {
+		reverse_proxy whisperlivekit:8000 {
+			# Long-lived recording streams: don't cut them on config reloads.
+			stream_close_delay 1h
 		}
 	}
 

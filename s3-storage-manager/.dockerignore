@@ -1,8 +1,11 @@
 node_modules
-.next
-.git
-.env*
+dist
+test
+coverage
 *.tsbuildinfo
+.git
+.env
+.env.*
 Dockerfile
 .dockerignore
 npm-debug.log*

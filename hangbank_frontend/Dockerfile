@@ -12,6 +12,13 @@ COPY . .
 # same-origin through the reverse proxy, so the API base is the relative "/api".
 ARG NEXT_PUBLIC_BACKEND_URL=/api
 ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
+# Live transcription WebSocket — a relative path is resolved against the page's
+# host (wss:// on https), routed by the reverse proxy to WhisperLiveKit.
+ARG NEXT_PUBLIC_TRANSCRIPTION_URL=/asr
+ENV NEXT_PUBLIC_TRANSCRIPTION_URL=$NEXT_PUBLIC_TRANSCRIPTION_URL
+# Support page feedback form link (optional)
+ARG NEXT_PUBLIC_SUBMIT_URL=
+ENV NEXT_PUBLIC_SUBMIT_URL=$NEXT_PUBLIC_SUBMIT_URL
 RUN npm run build
 
 # Stage 2: Production

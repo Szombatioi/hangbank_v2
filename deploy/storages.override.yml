@@ -1,0 +1,53 @@
+# Production overrides for test-hangbank-local/storages.yaml (+ minio.yaml), merged
+# by the `include` in docker-compose.prod.yml. The storage layer stays defined in
+# one place; here we only harden it for a server:
+#   - no published ports (only Caddy is reachable from outside)
+#   - credentials come from the root .env instead of the hard-coded dev values
+#   - services move from the dev network to the internal production network
+
+services:
+  minio:
+    restart: unless-stopped
+    ports: !reset []
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    # Caddy serves presigned audio URLs from MinIO under /minio, so MinIO is the
+    # only storage service that also sits on the edge network.
+    networks: !override
+      - hangbank-internal
+      - hangbank-edge
+
+  main-db:
+    ports: !reset []
+    environment:
+      POSTGRES_USER: ${HANGBANK_DB_USER}
+      POSTGRES_PASSWORD: ${HANGBANK_DB_PASSWORD}
+      POSTGRES_DB: ${HANGBANK_DB_NAME}
+    networks: !override
+      - hangbank-internal
+
+  auth-db:
+    ports: !reset []
+    environment:
+      POSTGRES_USER: ${AUTH_DB_USER}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
+      POSTGRES_DB: ${AUTH_DB_NAME}
+    networks: !override
+      - hangbank-internal
+
+  redis:
+    ports: !reset []
+    networks: !override
+      - hangbank-internal
+
+networks:
+  # Everything except the reverse proxy lives here. Not `internal: true`, because
+  # the transcription workers and WhisperLiveKit download models on first start.
+  hangbank-internal:
+    name: hangbank-internal
+    driver: bridge
+  # Caddy + the services it proxies to.
+  hangbank-edge:
+    name: hangbank-edge
+    driver: bridge

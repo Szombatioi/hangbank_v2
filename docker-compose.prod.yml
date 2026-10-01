@@ -1,0 +1,199 @@
+# Start with:  docker compose -f docker-compose.prod.yml up -d
+
+# URLs:
+# https://$PUBLIC_HOST/        -> hangbank-frontend
+# https://$PUBLIC_HOST/api/*   -> hangbank-backend
+# https://$PUBLIC_HOST/minio/* -> minio presigned audio URLs
+# wss://$PUBLIC_HOST/asr       -> whisperlivekit
+
+
+name: hangbank
+
+include:
+  - path:
+      - deploy/storages.yaml
+      - deploy/storages.override.yml
+    env_file: .env
+
+x-image: &image-defaults
+  restart: unless-stopped
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: hangbank_caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      SITE_ADDRESS: ${PUBLIC_HOST}
+      CADDY_TLS: ${CADDY_TLS:-internal}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - hangbank-edge
+    depends_on:
+      - hangbank-frontend
+      - hangbank-backend
+      - whisperlivekit
+      - minio
+
+  
+  # NEXT_PUBLIC_* values are baked in at image build time
+  hangbank-frontend:
+    <<: *image-defaults
+    image: ${IMAGE_REGISTRY}/hangbank-frontend:${IMAGE_TAG:-latest}
+    container_name: hangbank_frontend
+    environment:
+      PORT: 3000
+    networks:
+      - hangbank-edge
+    depends_on:
+      - hangbank-backend
+
+  hangbank-backend:
+    <<: *image-defaults
+    image: ${IMAGE_REGISTRY}/hangbank-backend:${IMAGE_TAG:-latest}
+    container_name: hangbank_backend
+    environment:
+      PORT: 3000
+      JWT_SECRET: ${JWT_SECRET}
+      ENABLED_URLS: https://${PUBLIC_HOST}
+      AUTH_SERVICE_URL: http://auth-service:8888
+      AQC_SERVICE_URL: http://audio-quality-checker:3002
+      S3_STORAGE_SERVICE_URL: http://s3-storage-manager:3005
+      
+      DB_TYPE: postgres
+      DB_HOST: main-db
+      DB_PORT: 5432
+      DB_USERNAME: ${HANGBANK_DB_USER}
+      DB_PASSWORD: ${HANGBANK_DB_PASSWORD}
+      DB_DATABASE: ${HANGBANK_DB_NAME}
+      
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    networks:
+      - hangbank-edge
+      - hangbank-internal
+    depends_on:
+      - main-db
+      - redis
+      - auth-service
+      - s3-storage-manager
+      - audio-quality-checker
+
+  auth-service:
+    <<: *image-defaults
+    image: ${IMAGE_REGISTRY}/hangbank-auth:${IMAGE_TAG:-latest}
+    container_name: hangbank_auth
+    environment:
+      PORT: 8888
+      JWT_SECRET: ${JWT_SECRET}
+      ENABLED_URLS: https://${PUBLIC_HOST}
+      DB_TYPE: postgres
+      DB_HOST: auth-db
+      DB_PORT: 5432
+      DB_USERNAME: ${AUTH_DB_USER}
+      DB_PASSWORD: ${AUTH_DB_PASSWORD}
+      DB_DATABASE: ${AUTH_DB_NAME}
+      
+      DEFAULT_ADMIN_EMAIL: ${DEFAULT_ADMIN_EMAIL}
+      DEFAULT_ADMIN_PASSWORD: ${DEFAULT_ADMIN_PASSWORD}
+      DEFAULT_ADMIN_USERNAME: ${DEFAULT_ADMIN_USERNAME:-admin}
+    networks:
+      - hangbank-internal
+    depends_on:
+      - auth-db
+
+  audio-quality-checker:
+    <<: *image-defaults
+    image: ${IMAGE_REGISTRY}/hangbank-audio-quality-checker:${IMAGE_TAG:-latest}
+    container_name: hangbank_aqc
+    environment:
+      PORT: 3002
+    networks:
+      - hangbank-internal
+
+  s3-storage-manager:
+    <<: *image-defaults
+    image: ${IMAGE_REGISTRY}/hangbank-s3-storage-manager:${IMAGE_TAG:-latest}
+    container_name: hangbank_s3_storage_manager
+    environment:
+      PORT: 3005
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_USE_SSL: "false"
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      
+      MINIO_PUBLIC_URL: https://${PUBLIC_HOST}/minio
+    networks:
+      - hangbank-internal
+    depends_on:
+      - minio
+
+  transcript-process-manager:
+    <<: *image-defaults
+    image: ${IMAGE_REGISTRY}/hangbank-transcript-process-manager:${IMAGE_TAG:-latest}
+    container_name: hangbank_tpm
+    user: root # access to docker.sock
+    environment:
+      PORT: 3004
+      DOCKER_SOCKET_PATH: /var/run/docker.sock
+      BACKEND_URL: http://hangbank-backend:3000
+      
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_URL: redis://redis:6379
+      JOBS_QUEUE: jobs
+      RESULTS_QUEUE: results
+      
+      FW_IMAGE: ${IMAGE_REGISTRY}/hangbank-fw-worker:${IMAGE_TAG:-latest}
+      FW_LABEL: whisper-batch-worker
+      WORKER_NETWORK: hangbank-internal
+      REDIS_ID: redis://redis:6379
+      S3_URL: http://s3-storage-manager:3005
+      AUDIO_BUCKET: audio
+      MODEL_NAME: ${BATCH_MODEL_NAME:-large-v3}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - hangbank-internal
+    depends_on:
+      - redis
+      - s3-storage-manager
+
+  fw-worker-image:
+    image: ${IMAGE_REGISTRY}/hangbank-fw-worker:${IMAGE_TAG:-latest}
+    restart: "no"
+    entrypoint: ["true"]
+    network_mode: none
+
+  whisperlivekit:
+    <<: *image-defaults
+    image: ${IMAGE_REGISTRY}/hangbank-whisperlivekit:${IMAGE_TAG:-latest}
+    container_name: hangbank_whisperlivekit
+    command: >
+      --model ${WLK_MODEL:-large-v3} --language auto
+      --backend faster-whisper --backend-policy simulstreaming
+      --pcm-input --port 8000
+    volumes:
+      - wlk_models:/root/.cache/huggingface
+    networks:
+      - hangbank-edge
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+volumes:
+  caddy_data:
+  caddy_config:
+  wlk_models:

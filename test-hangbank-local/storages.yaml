@@ -1,0 +1,53 @@
+include:
+  - minio.yaml
+services:
+  minio:
+    networks: 
+      - hangbank-dev
+  main-db:
+    image: postgres:latest
+    container_name: hangbank-db
+    restart: unless-stopped
+    networks: 
+      - hangbank-dev
+    environment:
+      POSTGRES_USER: hangbank
+      POSTGRES_PASSWORD: hangbank
+      POSTGRES_DB: hangbank_dev
+    ports:
+      - "5433:5432"
+    volumes:
+      - main_db_data:/var/lib/postgresql #/data
+
+  auth-db:
+    image: postgres:latest
+    container_name: hangbank-auth-db
+    restart: unless-stopped
+    networks: 
+      - hangbank-dev
+    environment:
+      POSTGRES_USER: auth_admin
+      POSTGRES_PASSWORD: auth_admin
+      POSTGRES_DB: auth_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - auth_db_data:/var/lib/postgresql #/data
+  
+  redis:
+    image: redis:alpine
+    container_name: redis-server
+    restart: unless-stopped
+    networks: 
+      - hangbank-dev
+    ports:
+      - "6379:6379"
+
+volumes:
+  main_db_data:
+  auth_db_data:
+
+networks:
+  hangbank-dev:
+    name: hangbank-dev
+    driver: bridge

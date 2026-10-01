@@ -13,6 +13,8 @@ services:
       --model large-v3 --language auto
       --backend faster-whisper --backend-policy simulstreaming
       --pcm-input --host 0.0.0.0 --port 8000
+    networks:
+      - hangbank-dev
     deploy:
       resources:
         reservations:
@@ -20,3 +22,8 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
+
+networks:
+  hangbank-dev:
+    name: hangbank-dev
+    external: true
