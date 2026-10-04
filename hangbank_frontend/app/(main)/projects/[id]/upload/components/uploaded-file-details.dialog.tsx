@@ -8,6 +8,7 @@ import {
   DialogContent,
   DialogTitle,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { useState } from "react";
@@ -20,14 +21,22 @@ import {
   textFieldSx,
 } from "@/app/components/style-constants";
 import { Severity, useSnackbar } from "@/app/providers/SnackbarProvider";
-import { ProjectAudioFile } from "../types";
+
+export interface AudioFileDetailsView {
+  filename: string;
+  type: string;
+  originalSamplingRate?: number | null;
+  isMasterPrompt?: boolean;
+  transcription: string;
+  emotion: string;
+}
 
 interface UploadedFileDetailsDialogProps {
-  // Remount with a `key` per file so the editable fields start from its values.
-  file: ProjectAudioFile | null;
+  file: AudioFileDetailsView | null;
+  canTranscribe: boolean;
   transcriptionRequested: boolean;
-  onTranscribe: (id: string) => void;
-  onSave: (updated: ProjectAudioFile) => void;
+  onTranscribe: () => void;
+  onSave: (changes: { transcription: string; emotion: string }) => void;
   onClose: () => void;
 }
 
@@ -50,6 +59,7 @@ const buttonSx = {
 
 export default function UploadedFileDetailsDialog({
   file,
+  canTranscribe,
   transcriptionRequested,
   onTranscribe,
   onSave,
@@ -64,7 +74,7 @@ export default function UploadedFileDetailsDialog({
   const handleTranscribe = () => {
     if (!file) return;
     //TODO: call the transcription endpoint once it exists
-    onTranscribe(file.id);
+    onTranscribe();
     showMessage(t("uploaded_file_details.transcribe_sent"), Severity.info);
   };
 
@@ -72,7 +82,7 @@ export default function UploadedFileDetailsDialog({
     if (!file) return;
     const changed =
       transcription !== file.transcription || emotion !== file.emotion;
-    if (changed) onSave({ ...file, transcription, emotion });
+    if (changed) onSave({ transcription, emotion });
     onClose();
   };
 
@@ -125,14 +135,16 @@ export default function UploadedFileDetailsDialog({
               {file?.type}
             </Typography>
           </Box>
-          <Box>
-            <Typography sx={captionSx}>
-              {t("uploaded_file_details.label_sampling_rate")}
-            </Typography>
-            <Typography sx={metaValueSx}>
-              {file ? `${file.originalSamplingRate / 1000} kHz` : ""}
-            </Typography>
-          </Box>
+          {file?.originalSamplingRate != null && (
+            <Box>
+              <Typography sx={captionSx}>
+                {t("uploaded_file_details.label_sampling_rate")}
+              </Typography>
+              <Typography sx={metaValueSx}>
+                {`${file.originalSamplingRate / 1000} kHz`}
+              </Typography>
+            </Box>
+          )}
         </Box>
 
         {/* Transcription */}
@@ -147,15 +159,25 @@ export default function UploadedFileDetailsDialog({
             <Typography variant="h6" sx={fieldLabelSx} color="primary">
               {t("uploaded_file_details.label_transcription")}
             </Typography>
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={handleTranscribe}
-              disabled={transcriptionRequested}
-              sx={{ ...buttonSx, mb: 0.75 }}
+            <Tooltip
+              title={
+                canTranscribe
+                  ? ""
+                  : t("uploaded_file_details.transcribe_after_save")
+              }
             >
-              {t("uploaded_file_details.transcribe")}
-            </Button>
+              <span>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={handleTranscribe}
+                  disabled={!canTranscribe || transcriptionRequested}
+                  sx={{ ...buttonSx, mb: 0.75 }}
+                >
+                  {t("uploaded_file_details.transcribe")}
+                </Button>
+              </span>
+            </Tooltip>
           </Box>
           <TextField
             value={transcription}

@@ -1,32 +1,19 @@
 "use client";
-import {
-  Delete,
-  PauseCircleFilled,
-  PlayCircleFilled,
-  RestoreFromTrash,
-  WarningAmberRounded,
-} from "@mui/icons-material";
-import {
-  Box,
-  CircularProgress,
-  IconButton,
-  Paper,
-  Tooltip,
-  Typography,
-} from "@mui/material";
-import { useEffect, useRef, useState } from "react";
+import { Delete, RestoreFromTrash, WarningAmberRounded } from "@mui/icons-material";
+import { Box, IconButton, Paper, Tooltip, Typography } from "@mui/material";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import api from "@/app/axios";
 import ConfirmDialog from "@/app/components/confirm-dialog";
 import { BODY, LABEL } from "@/app/components/style-constants";
-import { translateHttpError } from "@/app/components/helpers/http-error";
-import { useSnackbar, Severity } from "@/app/providers/SnackbarProvider";
+import MasterFileButton from "./master-file-button";
+import AudioPlayButton from "./audio-play-button";
 
 interface UploadedAudioFilePaperProps {
   id: string;
   filename: string;
   type: string; //e.g. mp3
-  originalSamplingRate: number; // Hz
+  originalSamplingRate: number | null; // Hz
   isMasterPrompt: boolean;
   setAsMasterPrompt: (id: string) => void;
   onDelete: () => void;
@@ -60,64 +47,17 @@ export default function UploadedAudioFilePaper({
   modified = false,
 }: UploadedAudioFilePaperProps) {
   const { t } = useTranslation("common");
-  const { showMessage } = useSnackbar();
-
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [loadingAudio, setLoadingAudio] = useState(false);
-
-  const [confirmMasterOpen, setConfirmMasterOpen] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
-  useEffect(() => {
-    return () => {
-      audioRef.current?.pause();
-      audioRef.current = null;
-    };
-  }, []);
-
-  const togglePlayback = async () => {
-    if (isPlaying) {
-      audioRef.current?.pause();
-      return;
-    }
-
-    let audio = audioRef.current;
-    if (!audio) {
-      setLoadingAudio(true);
-      try {
-        const { data } = await api.get<{ url: string }>(
-          `/project/audio-file/${id}/url`
-        );
-        audio = new Audio(data.url);
-        audio.addEventListener("play", () => setIsPlaying(true));
-        audio.addEventListener("pause", () => setIsPlaying(false));
-        audio.addEventListener("ended", () => setIsPlaying(false));
-        audio.addEventListener("error", () => {
-          audioRef.current = null;
-          setIsPlaying(false);
-        });
-        audioRef.current = audio;
-      } catch (err) {
-        showMessage(
-          translateHttpError(err, t, t("uploaded_file.error_play")),
-          Severity.error
-        );
-        return;
-      } finally {
-        setLoadingAudio(false);
-      }
-    }
-
-    try {
-      await audio.play();
-    } catch {
-      audioRef.current = null;
-      showMessage(t("uploaded_file.error_play"), Severity.error);
-    }
+  const fetchPresignedUrl = async () => {
+    const { data } = await api.get<{ url: string }>(
+      `/project/audio-file/${id}/url`,
+    );
+    return data.url;
   };
 
-  const samplingRateLabel = `${originalSamplingRate / 1000} kHz`;
+  const samplingRateLabel =
+    originalSamplingRate != null ? `${originalSamplingRate / 1000} kHz` : "—";
 
   return (
     <Paper
@@ -145,7 +85,7 @@ export default function UploadedAudioFilePaper({
           gap: 2,
         }}
       >
-        {/* Top: file name (+ unsaved-changes marker) */}
+        {/* Top: file name */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0 }}>
           <Typography
             sx={{
@@ -176,28 +116,7 @@ export default function UploadedAudioFilePaper({
             gap: 3,
           }}
         >
-          <Tooltip
-            title={isPlaying ? t("uploaded_file.pause") : t("uploaded_file.play")}
-          >
-            <span>
-              <IconButton
-                sx={{ padding: 0 }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  togglePlayback();
-                }}
-                disabled={loadingAudio}
-              >
-                {loadingAudio ? (
-                  <CircularProgress size={24} />
-                ) : isPlaying ? (
-                  <PauseCircleFilled />
-                ) : (
-                  <PlayCircleFilled />
-                )}
-              </IconButton>
-            </span>
-          </Tooltip>
+          <AudioPlayButton resolveUrl={fetchPresignedUrl} />
 
           <Typography sx={fileDetailsSx}>{type}</Typography>
 
@@ -217,31 +136,11 @@ export default function UploadedAudioFilePaper({
           ml: 2,
         }}
       >
-        <Tooltip
-          title={
-            isMasterPrompt
-              ? t("uploaded_file.master_tooltip")
-              : t("uploaded_file.set_master_tooltip")
-          }
-        >
-          <span>
-            <IconButton
-              onClick={() => setConfirmMasterOpen(true)}
-              disabled={isMasterPrompt || markedForDeletion}
-              sx={{
-                ...actionButtonSx,
-                fontFamily: LABEL,
-                fontWeight: 700,
-                fontSize: "1rem",
-                "&.Mui-disabled": isMasterPrompt
-                  ? { bgcolor: "#fdf5e7", color: "#603e11" }
-                  : undefined,
-              }}
-            >
-              M
-            </IconButton>
-          </span>
-        </Tooltip>
+        <MasterFileButton
+          isMasterPrompt={isMasterPrompt}
+          disabled={markedForDeletion}
+          onConfirm={() => setAsMasterPrompt(id)}
+        />
         {markedForDeletion ? (
           <Tooltip title={t("uploaded_file.restore_tooltip")}>
             <IconButton onClick={onRestore} sx={actionButtonSx}>
@@ -259,18 +158,6 @@ export default function UploadedAudioFilePaper({
       </Box>
 
       <ConfirmDialog
-        open={confirmMasterOpen}
-        title={t("uploaded_file.set_master_title")}
-        description={t("uploaded_file.set_master_description")}
-        proceedLabel={t("uploaded_file.set_master_confirm")}
-        onProceed={() => {
-          setConfirmMasterOpen(false);
-          setAsMasterPrompt(id);
-        }}
-        onCancel={() => setConfirmMasterOpen(false)}
-      />
-
-      <ConfirmDialog
         open={confirmDeleteOpen}
         title={t("uploaded_file.remove_title")}
         description={t("uploaded_file.remove_description")}
@@ -278,7 +165,6 @@ export default function UploadedAudioFilePaper({
         dangerous
         onProceed={() => {
           setConfirmDeleteOpen(false);
-          audioRef.current?.pause();
           onDelete();
         }}
         onCancel={() => setConfirmDeleteOpen(false)}

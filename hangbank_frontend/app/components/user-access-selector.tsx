@@ -74,13 +74,18 @@ export function UserSearchAutocomplete({
     }
     let ignore = false;
     setLoading(true);
-    const handle = setTimeout(() => {
-      api
-        .get<AccessUser[]>("/user/search", { params: { q } })
-        .then((res) => { if (!ignore) setOptions(res.data); })
-        .catch(() => { if (!ignore) setOptions([]); })
-        .finally(() => { if (!ignore) setLoading(false); });
-    }, 250);
+    const search = async () => {
+      try {
+        const { data } = await api.get<AccessUser[]>("/user/search", { params: { q } });
+        if (!ignore) setOptions(data);
+      } catch {
+        if (!ignore) setOptions([]);
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
+
+    const handle = setTimeout(() => void search(), 250);
     return () => { ignore = true; clearTimeout(handle); };
   }, [inputValue]);
 

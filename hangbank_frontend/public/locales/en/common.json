@@ -272,6 +272,7 @@
             "title": "New Project From Existing Audio Files",
             "subtitle": "Configure a project for audio recordings you already have, and assign the speaker and project members.",
             "placeholder_name": "e.g. Archived interview recordings",
+            "label_automatic_transcription": "Run Automatic Transcription",
             "label_resample": "Unify sampling rate",
             "sampling_rate_explanation": "Existing audio files may have different sampling rates. The system will adjust all files' sampling rate to the provided sampling rate.",
             "placeholder_speaker_search": "Search for the speaker...",
@@ -280,7 +281,9 @@
             "speaker_tag": "speaker",
             "speaker_editor_hint": "The speaker is automatically added to the project as Editor.",
             "success": "Project created successfully!",
-            "error_create": "Failed to create project. Please try again."
+            "error_create": "Failed to create project. Please try again.",
+            "label_transcription_language": "Transcription language",
+            "error_transcription_language_required": "Please select the transcription language."
         }
     },
     "gender": {
@@ -307,7 +310,10 @@
     "project_card": {
         "corpus_progress": "Corpus Progress",
         "speaker": "Speaker",
-        "speakers": "Speakers"
+        "speakers": "Speakers",
+        "transcription_progress": "Transcription progress",
+        "audio_file_count_one": "{{count}} audio file",
+        "audio_file_count_other": "{{count}} audio files"
     },
     "project_detail": {
         "title": "Project Details",
@@ -547,7 +553,8 @@
         "save": "Save changes",
         "buffered": "Buffered",
         "restore_tooltip": "Restore",
-        "modified_tooltip": "Unsaved changes"
+        "modified_tooltip": "Unsaved changes",
+        "error_play_unsupported": "This file format cannot be played in the browser."
     },
     "upload_page": {
         "supported_audio_formats": "Support for .wav, .aiff, .flac, .mp3, .ogg, .opus (Max 200MB per file)",
@@ -559,7 +566,10 @@
         "speech_dialect": "Speech dialect",
         "target_sampling_rate": "Target sample rate",
         "error_delete_master": "You cannot delete a Master File!",
-        "upload_title": "Upload Existing Files"
+        "upload_title": "Upload Existing Files",
+        "error_load_project": "Could not load the project.",
+        "save_success": "Changes saved.",
+        "error_save": "Could not save the changes. Please try again."
     },
     "uploaded_file_details": {
         "label_type": "Type",
@@ -569,6 +579,7 @@
         "transcribe": "Transcribe",
         "transcribe_sent": "The file was sent to transcription. Once it is done, check again here by reloading the page",
         "label_emotion": "Emotion",
-        "save": "Save"
+        "save": "Save",
+        "transcribe_after_save": "Transcription is available once the file is saved."
     }
 }

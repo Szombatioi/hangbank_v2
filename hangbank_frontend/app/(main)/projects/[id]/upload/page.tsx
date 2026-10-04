@@ -1,17 +1,17 @@
 "use client";
-//TODO: next steps
-//Fetch project by ID (details)
-//Fetch project's uploaded files on page load + after Save Changes (there is a todo comment about that)
-//Handle Save Changes (create, update, delete)
 
 import { Severity, useSnackbar } from "@/app/providers/SnackbarProvider";
 import { Box, Button, CircularProgress, Paper, Stack, Typography } from "@mui/material";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import api from "@/app/axios";
+import { translateHttpError } from "@/app/components/helpers/http-error";
 import { useTranslation } from "react-i18next";
 import UploadedAudioFilePaper from "./components/uploaded-file-paper";
 import BufferedAudioFilePaper from "./components/buffered-file-paper";
-import UploadedFileDetailsDialog from "./components/uploaded-file-details.dialog";
+import UploadedFileDetailsDialog, {
+  AudioFileDetailsView,
+} from "./components/uploaded-file-details.dialog";
 import FileUpload from "@/app/components/file_upload";
 import {
   BODY,
@@ -23,41 +23,12 @@ import {
 import {
   BufferedAudioFile,
   ProjectAudioFile,
-  UploadProjectDetails,
+  UploadProjectView,
 } from "./types";
 
 const AUDIO_ACCEPT = ".wav,.aiff,.flac,.mp3,.ogg,.opus";
 const MAX_AUDIO_SIZE_BYTES = 200 * 1024 * 1024;
-
-//TODO: fetch the project's audio files from the backend
-const MOCK_FILES: ProjectAudioFile[] = [
-  {
-    id: "0",
-    filename: "file1.mp3",
-    type: "mp3",
-    originalSamplingRate: 16_000,
-    isMasterPrompt: false,
-    transcription: "",
-    emotion: "",
-  },
-  {
-    id: "1",
-    filename: "file2.m4a",
-    type: "m4a",
-    originalSamplingRate: 32_000,
-    isMasterPrompt: true,
-    transcription: "",
-    emotion: "",
-  },
-];
-
-//TODO: fetch the project's details from the backend
-const MOCK_DETAILS: UploadProjectDetails = {
-  speakerName: "Admin User",
-  speechDialect: "",
-  unifySamplingRate: true,
-  targetSamplingRate: 48_000,
-};
+const MAX_FILES_PER_UPLOAD = 20;
 
 const detailValueSx = {
   fontFamily: BODY,
@@ -76,8 +47,29 @@ export default function UploadPage() {
   const params = useParams();
   const projectId = params.id as string;
 
-  const [files] = useState<ProjectAudioFile[]>(MOCK_FILES);
-  const [details] = useState<UploadProjectDetails>(MOCK_DETAILS);
+  const [project, setProject] = useState<UploadProjectView | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const files = project?.files ?? [];
+
+  const loadProject = useCallback(async () => {
+    try {
+      const { data } = await api.get<UploadProjectView>(
+        `/existing-audio-project/project/${projectId}`,
+      );
+      setProject(data);
+      setLoadFailed(false);
+    } catch (err) {
+      showMessage(
+        translateHttpError(err, t, t("upload_page.error_load_project")),
+        Severity.error,
+      );
+      setLoadFailed(true);
+    }
+  }, [projectId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    loadProject();
+  }, [loadProject]);
 
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
@@ -85,23 +77,50 @@ export default function UploadPage() {
   const [toDelete, setToDelete] = useState<string[]>([]);
   const [toModify, setToModify] = useState<ProjectAudioFile[]>([]);
 
-  const [openFileId, setOpenFileId] = useState<string | null>(null);
+  const [openTarget, setOpenTarget] = useState<{
+    kind: "uploaded" | "buffered";
+    id: string;
+  } | null>(null);
   const [transcriptionRequested, setTranscriptionRequested] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
+  const [bufferedMasterId, setBufferedMasterId] = useState<string | null>(null);
+
   const originalMasterId = files.find((f) => f.isMasterPrompt)?.id ?? null;
-  const masterId = toModify.find((m) => m.isMasterPrompt)?.id ?? originalMasterId;
+  const masterId = bufferedMasterId
+    ? null
+    : (toModify.find((m) => m.isMasterPrompt)?.id ?? originalMasterId);
 
   const fileWithPendingModifications = (f: ProjectAudioFile): ProjectAudioFile => ({
     ...(toModify.find((m) => m.id === f.id) ?? f),
     isMasterPrompt: f.id === masterId,
   });
 
-  const openFile = files.find((f) => f.id === openFileId);
+  const openUploaded =
+    openTarget?.kind === "uploaded"
+      ? files.find((f) => f.id === openTarget.id)
+      : undefined;
+  const openBuffered =
+    openTarget?.kind === "buffered"
+      ? toUpload.find((b) => b.tempId === openTarget.id)
+      : undefined;
+
+  const openFileView: AudioFileDetailsView | null = openUploaded
+    ? fileWithPendingModifications(openUploaded)
+    : openBuffered
+      ? {
+          filename: openBuffered.file.name,
+          type: openBuffered.file.name.split(".").pop() ?? "",
+          isMasterPrompt: openBuffered.tempId === bufferedMasterId,
+          transcription: openBuffered.transcription,
+          emotion: openBuffered.emotion,
+        }
+      : null;
 
   const changesPending = toUpload.length > 0 || toDelete.length > 0 || toModify.length > 0;
 
-  //Returns a modified list of audio files, with the modified (updated) file from the original list
+  //Returns a modified list of audio files, 
+  //with the modified (updated) file from the original list
   const getFilesWithModified = (
     list: ProjectAudioFile[],
     updated: ProjectAudioFile,
@@ -111,15 +130,27 @@ export default function UploadPage() {
     return original && sameFile(original, updated) ? rest : [...rest, updated];
   };
 
-  //Buffers the uploadable audio files
+  
   const bufferSelectedFiles = () => {
     const newFiles = selectedFiles.filter((f) => !toUpload.some((b) => b.file.name === f.name && b.file.size === f.size));
-    setToUpload((prev) => [...prev, ...newFiles.map((file) => ({ tempId: crypto.randomUUID(), file }))]); //they get a temporary ID to be able to remove them
+    setToUpload((prev) => [
+      ...prev,
+      ...newFiles.map((file) => ({
+        tempId: crypto.randomUUID(), //temporary ID to be able to remove them if not planning to upload them anymore
+        file,
+        transcription: "",
+        emotion: "",
+      })),
+    ]);
     setSelectedFiles([]);
   };
 
   const removeBuffered = (tempId: string) => {
     setToUpload((prev) => prev.filter((b) => b.tempId !== tempId));
+    if (tempId === bufferedMasterId) {
+      setToModify(withUploadedMaster(originalMasterId));
+      setBufferedMasterId(null);
+    }
   };
 
   const markForDeletion = (id: string) => {
@@ -131,12 +162,12 @@ export default function UploadPage() {
     setToDelete((prev) => prev.filter((d) => d !== id));
   };
 
-  //Setting a new file to be master
-  //Replacing the toModify buffer with a new one, containing:
+  //Returns the toModify list after making `id` the master among the uploaded files,
+  //or after taking the role from all of them when `id` is null (a buffered file is the new master):
   //a. All previously modified files
   //b. The new master file, if not yet present, to be marked as master
   //c. The old master file, if not yet present, to be marked as not master anymore
-  const setAsMasterPrompt = (id: string) => {
+  const withUploadedMaster = (id: string | null) => {
     let next = toModify;
     for (const f of files) {
       if (toDelete.includes(f.id)) continue;
@@ -152,35 +183,92 @@ export default function UploadPage() {
         });
       }
     }
-    setToModify(next);
+    return next;
   };
 
-  const saveFileDetails = (updated: ProjectAudioFile) => {
-    setToModify((prev) => getFilesWithModified(prev, updated));
+  const setAsMasterPrompt = (id: string) => {
+    setToModify(withUploadedMaster(id));
+    setBufferedMasterId(null);
   };
 
-  //TODO I'll do this later
-  const deleteFiles = async (ids: string[]) => {
-    console.log("delete", projectId, ids);
+  const setBufferedAsMasterPrompt = (tempId: string) => {
+    setToModify(withUploadedMaster(null));
+    setBufferedMasterId(tempId);
   };
 
-  //TODO I'll do this later
+  const saveFileDetails = (changes: { transcription: string; emotion: string }) => {
+    if (openUploaded) {
+      const updated = { ...fileWithPendingModifications(openUploaded), ...changes };
+      setToModify((prev) => getFilesWithModified(prev, updated));
+    } else if (openBuffered) {
+      // Buffered files are new uploads, so their details travel with the upload itself.
+      setToUpload((prev) =>
+        prev.map((b) => (b.tempId === openBuffered.tempId ? { ...b, ...changes } : b)),
+      );
+    }
+  };
+
+  const uploadFiles = async (
+    buffered: BufferedAudioFile[],
+    masterTempId: string | null,
+  ) => {
+    if (buffered.length === 0) return;
+
+    const ordered = [...buffered].sort(
+      (a, b) =>
+        Number(b.tempId === masterTempId) - Number(a.tempId === masterTempId),
+    );
+
+    for (let i = 0; i < ordered.length; i += MAX_FILES_PER_UPLOAD) {
+      const batch = ordered.slice(i, i + MAX_FILES_PER_UPLOAD);
+      const formData = new FormData();
+      formData.append("projectId", projectId);
+      batch.forEach((b) => formData.append("files", b.file));
+      formData.append(
+        "details",
+        JSON.stringify(
+          batch.map((b) => ({
+            transcription: b.transcription.trim() || undefined,
+            emotion: b.emotion.trim() || undefined,
+            isMasterPrompt: b.tempId === masterTempId,
+          })),
+        ),
+      );
+
+      await api.post("/existing-audio-project/files", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      const uploadedIds = new Set(batch.map((b) => b.tempId));
+      setToUpload((prev) => prev.filter((b) => !uploadedIds.has(b.tempId)));
+      if (masterTempId && uploadedIds.has(masterTempId)) {
+        setBufferedMasterId(null);
+      }
+    }
+  };
+
   const modifyFiles = async (modified: ProjectAudioFile[]) => {
-    console.log("modify", projectId, modified);
-  };
+    if (modified.length === 0) return;
 
-  //TODO I'll do this later
-  const uploadFiles = async (buffered: BufferedAudioFile[]) => {
-    console.log("upload", projectId, buffered);
-  };
-
-  const clearAndReloadUploadedFiles = async () => {
-    setToDelete([]);
-    setToUpload([]);
+    await api.patch("/existing-audio-project/files", {
+      projectId,
+      files: modified.map((m) => ({
+        id: m.id,
+        transcription: m.transcription,
+        emotion: m.emotion,
+        isMasterPrompt: m.isMasterPrompt,
+      })),
+    });
     setToModify([]);
+  };
 
-    //TODO: fetch uploaded files from DB
-  }
+  const deleteFiles = async (ids: string[]) => {
+    if (ids.length === 0) return;
+
+    await api.delete("/existing-audio-project/files", {
+      data: { projectId, ids },
+    });
+    setToDelete([]);
+  };
 
   const handleSave = async () => {
     if (masterId && toDelete.includes(masterId)) {
@@ -190,14 +278,35 @@ export default function UploadPage() {
 
     setSaving(true);
     try {
-      await deleteFiles(toDelete);
+      await uploadFiles(toUpload, bufferedMasterId);
       await modifyFiles(toModify);
-      await uploadFiles(toUpload);
-      await clearAndReloadUploadedFiles();
+      await deleteFiles(toDelete);
+      showMessage(t("upload_page.save_success"), Severity.success);
+    } catch (err) {
+      showMessage(
+        translateHttpError(err, t, t("upload_page.error_save")),
+        Severity.error,
+      );
     } finally {
+      await loadProject();
       setSaving(false);
     }
   };
+
+  if (!project) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+        {loadFailed ? (
+          <Typography sx={{ fontFamily: BODY, color: "var(--app-text-muted)" }}>
+            {t("upload_page.error_load_project")}
+          </Typography>
+        ) : (
+          <CircularProgress />
+        )}
+      </Box>
+    );
+  }
+  const { details } = project;
 
   return (
     <Box>
@@ -284,7 +393,8 @@ export default function UploadPage() {
                   modified={toModify.some((m) => m.id === file.id)}
                   onRestore={() => restore(file.id)}
                   onOpen={() => {
-                    if (!toDelete.includes(file.id)) setOpenFileId(file.id);
+                    if (!toDelete.includes(file.id))
+                      setOpenTarget({ kind: "uploaded", id: file.id });
                   }}
                 />
               );
@@ -293,8 +403,11 @@ export default function UploadPage() {
             {toUpload.map((b) => (
               <BufferedAudioFilePaper
                 key={b.tempId}
-                filename={b.file.name}
+                file={b.file}
+                isMasterPrompt={b.tempId === bufferedMasterId}
+                setAsMasterPrompt={() => setBufferedAsMasterPrompt(b.tempId)}
                 onDelete={() => removeBuffered(b.tempId)}
+                onOpen={() => setOpenTarget({ kind: "buffered", id: b.tempId })}
               />
             ))}
           </Paper>
@@ -320,6 +433,17 @@ export default function UploadPage() {
               </Typography>
               <Typography sx={detailValueSx}>
                 {details.speechDialect || "—"}
+              </Typography>
+            </Box>
+
+            <Box>
+              <Typography sx={captionSx}>
+                {t("new_project.existing_files.label_transcription_language")}
+              </Typography>
+              <Typography sx={detailValueSx}>
+                {details.transcriptionLanguage
+                  ? t(`language.${details.transcriptionLanguage}`)
+                  : "—"}
               </Typography>
             </Box>
 
@@ -352,18 +476,21 @@ export default function UploadPage() {
       </Stack>
 
       <UploadedFileDetailsDialog
-        key={openFileId ?? "closed"}
-        file={openFile ? fileWithPendingModifications(openFile) : null}
+        key={openTarget ? `${openTarget.kind}-${openTarget.id}` : "closed"}
+        file={openFileView}
+        canTranscribe={!!openUploaded}
         transcriptionRequested={
-          !!openFileId && transcriptionRequested.includes(openFileId)
+          !!openUploaded && transcriptionRequested.includes(openUploaded.id)
         }
-        onTranscribe={(id) =>
+        onTranscribe={() => {
+          if (!openUploaded) return;
+          const id = openUploaded.id;
           setTranscriptionRequested((prev) =>
             prev.includes(id) ? prev : [...prev, id],
-          )
-        }
+          );
+        }}
         onSave={saveFileDetails}
-        onClose={() => setOpenFileId(null)}
+        onClose={() => setOpenTarget(null)}
       />
     </Box>
   );

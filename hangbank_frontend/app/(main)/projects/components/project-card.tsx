@@ -7,36 +7,51 @@ import LanguageIcon from "@mui/icons-material/Language";
 import { ProjectType } from "../new/components/project-type-selector";
 import { useTranslation } from "react-i18next";
 import GetColorFromProgress, { ProjectProgress } from "@/app/components/helpers/get-color-from-progress";
-import { ProjectDto } from "@/app/components/types/project.dto";
+import { ProjectListItemDto } from "@/app/components/types/project-list-item.dto";
 import { formatUpdatedAt } from "@/app/components/helpers/format-update-date";
-import { MenuBook } from "@mui/icons-material";
+import { AudioFile, MenuBook } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
+import { TFunction } from "i18next";
 
 const LABEL = "'Manrope', sans-serif";
 const HEADLINE = "'Space Grotesk', sans-serif";
 const BODY = "'Inter', sans-serif";
 
 export interface ProjectCardProps {
-    project: ProjectDto;
+    project: ProjectListItemDto;
     featured?: boolean;
+}
+
+function getTypeDetails(project: ProjectListItemDto, t: TFunction) {
+    switch (project.type) {
+        case ProjectType.CORPUS:
+            return {
+                href: `/projects/${project.id}`,
+                progressLabel: t("project_card.corpus_progress"),
+                badgeIcon: MenuBook,
+                badgeText: project.corpusName,
+            };
+        case ProjectType.EXISTING_FILES:
+            return {
+                href: `/projects/${project.id}/upload`,
+                progressLabel: t("project_card.transcription_progress"),
+                badgeIcon: AudioFile,
+                badgeText: t("project_card.audio_file_count", { count: project.audioFileCount }),
+            };
+    }
 }
 
 export default function ProjectCard({ project, featured = false }: ProjectCardProps) {
     const { t } = useTranslation("common");
     const router = useRouter();
 
-    //TODO: remove these mock values
-    const type = project.type ?? ProjectType.CORPUS;
-    const name = project.name ?? "Untitled Project";
-    const description = project.description ?? "Test description";
-    const corpusProgress = project.corpusProgress ?? 12;
-    const corpusName = project.corpusName ?? "Test Corpus";
-    const language = project.language ?? "en-US";
-    const speakerCount = project.speakerCount ?? 1;
+    const { type, name, description, language, speakerCount } = project;
+    const percent = project.progress;
     const updatedAt = formatUpdatedAt(project.updatedAt ?? project.createdAt);
+    const { href, progressLabel, badgeIcon: BadgeIcon, badgeText } = getTypeDetails(project, t);
 
-    const progress = corpusProgress > 0 ?
-        corpusProgress === 100 ? ProjectProgress.FINISHED : ProjectProgress.IN_PROGRESS :
+    const progress = percent > 0 ?
+        percent === 100 ? ProjectProgress.FINISHED : ProjectProgress.IN_PROGRESS :
         ProjectProgress.NEW;
 
     const colors = GetColorFromProgress(progress);
@@ -44,7 +59,7 @@ export default function ProjectCard({ project, featured = false }: ProjectCardPr
     return (
         <Paper
             elevation={0}
-            onClick={() => { router.push(`/projects/${project.id}`) }}
+            onClick={() => { router.push(href) }}
             sx={{
                 width: "100%",
                 minHeight: 300,
@@ -155,10 +170,9 @@ export default function ProjectCard({ project, featured = false }: ProjectCardPr
                         </Box>
                     )}
 
-                    {/* Corpus name badge */}
-                    {corpusName && (
+                    {badgeText && (
                         <Box sx={{ mt: 0.5, display: "flex", justifyContent: "start", alignItems: "center", gap: 1 }}>
-                            <MenuBook sx={{ fontSize: "0.9rem", color: featured ? "var(--app-text-secondary)" : "var(--app-text-faint)" }} />
+                            <BadgeIcon sx={{ fontSize: "0.9rem", color: featured ? "var(--app-text-secondary)" : "var(--app-text-faint)" }} />
                             <Typography
                                 sx={{
                                     fontFamily: LABEL,
@@ -169,7 +183,7 @@ export default function ProjectCard({ project, featured = false }: ProjectCardPr
                                     letterSpacing: "0.1em",
                                 }}
                             >
-                                {corpusName}
+                                {badgeText}
                             </Typography>
                         </Box>
                     )}
@@ -189,15 +203,15 @@ export default function ProjectCard({ project, featured = false }: ProjectCardPr
                     <Typography
                         sx={{ fontFamily: LABEL, fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: featured ? "var(--app-text-secondary)" : "var(--app-text-faint)" }}
                     >
-                        {t("project_card.corpus_progress")}
+                        {progressLabel}
                     </Typography>
                     <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.8rem", color: featured ? "var(--app-border)" : "var(--app-text-body)" }}>
-                        {corpusProgress}%
+                        {percent}%
                     </Typography>
                 </Box>
                 <LinearProgress
                     variant="determinate"
-                    value={corpusProgress}
+                    value={percent}
                     sx={{
                         height: 4,
                         borderRadius: 2,

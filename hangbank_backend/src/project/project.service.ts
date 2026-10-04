@@ -24,12 +24,21 @@ import { normalizeTranscript } from 'src/helpers/normalizeTranscript';
 import { blob } from 'stream/consumers';
 import { audioQualitiesHaveProblems } from 'src/audio-quality/audio-quality.metadata';
 import { AudioFile } from 'src/audio-file/entities/audio-file.entity';
+import { ExistingFilesProject } from './entities/existing-files-project.entity';
+import { Project } from './entities/project.entity';
+import {
+  CorpusProjectListItemDto,
+  ExistingFilesProjectListItemDto,
+  ProjectListItemDto,
+} from './dto/project-list-item.dto';
 
 @Injectable()
 export class ProjectService {
   constructor(
     @InjectRepository(CorpusBasedProject)
     private readonly corpusBasedProjectRepository: Repository<CorpusBasedProject>,
+    @InjectRepository(ExistingFilesProject)
+    private readonly existingFilesProjectRepository: Repository<ExistingFilesProject>,
     @InjectRepository(Speaker)
     private readonly speakerRepository: Repository<Speaker>,
     @InjectRepository(CorpusBlock)
@@ -342,38 +351,82 @@ export class ProjectService {
       });
   }
 
-  async findAll(requesterId: string) {
-    const projects = await this.corpusBasedProjectRepository.find({
-      // Only projects the requester owns (ownership-only filtering for now)
-      where: { roles: { userId: requesterId, role: ProjectRoleType.OWNER } },
-      relations: ['corpus', 'corpus.language', 'speaker', 'roles'],
-    });
+  async findAll(requesterId: string): Promise<ProjectListItemDto[]> {
+    // Only projects the requester owns (ownership-only filtering for now)
+    const ownedByRequester = {
+      roles: { userId: requesterId, role: ProjectRoleType.OWNER },
+    };
 
-    return Promise.all(
-      projects.map(async (project) => {
-        const recordedCount = await this.corpusBlockRepository.count({
-          where: {
-            corpusProject: { id: project.id },
-            audioFile: Not(IsNull()),
-          },
-        });
-        const total = project.corpus.blockCount;
-        return {
-          id: project.id,
-          name: project.name,
-          description: project.description,
-          samplingRate: project.samplingRate,
-          createdAt: project.createdAt,
-          updatedAt: project.updatedAt,
-          type: 'corpus',
-          corpusProgress:
-            total > 0 ? Math.round((recordedCount / total) * 100) : 0,
-          corpusName: project.corpus.name,
-          language: project.corpus.language?.name,
-          speakerCount: 1,
-        };
+    const [corpusProjects, existingFilesProjects] = await Promise.all([
+      this.corpusBasedProjectRepository.find({
+        where: ownedByRequester,
+        relations: { corpus: { language: true } },
       }),
-    );
+      this.existingFilesProjectRepository.find({
+        where: ownedByRequester,
+        relations: { transcriptionLanguage: true },
+      }),
+    ]);
+
+    const items = await Promise.all([
+      ...corpusProjects.map((p) => this.toCorpusListItem(p)),
+      ...existingFilesProjects.map((p) => this.toExistingFilesListItem(p)),
+    ]);
+    return items.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+  }
+
+  private async toCorpusListItem(
+    project: CorpusBasedProject,
+  ): Promise<CorpusProjectListItemDto> {
+    const recordedCount = await this.corpusBlockRepository.count({
+      where: {
+        corpusProject: { id: project.id },
+        audioFile: Not(IsNull()),
+      },
+    });
+    const total = project.corpus.blockCount;
+    return {
+      ...this.listItemBase(project),
+      type: 'corpus',
+      language: project.corpus.language?.name ?? null,
+      progress: total > 0 ? Math.round((recordedCount / total) * 100) : 0,
+      corpusName: project.corpus.name,
+    };
+  }
+
+  private async toExistingFilesListItem(
+    project: ExistingFilesProject,
+  ): Promise<ExistingFilesProjectListItemDto> {
+    const [audioFileCount, transcribedCount] = await Promise.all([
+      this.audioFileRepository.count({
+        where: { project: { id: project.id } },
+      }),
+      this.audioFileRepository.count({
+        where: { project: { id: project.id }, transcription: Not('') },
+      }),
+    ]);
+    return {
+      ...this.listItemBase(project),
+      type: 'existing files',
+      language: project.transcriptionLanguage?.name ?? null,
+      progress:
+        audioFileCount > 0
+          ? Math.round((transcribedCount / audioFileCount) * 100)
+          : 0,
+      audioFileCount,
+    };
+  }
+
+  private listItemBase(project: Project) {
+    return {
+      id: project.id,
+      name: project.name,
+      description: project.description,
+      samplingRate: project.samplingRate,
+      createdAt: project.createdAt,
+      updatedAt: project.updatedAt,
+      speakerCount: 1,
+    };
   }
 
   async findOne(id: string) {

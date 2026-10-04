@@ -27,13 +27,7 @@ import {
   fullName,
 } from "@/app/components/user-access-selector";
 import { translateHttpError } from "@/app/components/helpers/http-error";
-import {
-  ProjectRole,
-  PROJECT_ROLES,
-  HEADLINE,
-  LABEL,
-  BODY,
-} from "./constants";
+import { ProjectRole, PROJECT_ROLES, HEADLINE, LABEL, BODY } from "./constants";
 import {
   captionSx,
   fieldLabelSx,
@@ -41,12 +35,10 @@ import {
   sectionTitleSx,
   textFieldSx,
 } from "@/app/components/style-constants";
+import LanguageSelect from "@/app/components/language-select";
+import { LanguageDto } from "@/app/components/types/language.dto";
 import { SamplingRateSelect } from "./components/sampling-rate-select";
 import { AudioChecksSelect } from "./components/audio-checks-select";
-
-
-
-
 
 const infoCardSx = {
   bgcolor: "var(--app-card)",
@@ -54,7 +46,6 @@ const infoCardSx = {
   px: 2.5,
   py: 2,
 } as const;
-
 
 const infoValueSx = {
   fontFamily: LABEL,
@@ -71,6 +62,10 @@ export default function ExistingFilesSettings() {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [useAutomaticTranscription, setUseAutomaticTranscription] =
+    useState(false);
+  const [transcriptionLanguage, setTranscriptionLanguage] =
+    useState<LanguageDto | null>(null);
   const [resample, setResample] = useState(false);
   const [samplingRate, setSamplingRate] = useState<number | "">("");
   const [recordingEnvironment, setRecordingEnvironment] = useState("");
@@ -88,12 +83,10 @@ export default function ExistingFilesSettings() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  // Default the speaker to the creator once the auth profile is available.
   useEffect(() => {
     if (user) setSpeaker((prev) => prev ?? user);
   }, [user]);
 
-  // The speaker is implicitly an Editor, so they can't also hold a separate role.
   const selectSpeaker = (next: AccessUser | null) => {
     setSpeaker(next);
     if (!next) return;
@@ -101,30 +94,39 @@ export default function ExistingFilesSettings() {
     if (memberUser?.id === next.id) setMemberUser(null);
   };
 
-  // Search results lack age/gender, so load them for the chosen speaker.
+  
   const speakerId = speaker?.id;
-  const speakerNeedsProfile =
-    !!speaker && speaker.birthDate === undefined && speaker.gender === undefined;
+  const speakerNeedsProfile = !!speaker && speaker.birthDate === undefined && speaker.gender === undefined;
   useEffect(() => {
     if (!speakerId || !speakerNeedsProfile) return;
     let ignore = false;
-    api
-      .get<AccessUser>(`/user/${speakerId}/speaker-profile`)
-      .then(({ data }) => {
+
+    const loadSpeakerProfile = async () => {
+      try {
+        const { data } = await api.get<AccessUser>(
+          `/user/${speakerId}/speaker-profile`
+        );
         if (ignore) return;
         setSpeaker((prev) =>
           prev?.id === speakerId
-            ? { ...prev, gender: data.gender ?? null, birthDate: data.birthDate ?? null }
-            : prev,
+            ? {
+                ...prev,
+                gender: data.gender ?? null,
+                birthDate: data.birthDate ?? null,
+              }
+            : prev
         );
-      })
-      .catch(() => {
+      } catch {
         if (ignore) return;
-        // Mark as loaded so the fields show "—" instead of retrying forever.
         setSpeaker((prev) =>
-          prev?.id === speakerId ? { ...prev, gender: null, birthDate: null } : prev,
+          prev?.id === speakerId
+            ? { ...prev, gender: null, birthDate: null }
+            : prev
         );
-      });
+      }
+    };
+
+    void loadSpeakerProfile();
     return () => {
       ignore = true;
     };
@@ -150,6 +152,7 @@ export default function ExistingFilesSettings() {
     name: !name.trim(),
     samplingRate: resample && samplingRate === "",
     speaker: !speaker,
+    transcriptionLanguage: !transcriptionLanguage,
   };
   const hasErrors = Object.values(errors).some(Boolean);
 
@@ -161,13 +164,14 @@ export default function ExistingFilesSettings() {
     if (hasErrors) return;
     setSubmitting(true);
     try {
-      //TODO: point to the real endpoint once the backend is implemented
       await api.post("/existing-audio-project/project", {
         projectName: name.trim(),
         description: description.trim() || undefined,
         samplingRate: resample ? (samplingRate as number) : undefined,
         recordingEnvironment: recordingEnvironment.trim() || undefined,
         audioChecks,
+        useAutomaticTranscription,
+        transcriptionLanguageCode: transcriptionLanguage!.code,
         speaker: {
           userId: speaker!.id,
           speechCharacteristics: speechDescription.trim() || undefined,
@@ -182,7 +186,7 @@ export default function ExistingFilesSettings() {
     } catch (err) {
       showMessage(
         translateHttpError(err, t, t("new_project.existing_files.error_create")),
-        Severity.error,
+        Severity.error
       );
     } finally {
       setSubmitting(false);
@@ -272,7 +276,7 @@ export default function ExistingFilesSettings() {
               />
             </Box>
 
-            {/* Sampling rate (optional resampling) */}
+            {/* Sampling rate */}
             <Box>
               <FormControlLabel
                 control={
@@ -282,7 +286,10 @@ export default function ExistingFilesSettings() {
                   />
                 }
                 label={t("new_project.existing_files.label_resample")}
-                sx={{ mb: 1, "& .MuiFormControlLabel-label": { fontFamily: LABEL } }}
+                sx={{
+                  mb: 1,
+                  "& .MuiFormControlLabel-label": { fontFamily: LABEL },
+                }}
               />
               <SamplingRateSelect
                 value={samplingRate}
@@ -315,6 +322,48 @@ export default function ExistingFilesSettings() {
 
             {/* Audio checks */}
             <AudioChecksSelect value={audioChecks} onChange={setAudioChecks} />
+
+            {/* Transcription language */}
+            <Box>
+              <Typography variant="h6" sx={fieldLabelSx} color="primary">
+                {t("new_project.existing_files.label_transcription_language")}
+              </Typography>
+              <LanguageSelect
+                value={transcriptionLanguage?.code ?? null}
+                onChange={setTranscriptionLanguage}
+                defaultCode="en-US"
+                background="var(--app-card)"
+                error={submitted && errors.transcriptionLanguage}
+                helperText={
+                  submitted && errors.transcriptionLanguage
+                    ? t(
+                        "new_project.existing_files.error_transcription_language_required"
+                      )
+                    : undefined
+                }
+              />
+            </Box>
+
+            {/* Automatic transcription */}
+            <Box>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={useAutomaticTranscription}
+                    onChange={(e) =>
+                      setUseAutomaticTranscription(e.target.checked)
+                    }
+                  />
+                }
+                label={t(
+                  "new_project.existing_files.label_automatic_transcription"
+                )}
+                sx={{
+                  mb: 1,
+                  "& .MuiFormControlLabel-label": { fontFamily: LABEL },
+                }}
+              />
+            </Box>
           </Paper>
 
           {/* Submit */}
@@ -350,7 +399,7 @@ export default function ExistingFilesSettings() {
         </Box>
 
         {/* Right side */}
-        <Box sx={{ flex:1, }}>
+        <Box sx={{ flex: 1 }}>
           {/* Speaker info */}
           <Paper elevation={0} sx={{ ...paperSx, gap: 2.5 }}>
             <Typography variant="overline" sx={sectionTitleSx}>
@@ -391,7 +440,9 @@ export default function ExistingFilesSettings() {
                 <Typography sx={captionSx}>
                   {t("new_project.corpus_based.label_gender")}
                 </Typography>
-                <Typography sx={{ ...infoValueSx, textTransform: "capitalize" }}>
+                <Typography
+                  sx={{ ...infoValueSx, textTransform: "capitalize" }}
+                >
                   {speaker?.gender
                     ? t(`gender.${speaker.gender.toLowerCase()}`)
                     : "—"}

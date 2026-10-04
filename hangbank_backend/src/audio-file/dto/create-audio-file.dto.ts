@@ -4,4 +4,7 @@ export interface CreateAudioFileDto{
     durationSeconds: number; //The duration of the file
     transcription: string; //The actual transcription of the recording
     projectId: string;
+    emotion?: string | null;
+    originalSamplingRate?: number | null;
+    originalFormat?: string | null;
 }

@@ -5,15 +5,23 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import ConfirmDialog from "@/app/components/confirm-dialog";
 import { BODY, LABEL } from "@/app/components/style-constants";
+import MasterFileButton from "./master-file-button";
+import AudioPlayButton from "./audio-play-button";
 
 interface BufferedAudioFilePaperProps {
-  filename: string;
+  file: File;
+  isMasterPrompt: boolean;
+  setAsMasterPrompt: () => void;
   onDelete: () => void;
+  onOpen: () => void;
 }
 
 export default function BufferedAudioFilePaper({
-  filename,
+  file,
+  isMasterPrompt,
+  setAsMasterPrompt,
   onDelete,
+  onOpen,
 }: BufferedAudioFilePaperProps) {
   const { t } = useTranslation("common");
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
@@ -29,17 +37,50 @@ export default function BufferedAudioFilePaper({
         alignItems: "center",
       }}
     >
-      <Typography
+      <Box
+        onClick={onOpen}
         sx={{
-          fontFamily: BODY,
-          fontWeight: 600,
-          color: "var(--app-text-primary)",
-          wordBreak: "break-all",
+          cursor: "pointer",
+          flexGrow: 1,
           minWidth: 0,
+          alignSelf: "stretch",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          alignItems: "start",
+          gap: 2,
         }}
       >
-        {filename}
-      </Typography>
+        <Typography
+          sx={{
+            fontFamily: BODY,
+            fontWeight: 600,
+            color: "var(--app-text-primary)",
+            wordBreak: "break-all",
+          }}
+        >
+          {file.name}
+        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+          <AudioPlayButton
+            resolveUrl={async () => URL.createObjectURL(file)}
+            releaseUrl={(url) => URL.revokeObjectURL(url)}
+          />
+          <Chip
+            label={t("uploaded_file.buffered")}
+            size="small"
+            sx={{
+              fontFamily: LABEL,
+              fontWeight: 700,
+              fontSize: "0.65rem",
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              bgcolor: "var(--app-info-bg, #e8f0fe)",
+              color: "var(--app-info-fg, #1a56db)",
+            }}
+          />
+        </Box>
+      </Box>
 
       <Box
         sx={{
@@ -51,18 +92,9 @@ export default function BufferedAudioFilePaper({
           ml: 2,
         }}
       >
-        <Chip
-          label={t("uploaded_file.buffered")}
-          size="small"
-          sx={{
-            fontFamily: LABEL,
-            fontWeight: 700,
-            fontSize: "0.65rem",
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            bgcolor: "var(--app-info-bg, #e8f0fe)",
-            color: "var(--app-info-fg, #1a56db)",
-          }}
+        <MasterFileButton
+          isMasterPrompt={isMasterPrompt}
+          onConfirm={setAsMasterPrompt}
         />
         <IconButton
           onClick={() => setConfirmDeleteOpen(true)}

@@ -22,6 +22,15 @@ export class AudioFile {
   @Column({ type: 'text' })
   transcription!: string; //The actual transcription of the recording
 
+  @Column({ type: 'text', nullable: true })
+  emotion?: string | null;
+
+  @Column({ type: 'int', nullable: true })
+  originalSamplingRate?: number | null; // Hz
+
+  @Column({ type: 'varchar', nullable: true })
+  originalFormat?: string | null; // e.g. mp3
+
   @ManyToOne(() => Project, (p) => p.audioFiles, { onDelete: 'CASCADE' })
   project!: Project;
 

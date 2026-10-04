@@ -8,16 +8,14 @@ import {
   Chip,
   createFilterOptions,
   Grid,
-  MenuItem,
   Paper,
-  Select,
-  SelectChangeEvent,
   TextField,
   Typography,
 } from "@mui/material";
 import { ChangeEvent, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { LanguageDto } from "@/app/components/types/language.dto";
+import LanguageSelect from "@/app/components/language-select";
 import { CorpusVisibility } from "@/app/components/types/corpus.dto";
 import { VisibilitySelector } from "@/app/components/visibility-selector";
 import { UserAccessSelector, AccessUser } from "@/app/components/user-access-selector";
@@ -35,9 +33,6 @@ export default function CorpusUploadPage() {
   const [corpusLanguage, setCorpusLanguage] = useState<LanguageDto | null>(
     null
   );
-  const [supportedLanguages, setSupportedLanguages] = useState<LanguageDto[]>(
-    []
-  ); //TODO: fetch
   const [corpusTitle, setCorpusTitle] = useState<string>("");
   const [corpusDomain, setCorpusDomain] = useState<string>("");
   const [domainOptions, setDomainOptions] = useState<string[]>([]);
@@ -56,24 +51,6 @@ export default function CorpusUploadPage() {
     // setError(raw !== "" && (isNaN(raw) || Number(raw) < 0));
   };
 
-  useEffect(() => {
-    async function fetchLanguages() {
-      try {
-        const response = await api.get("/language");
-        setCorpusLanguage(
-          response.data.find((lang: LanguageDto) => lang.code === "en-US") ||
-          null
-        ); //Default to English if available
-        setSupportedLanguages(response.data);
-      } catch (error) {
-        console.error("Failed to fetch languages:", error);
-        showMessage(translateHttpError(error, t, t("error.language_load")), Severity.error)
-      }
-    }
-
-    fetchLanguages();
-  }, []);
-
   // Existing domains offered as suggestions; the user may still type a new one (freeSolo)
   useEffect(() => {
     async function fetchDomains() {
@@ -87,16 +64,6 @@ export default function CorpusUploadPage() {
 
     fetchDomains();
   }, []);
-
-  const handleLanguageChange = (event: SelectChangeEvent) => {
-    // const language = supportedLanguages.find((lang) => lang.name === event.target.value); //e.g. lang_en_us
-    const language = supportedLanguages.find((lang) => lang.code === event.target.value);
-    if (!language) {
-      //TODO: snackbar
-      return;
-    }
-    setCorpusLanguage(language);
-  };
 
   const handleUpload = async () => {
     if (!file || !corpusLanguage || !corpusTitle || !corpusDomain) {
@@ -170,40 +137,11 @@ export default function CorpusUploadPage() {
               >
                 {t("upload_corpus_page.language_selection")}
               </Typography>
-              <Select
-                value={corpusLanguage ? t(`language.${corpusLanguage?.name}`) : ""}
-                onChange={handleLanguageChange}
-                fullWidth
-                sx={{ borderRadius: 4 }}
-                displayEmpty
-                // renderValue={(selected) =>
-                //   selected.length === 0 ? (
-                //     <em style={{ color: "#aaa", fontStyle: "normal" }}>
-                //       {t("upload_corpus_page.select_language_placeholder")}
-                //     </em>
-                //   ) : (
-                //     selected
-                //   )
-                // }
-                renderValue={(selected) => {
-                  if (!selected)
-                    return (
-                      <em style={{ color: "#aaa", fontStyle: "normal" }}>
-                        {t("upload_corpus_page.select_language_placeholder")}
-                      </em>
-                    );
-                  const lang = supportedLanguages.find(
-                    (l) => l.code === selected
-                  );
-                  return lang ? t(`language.${lang.name}`) : selected;
-                }}
-              >
-                {supportedLanguages.map((lang) => (
-                  <MenuItem key={lang.code} value={lang.code}>
-                    {t(`language.${lang.name}`)}
-                  </MenuItem>
-                ))}
-              </Select>
+              <LanguageSelect
+                value={corpusLanguage?.code ?? null}
+                onChange={setCorpusLanguage}
+                defaultCode="en-US"
+              />
             </div>
 
             {/* Title */}

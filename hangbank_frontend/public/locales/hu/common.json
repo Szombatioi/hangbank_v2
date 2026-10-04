@@ -272,6 +272,7 @@
             "title": "Új projekt meglévő hangfájlokból",
             "subtitle": "Állíts be egy projektet a már meglévő hangfelvételeidhez, és rendeld hozzá a beszélőt és a projekt tagjait.",
             "placeholder_name": "pl. Archivált interjúfelvételek",
+            "label_automatic_transcription": "Automatikus leiratozás futtatása",
             "label_resample": "Egységes mintavételezési frekvencia",
             "sampling_rate_explanation": "A meglévő hangfájlok eltérő mintavételezési frekvenciájúak lehetnek. A rendszer minden fájlt a megadott mintavételezési frekvenciára alakít át.",
             "placeholder_speaker_search": "Beszélő keresése...",
@@ -280,7 +281,9 @@
             "speaker_tag": "beszélő",
             "speaker_editor_hint": "A beszélő automatikusan Szerkesztő szerepkörrel kerül a projektbe.",
             "success": "A projekt sikeresen létrejött!",
-            "error_create": "A projekt létrehozása nem sikerült. Kérlek, próbáld újra."
+            "error_create": "A projekt létrehozása nem sikerült. Kérlek, próbáld újra.",
+            "label_transcription_language": "Leiratozás nyelve",
+            "error_transcription_language_required": "Kérlek, válaszd ki a leiratozás nyelvét."
         }
     },
     "gender": {
@@ -307,7 +310,10 @@
     "project_card": {
         "corpus_progress": "Korpusz előrehaladása",
         "speaker": "Beszélő",
-        "speakers": "Beszélők"
+        "speakers": "Beszélők",
+        "transcription_progress": "Leiratozás állapota",
+        "audio_file_count_one": "{{count}} hangfájl",
+        "audio_file_count_other": "{{count}} hangfájl"
     },
     "project_detail": {
         "title": "Projekt részletei",
@@ -547,7 +553,8 @@
         "save": "Módosítások mentése",
         "buffered": "Pufferelve",
         "restore_tooltip": "Visszaállítás",
-        "modified_tooltip": "Nem mentett módosítások"
+        "modified_tooltip": "Nem mentett módosítások",
+        "error_play_unsupported": "Ez a fájlformátum nem játszható le a böngészőben."
     },
     "upload_page": {
         "supported_audio_formats": ".wav, .aiff, .flac, .mp3, .ogg, .opus fájlok támogatottak (fájlonként max. 200MB)",
@@ -559,7 +566,10 @@
         "speech_dialect": "Nyelvjárás",
         "target_sampling_rate": "Cél mintavételezési frekvencia",
         "error_delete_master": "Mesterfájlt nem lehet törölni!",
-        "upload_title": "Meglévő fájlok feltöltése"
+        "upload_title": "Meglévő fájlok feltöltése",
+        "error_load_project": "A projekt betöltése nem sikerült.",
+        "save_success": "A változtatások elmentve.",
+        "error_save": "A változtatások mentése nem sikerült. Kérlek, próbáld újra."
     },
     "uploaded_file_details": {
         "label_type": "Típus",
@@ -569,6 +579,7 @@
         "transcribe": "Leiratozás",
         "transcribe_sent": "A fájl leiratozásra került. Ha elkészült, töltsd újra az oldalt, és nézd meg itt",
         "label_emotion": "Érzelem",
-        "save": "Mentés"
+        "save": "Mentés",
+        "transcribe_after_save": "A leiratozás a fájl mentése után érhető el."
     }
 }

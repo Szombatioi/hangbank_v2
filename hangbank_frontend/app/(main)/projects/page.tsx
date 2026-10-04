@@ -4,7 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import ProjectCard from "./components/project-card";
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
-import { ProjectDto } from "@/app/components/types/project.dto";
+import { ProjectListItemDto } from "@/app/components/types/project-list-item.dto";
 import { motion } from "framer-motion";
 import api from "@/app/axios";
 
@@ -16,12 +16,12 @@ export default function ProjectsOverviewPage() {
     const pathname = usePathname();
     const { t } = useTranslation("common");
 
-    const [projects, setProjects] = useState<ProjectDto[] | null>(null);
+    const [projects, setProjects] = useState<ProjectListItemDto[] | null>(null);
 
     useEffect(() => {
         async function getActiveProjects() {
             try {
-                const { data } = await api.get<ProjectDto[]>("/project");
+                const { data } = await api.get<ProjectListItemDto[]>("/project");
                 setProjects(data);
             } catch (err) {
                 console.error("Failed to load projects", err);

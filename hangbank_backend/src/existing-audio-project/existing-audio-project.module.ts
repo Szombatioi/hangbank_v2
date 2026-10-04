@@ -3,6 +3,11 @@ import { ExistingAudioProjectService } from './existing-audio-project.service';
 import { ExistingAudioProjectController } from './existing-audio-project.controller';
 import { BullModule } from '@nestjs/bullmq';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AudioFileModule } from 'src/audio-file/audio-file.module';
+import { AudioQualityModule } from 'src/audio-quality/audio-quality.module';
+import { AuthModule } from 'src/auth/auth.module';
+import { LanguageModule } from 'src/language/language.module';
+import { S3StorageClientModule } from 'src/s3-storage-client/s3-storage-client.module';
 
 @Module({
   imports: [
@@ -18,7 +23,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       }),
     }),
 
-    BullModule.registerQueue({ name: "jobs" }),
+    BullModule.registerQueue({ name: 'jobs' }),
+    AudioFileModule,
+    AudioQualityModule,
+    AuthModule,
+    LanguageModule,
+    S3StorageClientModule,
   ],
   controllers: [ExistingAudioProjectController],
   providers: [ExistingAudioProjectService],

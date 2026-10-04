@@ -10,7 +10,7 @@ import {
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 import api from "@/app/axios";
 import { translateHttpError } from "@/app/components/helpers/http-error";
-import { ProjectDto } from "@/app/components/types/project.dto";
+import { ProjectListItemDto } from "@/app/components/types/project-list-item.dto";
 import { useSnackbar, Severity } from "@/app/providers/SnackbarProvider";
 import { BODY, HEADLINE, LABEL, ORANGE } from "@/app/components/style-constants";
 import AudioFileCard, { ExportableAudioFile } from "./components/audio-file-card";
@@ -45,7 +45,7 @@ function ExportPageInner() {
     const { showMessage } = useSnackbar();
     const searchParams = useSearchParams();
 
-    const [projects, setProjects] = useState<ProjectDto[]>([]);
+    const [projects, setProjects] = useState<ProjectListItemDto[]>([]);
     const [loadingProjects, setLoadingProjects] = useState(true);
     const [selectedProjectId, setSelectedProjectId] = useState("");
 
@@ -61,7 +61,7 @@ function ExportPageInner() {
         let cancelled = false;
         const loadProjects = async () => {
             try {
-                const { data } = await api.get<ProjectDto[]>("/project");
+                const { data } = await api.get<ProjectListItemDto[]>("/project");
                 if (cancelled) return;
                 setProjects(data);
                 const paramId = searchParams.get("project");

@@ -1,6 +1,6 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Gender } from './gender.enum';
-import { CorpusBasedProject } from './corpus-based-project.entity';
+import { Project } from './project.entity';
 
 @Entity()
 export class Speaker {
@@ -22,8 +22,7 @@ export class Speaker {
   @Column({ nullable: true })
   microphoneLabel?: string; // full OS label, e.g. "Mikrofon (3 - Anua Mic CM 900) (0d8c:0134)"
 
-  // @ManyToOne(() => CorpusBasedProject, (p) => p.speakers, { onDelete: 'CASCADE' })
-  @OneToOne(() => CorpusBasedProject, (p) => p.speaker, { onDelete: 'CASCADE' })
+  @OneToOne(() => Project, { onDelete: 'CASCADE' })
   @JoinColumn()
-  project!: CorpusBasedProject;
+  project!: Project;
 }

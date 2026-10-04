@@ -4,6 +4,7 @@ import { ProjectRoleService } from './project-role.service';
 import { ProjectController } from './project.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CorpusBasedProject } from './entities/corpus-based-project.entity';
+import { ExistingFilesProject } from './entities/existing-files-project.entity';
 import { Speaker } from './entities/speaker.entity';
 import { ProjectRole } from './entities/project-role.entity';
 import { CorpusBlock } from 'src/corpus/entities/corpus-block.entity';
@@ -14,7 +15,13 @@ import { S3StorageClientModule } from 'src/s3-storage-client/s3-storage-client.m
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([CorpusBasedProject, Speaker, ProjectRole, CorpusBlock]),
+    TypeOrmModule.forFeature([
+      CorpusBasedProject,
+      ExistingFilesProject,
+      Speaker,
+      ProjectRole,
+      CorpusBlock,
+    ]),
     AuthModule,
     CorpusModule,
     S3StorageClientModule,

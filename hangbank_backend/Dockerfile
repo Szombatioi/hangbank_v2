@@ -16,6 +16,9 @@ RUN npm run build
 # Stage 2: Production
 FROM node:22-alpine
 
+# fluent-ffmpeg shells out to the ffmpeg/ffprobe binaries for audio conversion
+RUN apk add --no-cache ffmpeg
+
 WORKDIR /app/hangbank_backend
 ENV NODE_ENV=production
 

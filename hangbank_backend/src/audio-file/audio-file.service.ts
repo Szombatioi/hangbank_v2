@@ -20,7 +20,6 @@ export class AudioFileService {
     @Inject() private readonly s3StorageService: S3StorageService,
   ) {}
 
-  /** Uploads the blob to S3 and persists the AudioFile metadata row pointing at it. */
   async create(dto: CreateAudioFileDto): Promise<AudioFile> {
     const buffer = Buffer.from(await dto.blob.arrayBuffer());
     const uploadable = {
@@ -43,6 +42,9 @@ export class AudioFileService {
         s3Link: url,
         durationSeconds: dto.durationSeconds,
         transcription: dto.transcription,
+        emotion: dto.emotion ?? null,
+        originalSamplingRate: dto.originalSamplingRate ?? null,
+        originalFormat: dto.originalFormat ?? null,
         project: { id: dto.projectId } as Project, //TODO ez jó?
       }),
     );
