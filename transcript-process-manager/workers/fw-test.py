@@ -27,9 +27,24 @@ r = redis.Redis.from_url(REDIS_URL, decode_responses=True)
 results_queue = Queue(RESULTS_QUEUE, {"connection": REDIS_URL})
 
 # Dynamic Device & Compute Type Detection
+def pick_compute_type(device: str) -> str:
+    override = os.getenv("COMPUTE_TYPE")
+    if override:
+        return override
+    supported = ctranslate2.get_supported_compute_types(device)
+    # Fastest first. Not every GPU can do float16 efficiently (e.g. pre-Volta cards
+    # like the GTX 10xx series), so fall back to what this device actually supports.
+    preferred = (
+        ["float16", "int8_float16", "int8", "float32"]
+        if device == "cuda"
+        else ["int8", "float32"]
+    )
+    return next((ct for ct in preferred if ct in supported), "default")
+
+
 has_cuda = ctranslate2.get_cuda_device_count() > 0
 device = "cuda" if has_cuda else "cpu"
-compute_type = "float16" if has_cuda else "int8"
+compute_type = pick_compute_type(device)
 
 print(f"Loading faster-whisper model '{MODEL_NAME}' on {device.upper()} ({compute_type})...")
 model = WhisperModel(MODEL_NAME, device=device, compute_type=compute_type)
