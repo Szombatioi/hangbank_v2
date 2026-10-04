@@ -34,6 +34,9 @@ TPS: `localhost:3004`
     * S3_URL (default `http://host.docker.internal:3005`; workerek felől)
     * AUDIO_BUCKET (default `audio`)
     * DOCKER_SOCKET_PATH (default `/var/run/docker.sock`, Windows-on `//./pipe/docker_engine`)
+
+    **Important**: build worker image
+
 S3: `localhost:3005`
     * PORT (default `3005`)
     * MINIO_ENDPOINT (default `localhost`)
@@ -65,6 +68,8 @@ Live transcription (whisper-live containers): `localhost:8080` (nginx)
     * WHISPERLIVE_THREADS (default `2`)
     * WHISPERLIVE_API_KEY (üres = auth kikapcsolva)
     * WHISPERLIVE_MAX_CONNECTION_TIME (default `3600`)
+    Run in whisperlivekit/ folder: `git clone https://github.com/QuentinFuxa/WhisperLiveKit repo`
+    Then: docker compose -f .\docker-compose.dev.yml up -d
 
 Redis: 6379
 MinIO: 9000, 9001

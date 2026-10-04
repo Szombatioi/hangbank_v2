@@ -15,7 +15,14 @@ import ConfirmDialog from "@/app/components/confirm-dialog";
 import { formatDuration } from "./helpers/formatDuration";
 
 // one connection per block
-const WLK_URL = process.env.NEXT_PUBLIC_TRANSCRIPTION_URL || "ws://localhost:8000/asr"; //TODO: env variable
+const WLK_URL = process.env.NEXT_PUBLIC_TRANSCRIPTION_URL || "ws://localhost:8000/asr";
+
+
+function resolveWlkUrl(): string {
+  if (!WLK_URL.startsWith("/")) return WLK_URL;
+  const scheme = window.location.protocol === "https:" ? "wss:" : "ws:";
+  return `${scheme}//${window.location.host}${WLK_URL}`;
+}
 
 export interface RecorderAudioFile {
   id: string;
@@ -265,7 +272,7 @@ export default function Recorder({
   function openTranscriptionSocket(takeId: number): WebSocket {
     const lang =
       useTranscriptionRef.current?.transcriptionLang?.split("-")[0] || "auto";
-    const ws = new WebSocket(`${WLK_URL}?language=${encodeURIComponent(lang)}`);
+    const ws = new WebSocket(`${resolveWlkUrl()}?language=${encodeURIComponent(lang)}`);
     ws.binaryType = "arraybuffer";
     let committed = ""; // finalized lines
 

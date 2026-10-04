@@ -111,15 +111,15 @@ export class AppService {
         `AUDIO_BUCKET=${this.configService.get<string>("AUDIO_BUCKET", "audio")}`,
       ],
       HostConfig: {
-        // AutoRemove: true, //TODO: true in prod
-        NetworkMode: 'hangbank_test', //TODO: needed?
-        // DeviceRequests: [ //TODO: remove for testing, uncomment for prod
-        //   {
-        //     Driver: 'nvidia',
-        //     Count: -1,
-        //     Capabilities: [['gpu']],
-        //   },
-        // ],
+        AutoRemove: (this.configService.get<string>("ENVIRONMENT", "development") === "production"), //TODO: true in prod
+        NetworkMode: this.configService.get<string>("WORKER_NETWORK", "hangbank_test"),
+        DeviceRequests: (this.configService.get<string>("ENVIRONMENT", "development") === "production") ? [ //TODO: remove for testing, uncomment for prod
+          {
+            Driver: 'nvidia',
+            Count: -1,
+            Capabilities: [['gpu']],
+          },
+        ] : [],
       },
     });
 
