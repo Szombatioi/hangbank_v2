@@ -3,8 +3,8 @@ services:
     build:
       context: ./repo
       dockerfile: Dockerfile
-      args:
-        EXTRAS: cpu #TODO: Is this needed?
+      # args:
+      #   EXTRAS: cpu #TODO: Is this needed?
     container_name: whisperlivekit
     restart: unless-stopped
     ports:

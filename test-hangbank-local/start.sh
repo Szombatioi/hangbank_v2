@@ -8,6 +8,7 @@ FRONTEND_DIR="../hangbank_frontend"
 AQC_DIR="../audio-quality-checker"
 AUTH_DIR="../auth" #DB: 5434
 S3_DIR="../s3-storage-manager" #Minio: 9000
+TPM_DIR="../transcript-process-manager"
 
 
 cleanup(){
@@ -21,14 +22,16 @@ cleanup(){
 
 trap cleanup SIGINT SIGTERM EXIT
 
-echo "Starting backend"
-(cd "$BACKEND_DIR" && npm run start:dev) &
-echo "Starting frontend"
-(cd "$FRONTEND_DIR" && npm run dev) &
-echo "Starting auth"
-(cd "$AUTH_DIR" && npm run start:dev) &
+# echo "Starting backend"
+# (cd "$BACKEND_DIR" && npm run start:dev) &
+# echo "Starting frontend"
+# (cd "$FRONTEND_DIR" && npm run dev) &
+# echo "Starting auth"
+# (cd "$AUTH_DIR" && npm run start:dev) &
 echo "Starting s3 manager"
 (cd "$S3_DIR" && npm run start:dev) &
+echo "Starting TPM"
+(cd "$TPM_DIR" && npm run start:dev) &
 # echo "Starting aqc"
 # (cd "$AQC_DIR" && npm run start:dev) &
 
