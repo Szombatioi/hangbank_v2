@@ -18,8 +18,6 @@ def pick_compute_type(device: str) -> str:
     if override:
         return override
     supported = ctranslate2.get_supported_compute_types(device)
-    # Fastest first. Not every GPU can do float16 efficiently (e.g. pre-Volta cards
-    # like the GTX 10xx series), so fall back to what this device actually supports.
     preferred = (
         ["float16", "int8_float16", "int8", "float32"]
         if device == "cuda"
