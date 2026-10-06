@@ -330,6 +330,10 @@ function CorpusRecordInner() {
 
     // Load the current block's existing recording (if any) into the recorder
     const recordedAudio = currentBlock?.audioFile ?? null;
+    
+    const bufferedBlob = currentBlock
+        ? bufferedRecordings.get(currentBlock.id)?.blob ?? null
+        : null;
     const canPrev = currentIdx > 0;
     const canNext = currentIdx < totalInSession - 1;
 
@@ -388,6 +392,7 @@ function CorpusRecordInner() {
                 saving={saving}
                 onSave={handleSave}
                 recordedAudio={recordedAudio}
+                bufferedBlob={bufferedBlob}
                 recorderKey={currentBlock?.id}
                 onPrev={handlePrev}
                 onNext={handleNext}
