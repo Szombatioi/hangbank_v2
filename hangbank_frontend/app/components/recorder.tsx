@@ -49,6 +49,7 @@ interface RecorderProps {
   bitDepth?: number;
   //When present, loads this existing audio
   recordedAudio?: RecorderAudioFile | null;
+  bufferedBlob?: Blob | null;
   //Block identification, change = reset record
   sessionKey?: string;
   useTranscription?: UseTranscription;
@@ -60,6 +61,7 @@ export default function Recorder({
   sampleRate = 48000,
   bitDepth = 16,
   recordedAudio = null,
+  bufferedBlob = null,
   sessionKey,
   useTranscription,
 }: RecorderProps) {
@@ -141,6 +143,22 @@ export default function Recorder({
     setAudioLoaded(false);
     setDurationSeconds(0);
 
+    // Buffered > saved
+    if (bufferedBlob) {
+      (async () => {
+        try {
+          await waveSurferRef.current?.loadBlob(bufferedBlob);
+          if (cancelled) return;
+          setAudioLoaded(true);
+        } catch {
+          /* shouldn't fail */
+        }
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }
+
     if (!recordedAudio) {
       waveSurferRef.current?.empty();
       return;
@@ -166,7 +184,7 @@ export default function Recorder({
     return () => {
       cancelled = true;
     };
-  }, [recordedAudio?.id, sessionKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [recordedAudio?.id, sessionKey, bufferedBlob]); // eslint-disable-line react-hooks/exhaustive-deps
 
   //Drawing the waveform
   useEffect(() => {

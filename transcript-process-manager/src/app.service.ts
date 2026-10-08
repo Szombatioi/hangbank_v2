@@ -27,7 +27,7 @@ export class AppService {
     this.redis = new Redis(process.env.REDIS_URL ?? 'redis://localhost:6379');
   }
 
-  @Interval(5_000)
+  @Interval(15_000)
   async pollQueueSize(){
     console.log("Queue size polled")
     //How many tasks are in the queue (except those that are already picked up!)
@@ -54,33 +54,33 @@ export class AppService {
   }
 
   //Poll results and send them for saving back to the backend
-  @Interval(10_000)
-  async pollResultsQueue(): Promise<void>{
-    console.log("Polled results")
-    const resultJobs = await this.resultsQueue.getWaiting(0, this.BATCH_SIZE - 1);
+  // @Interval(10_000)
+  // async pollResultsQueue(): Promise<void>{
+  //   console.log("Polled results")
+  //   const resultJobs = await this.resultsQueue.getWaiting(0, this.BATCH_SIZE - 1);
     
-    if (!resultJobs || resultJobs.length === 0) {
-      console.log("No result jobs found in the results queue.");
-      return;
-    }
+  //   if (!resultJobs || resultJobs.length === 0) {
+  //     console.log("No result jobs found in the results queue.");
+  //     return;
+  //   }
 
-    console.log(`Found ${resultJobs.length} result jobs in the results queue. Sending to backend...`);
+  //   console.log(`Found ${resultJobs.length} result jobs in the results queue. Sending to backend...`);
 
-    //job.data = { audio_id, transcription }
-    const payload = resultJobs.map((job) => job.data);
-    await this.httpService.patch(
-      `${this.configService.get<string>("BACKEND_URL", "localhost:3001")}/audio/transcriptions/batch`, //TODO maintain endpoint in backend
-      payload
-    )
+  //   //job.data = { audio_id, transcription }
+  //   const payload = resultJobs.map((job) => job.data);
+  //   await this.httpService.patch(
+  //     `${this.configService.get<string>("BACKEND_URL", "localhost:3001")}/audio/transcriptions/batch`, //TODO maintain endpoint in backend
+  //     payload
+  //   )
     
-    //TODO remove this post-testing
-    console.log("Arrived results:")
-    for(const job of resultJobs){
-      console.log(job.data);
-    }
+  //   //TODO remove this post-testing
+  //   console.log("Arrived results:")
+  //   for(const job of resultJobs){
+  //     console.log(job.data);
+  //   }
 
-    await Promise.all(resultJobs.map((job) => job.remove()));
-  }
+  //   await Promise.all(resultJobs.map((job) => job.remove()));
+  // }
 
   async getActiveWorkerCount(): Promise<number> {
     const containers = await this.docker.listContainers({
@@ -111,9 +111,16 @@ export class AppService {
         `AUDIO_BUCKET=${this.configService.get<string>("AUDIO_BUCKET", "audio")}`,
       ],
       HostConfig: {
-        AutoRemove: (this.configService.get<string>("ENVIRONMENT", "development") === "production"), //TODO: true in prod
+        AutoRemove: true, //(this.configService.get<string>("ENVIRONMENT", "development") === "production"), //TODO: true in prod
         NetworkMode: this.configService.get<string>("WORKER_NETWORK", "hangbank_test"),
-        DeviceRequests: (this.configService.get<string>("ENVIRONMENT", "development") === "production") ? [ //TODO: remove for testing, uncomment for prod
+        Mounts: [
+        {
+          Target: '/cache',
+          Source: this.configService.get<string>("MODEL_CACHE_PATH", "whisper_cache"),
+          Type: 'volume',
+        },
+      ],
+        DeviceRequests: (this.configService.get<string>("REQUIRE_GPU", "false") === "true") ? [ //TODO: remove for testing, uncomment for prod
           {
             Driver: 'nvidia',
             Count: -1,

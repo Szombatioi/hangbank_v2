@@ -1,10 +1,12 @@
 import {
+  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
   OnModuleInit,
 } from '@nestjs/common';
 import { Client } from 'minio';
+import { ConfigService } from 'node_modules/@nestjs/config/dist/config.service';
 import * as path from 'path';
 import * as stream from 'stream';
 
@@ -24,7 +26,9 @@ export class AppService {
   private readonly internalBaseUrl: string;
   private readonly publicBaseUrl?: string;
 
-  constructor() {
+  constructor(
+    @Inject() private readonly configService: ConfigService
+  ) {
     const endPoint = process.env.MINIO_ENDPOINT || 'localhost';
     const port = Number(process.env.MINIO_PORT) || 9000;
     const useSSL = process.env.MINIO_USE_SSL === 'true';
@@ -38,7 +42,8 @@ export class AppService {
     });
 
     this.internalBaseUrl = `${useSSL ? 'https' : 'http'}://${endPoint}:${port}`;
-    this.publicBaseUrl = process.env.MINIO_PUBLIC_URL || undefined;
+    this.publicBaseUrl = this.configService.get('MINIO_PUBLIC_URL') || undefined;
+    console.log(`MinIO publicBaseUrl base URL: ${this.publicBaseUrl}`);
   }
 
   async onModuleInit() {
@@ -125,6 +130,7 @@ export class AppService {
         path.basename(objectName),
         expirySeconds,
       );
+      console.log(this.publicBaseUrl, this.internalBaseUrl, url);
       return this.publicBaseUrl
         ? url.replace(this.internalBaseUrl, this.publicBaseUrl)
         : url;

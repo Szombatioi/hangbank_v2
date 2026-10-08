@@ -16,21 +16,22 @@ interface FloatingRecorderBarProps {
     bufferSize: number;
     saving: boolean;
     onSave: () => void;
-    /** Pre-recorded audio for the current block, if it was already recorded */
+    /* Pre-recorded audio */
     recordedAudio: RecorderAudioFile | null;
-    /** Remounts the recorder per block so the right audio loads (and state resets) */
+    bufferedBlob?: Blob | null;
+    /* Remounts the recorder per block so the right audio loads (and state resets) */
     recorderKey?: string;
     onPrev: () => void;
     onNext: () => void;
     canPrev: boolean;
     canNext: boolean;
-    /** Live transcription output + language (BCP-47) */
+    /* Live transcription output + language (BCP-47) */
     useTranscription?: UseTranscription;
 }
 
 export default function FloatingRecorderBar({
     showRecorder, deviceId, sampleRate, onAudioBlob, bufferSize, saving, onSave,
-    recordedAudio, recorderKey, onPrev, onNext, canPrev, canNext,
+    recordedAudio, bufferedBlob, recorderKey, onPrev, onNext, canPrev, canNext,
     useTranscription,
 }: FloatingRecorderBarProps) {
     const { t } = useTranslation("common");
@@ -68,6 +69,7 @@ export default function FloatingRecorderBar({
                         sampleRate={sampleRate}
                         bitDepth={16}
                         recordedAudio={recordedAudio}
+                        bufferedBlob={bufferedBlob}
                         sessionKey={recorderKey}
                         useTranscription={useTranscription}
                     />

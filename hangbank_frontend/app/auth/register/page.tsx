@@ -98,7 +98,7 @@ export default function RegisterPage() {
                 }}
             >
                 {/* Left Panel: Brand & Identity */}
-                <Box
+                {/* <Box
                     sx={{
                         width: { xs: "0%", md: "45%" },
                         display: { xs: "none", md: "flex" },
@@ -110,9 +110,9 @@ export default function RegisterPage() {
                         position: "relative",
                         overflow: "hidden",
                     }}
-                >
+                > */}
                     {/* Decorative waveform background */}
-                    <Box
+                    {/* <Box
                         sx={{
                             position: "absolute",
                             inset: 0,
@@ -128,10 +128,10 @@ export default function RegisterPage() {
                                 <Box key={i} sx={{ width: "4px", height: `${h}%`, bgcolor: COLORS.waveBar }} />
                             ))}
                         </Box>
-                    </Box>
+                    </Box> */}
 
                     {/* Top: Brand */}
-                    <Box sx={{ zIndex: 1 }}>
+                    {/* <Box sx={{ zIndex: 1 }}>
                         <Typography
                             sx={{
                                 fontFamily: HEADLINE_FONT,
@@ -156,10 +156,10 @@ export default function RegisterPage() {
                         >
                             {t("register_subtitle")}
                         </Typography>
-                    </Box>
+                    </Box> */}
 
                     {/* Middle: Tagline + Stats */}
-                    <Box sx={{ zIndex: 1 }}>
+                    {/* <Box sx={{ zIndex: 1 }}>
                         <Typography
                             variant="h3"
                             sx={{
@@ -186,7 +186,7 @@ export default function RegisterPage() {
                             }}
                         >
                             {t("login_hero_sub")}
-                        </Typography>
+                        </Typography> */}
                         {/* <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
                                             {[
                                                 { val: "24.8k", label: t("stat_archived_nodes") },
@@ -210,10 +210,10 @@ export default function RegisterPage() {
                                                 </Box>
                                             ))}
                                         </Box> */}
-                    </Box>
+                    {/* </Box> */}
 
                     {/* Bottom: Footer meta */}
-                    <Box sx={{ zIndex: 1, pt: 3, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+                    {/* <Box sx={{ zIndex: 1, pt: 3, borderTop: "1px solid rgba(255,255,255,0.08)" }}> */}
                         {/* <Typography
                             sx={{
                                 fontFamily: LABEL_FONT,
@@ -225,15 +225,15 @@ export default function RegisterPage() {
                         >
                             {t("login_footer_meta")}
                         </Typography> */}
-                    </Box>
-                </Box>
+                    {/* </Box> */}
+                {/* </Box> */}
 
                 {/* Right part: Registration form */}
                 <Box
                     component="section"
                     sx={{
                         flex: 1,
-                        bgcolor: "var(--app-card)",
+                        bgcolor: COLORS.formBg,                        // bgcolor: "var(--app-card)",
                         display: "flex",
                         flexDirection: "column",
                         justifyContent: "center",

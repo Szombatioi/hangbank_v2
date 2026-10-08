@@ -99,7 +99,7 @@ export class AudioQualityService {
     // ids are parallel to the `wavs` files (same order), so the checker can tell
     // which results belong to which audio file.
     formData.append('ids', JSON.stringify(wavs.map((w) => w.id)));
-    formData.append('requiredChecks', JSON.stringify(requiredChecks));
+    formData.append('requiredStrategies', JSON.stringify(requiredChecks));
 
     try {
       const resp = await this.httpService.axiosRef.post<AudioFileQuality[]>(
@@ -107,7 +107,7 @@ export class AudioQualityService {
         formData,
         { headers: { 'Content-Type': 'multipart/form-data' } },
       );
-      return resp.data ?? [];
+      return resp.data ?? []; //TODO: set the aqc measure to be "error" in such case
     } catch (e) {
       console.error('AQC service call failed', e);
       return [];

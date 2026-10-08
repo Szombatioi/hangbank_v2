@@ -8,6 +8,7 @@ FRONTEND_DIR="../hangbank_frontend"
 AQC_DIR="../audio-quality-checker"
 AUTH_DIR="../auth" #DB: 5434
 S3_DIR="../s3-storage-manager" #Minio: 9000
+TPM_DIR="../transcript-process-manager"
 
 
 cleanup(){
