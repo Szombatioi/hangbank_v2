@@ -14,6 +14,7 @@ import {
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  BODY,
   captionSx,
   fieldLabelSx,
   HEADLINE,
@@ -21,6 +22,12 @@ import {
   textFieldSx,
 } from "@/app/components/style-constants";
 import { Severity, useSnackbar } from "@/app/providers/SnackbarProvider";
+import QualityCheckCard from "@/app/components/quality-check-card";
+import {
+  AudioQualityMeasure,
+  QualityRangesByType,
+} from "@/app/components/helpers/audio-quality";
+import SectionHeader from "../../components/section-header";
 
 export interface AudioFileDetailsView {
   filename: string;
@@ -29,10 +36,12 @@ export interface AudioFileDetailsView {
   isMasterPrompt?: boolean;
   transcription: string;
   emotion: string;
+  audioQualities?: AudioQualityMeasure[]; // undefined for files not uploaded yet
 }
 
 interface UploadedFileDetailsDialogProps {
   file: AudioFileDetailsView | null;
+  qualityRanges: QualityRangesByType;
   canTranscribe: boolean;
   transcriptionRequested: boolean;
   onTranscribe: () => void;
@@ -40,14 +49,11 @@ interface UploadedFileDetailsDialogProps {
   onClose: () => void;
 }
 
-
 const metaValueSx = {
   fontFamily: LABEL,
   fontWeight: 700,
   color: "var(--app-text-primary)",
 } as const;
-
-
 
 const buttonSx = {
   fontFamily: LABEL,
@@ -59,6 +65,7 @@ const buttonSx = {
 
 export default function UploadedFileDetailsDialog({
   file,
+  qualityRanges,
   canTranscribe,
   transcriptionRequested,
   onTranscribe,
@@ -171,7 +178,11 @@ export default function UploadedFileDetailsDialog({
                   variant="outlined"
                   size="small"
                   onClick={handleTranscribe}
-                  disabled={!canTranscribe || transcriptionRequested}
+                  disabled={
+                    !canTranscribe ||
+                    transcriptionRequested ||
+                    transcription.trim() !== ""
+                  }
                   sx={{ ...buttonSx, mb: 0.75 }}
                 >
                   {t("uploaded_file_details.transcribe")}
@@ -202,6 +213,36 @@ export default function UploadedFileDetailsDialog({
             sx={textFieldSx}
           />
         </Box>
+
+        {/* Quality checks */}
+        {file?.audioQualities && (
+          <Box>
+            <SectionHeader label={t("view_recording.quality_checks")} />
+            {file.audioQualities.length === 0 ? (
+              <Typography
+                sx={{
+                  fontFamily: BODY,
+                  fontSize: "0.875rem",
+                  color: "var(--app-text-faint)",
+                }}
+              >
+                {t("view_recording.no_quality_checks")}
+              </Typography>
+            ) : (
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+                {file.audioQualities
+                  .filter((q) => qualityRanges[q.type])
+                  .map((q) => (
+                    <QualityCheckCard
+                      key={q.id}
+                      measure={q}
+                      meta={qualityRanges[q.type]}
+                    />
+                  ))}
+              </Box>
+            )}
+          </Box>
+        )}
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>

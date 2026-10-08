@@ -60,6 +60,7 @@ import { BullModule } from '@nestjs/bullmq';
       }),
     }),
     BullModule.registerQueue({ name: "jobs" }),
+    BullModule.registerQueue({ name: "results" }),
     AuthModule,
     UserModule,
     CorpusModule,

@@ -7,12 +7,12 @@ import { ProjectRoleType } from "src/project/entities/project-role.enum";
 
 export abstract class ExportBase implements ExportStrategy {
     constructor(
-        private readonly projectRepositovy: Repository<Project>,
+        protected readonly projectRepository: Repository<Project>,
     ){}
     abstract export(requesterId: string, projectId: string, options?: ExportOptions);
 
     async collectProjectData(requesterId: string, projectId: string, audioFileIds?: string[]) {
-        const project = await this.projectRepositovy.findOne({
+        const project = await this.projectRepository.findOne({
             where: {
                 id: projectId
             },

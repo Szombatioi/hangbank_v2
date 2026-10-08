@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import api from "@/app/axios";
 import { translateHttpError } from "@/app/components/helpers/http-error";
+import { QualityRangesByType } from "@/app/components/helpers/audio-quality";
 import { useTranslation } from "react-i18next";
 import UploadedAudioFilePaper from "./components/uploaded-file-paper";
 import BufferedAudioFilePaper from "./components/buffered-file-paper";
@@ -70,6 +71,23 @@ export default function UploadPage() {
   useEffect(() => {
     loadProject();
   }, [loadProject]);
+
+  const [qualityRanges, setQualityRanges] = useState<QualityRangesByType>({});
+  useEffect(() => {
+    let ignore = false;
+
+    const loadQualityRanges = async () => {
+      try {
+        const { data } = await api.get<QualityRangesByType>("/audio-quality/ranges");
+        if (!ignore) setQualityRanges(data);
+      } catch {      }
+    };
+
+    loadQualityRanges();
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
@@ -270,6 +288,15 @@ export default function UploadPage() {
     setToDelete([]);
   };
 
+  const transcribeFiles = async (ids: string[]) => {
+    if (!ids || ids.length === 0) return;
+
+    await api.post("/existing-audio-project/transcribe", {
+      projectId,
+      fileIds: ids,
+    });
+  }
+
   const handleSave = async () => {
     if (masterId && toDelete.includes(masterId)) {
       showMessage(t("upload_page.error_delete_master"), Severity.error);
@@ -281,6 +308,7 @@ export default function UploadPage() {
       await uploadFiles(toUpload, bufferedMasterId);
       await modifyFiles(toModify);
       await deleteFiles(toDelete);
+      await transcribeFiles(transcriptionRequested);
       showMessage(t("upload_page.save_success"), Severity.success);
     } catch (err) {
       showMessage(
@@ -478,6 +506,7 @@ export default function UploadPage() {
       <UploadedFileDetailsDialog
         key={openTarget ? `${openTarget.kind}-${openTarget.id}` : "closed"}
         file={openFileView}
+        qualityRanges={qualityRanges}
         canTranscribe={!!openUploaded}
         transcriptionRequested={
           !!openUploaded && transcriptionRequested.includes(openUploaded.id)
@@ -485,6 +514,7 @@ export default function UploadPage() {
         onTranscribe={() => {
           if (!openUploaded) return;
           const id = openUploaded.id;
+          transcribeFiles([id]);
           setTranscriptionRequested((prev) =>
             prev.includes(id) ? prev : [...prev, id],
           );

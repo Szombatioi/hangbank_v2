@@ -6,6 +6,7 @@ export interface ExistingAudioFileView {
   isMasterPrompt: boolean;
   transcription: string;
   emotion: string;
+  audioQualities: { id: string; type: string; values: number[] }[];
 }
 
 export interface ExistingAudioProjectView {

@@ -22,7 +22,7 @@ export class AudioFile {
   @Column({ type: 'text' })
   transcription!: string; //The actual transcription of the recording
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, default: 'undefined' })
   emotion?: string | null;
 
   @Column({ type: 'int', nullable: true })

@@ -1,3 +1,5 @@
+import { AudioQualityMeasure } from "@/app/components/helpers/audio-quality";
+
 export interface ProjectAudioFile {
   id: string;
   filename: string;
@@ -6,6 +8,7 @@ export interface ProjectAudioFile {
   isMasterPrompt: boolean;
   transcription: string;
   emotion: string;
+  audioQualities: AudioQualityMeasure[];
 }
 
 export interface BufferedAudioFile {

@@ -29,7 +29,7 @@ import {
   AudioQualityMeasure,
   QualityRangesByType,
 } from "@/app/components/helpers/audio-quality";
-import QualityCheckCard from "./components/quality-check-card";
+import QualityCheckCard from "@/app/components/quality-check-card";
 
 interface MasterRecordingInfo {
   id: string;
@@ -434,7 +434,7 @@ export default function ViewRecording() {
           <TextField
             value={transcription}
             onChange={(e) => setTranscription(e.target.value)}
-            placeholder="—"
+            placeholder="-"
             fullWidth
             multiline
             minRows={2}

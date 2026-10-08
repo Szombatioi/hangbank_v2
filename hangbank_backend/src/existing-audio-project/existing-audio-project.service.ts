@@ -53,6 +53,25 @@ export class ExistingAudioProjectService {
     @InjectQueue('jobs') private readonly jobQueue: Queue,
   ) {}
 
+  async requireTranscription(
+    requesterId: string,
+    dto: RequireTranscriptionDto,
+  ){
+    const project = await this.findProjectWithRole(
+      dto.projectId,
+      requesterId,
+      ALL_ROLES,
+    );
+
+    const audioFiles = await this.findProjectAudioFiles(project.id, dto.fileIds);
+
+    for(const audioFile of audioFiles){
+      if(!audioFile.transcription || audioFile.transcription.trim() === ''){
+        await this.enqueueTranscription(audioFile, project);
+      }
+    }
+  }
+
   async loadProject(
     requesterId: string,
     projectId: string,
@@ -70,6 +89,7 @@ export class ExistingAudioProjectService {
         : null,
       this.entityManager.find(AudioFile, {
         where: { project: { id: project.id } },
+        relations: { audioQualities: true },
         order: { createdAt: 'ASC' },
       }),
     ]);
@@ -403,6 +423,11 @@ export class ExistingAudioProjectService {
       isMasterPrompt: audioFile.id === masterId,
       transcription: audioFile.transcription,
       emotion: audioFile.emotion ?? '',
+      audioQualities: (audioFile.audioQualities ?? []).map((qm) => ({
+        id: qm.id,
+        type: qm.type,
+        values: qm.values,
+      })),
     };
   }
 }

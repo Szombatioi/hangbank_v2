@@ -45,7 +45,7 @@ export class ExistingAudioProjectController {
   ) {
     return this.existingAudioProjectService.create(req.user, dto);
   }
-  
+
   @UseGuards(AuthGuard)
   @Post('files')
   @UseInterceptors(
@@ -85,6 +85,15 @@ export class ExistingAudioProjectController {
     @Body() dto: DeleteExistingAudioDto,
   ) {
     return this.existingAudioProjectService.deleteMany(req.user.id, dto);
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('transcribe')
+  requireTranscription(
+    @Req() req: { user: IJwtPayload },
+    @Body() dto: RequireTranscriptionDto
+  ) {
+    return this.existingAudioProjectService.requireTranscription(req.user.id, dto);
   }
 }
 

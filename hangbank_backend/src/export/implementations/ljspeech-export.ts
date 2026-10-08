@@ -10,7 +10,7 @@ import { ZipArchive } from "archiver";
 @Injectable()
 export class LJSpeechExportStrategy extends ExportBase{
     constructor(
-        @InjectRepository(Project) private readonly projectRepository: Repository<Project>,
+        @InjectRepository(Project) protected readonly projectRepository: Repository<Project>,
         @Inject() private readonly s3StorageService: S3StorageService
     ){
         super(projectRepository);
