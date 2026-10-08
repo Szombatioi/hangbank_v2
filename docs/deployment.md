@@ -1,3 +1,7 @@
+Dockerfile.titan másolása a szerverre a whisperlivekit/repo/ mappába
+
+És a telepítésnél adjuk meg a build-push.sh-nak a WLK_DOCKERFILE-ként!
+
 # Éles telepítés (ghcr.io + docker-compose.prod.yml)
 
 ## Image-ek
@@ -78,3 +82,5 @@ docker image prune -f
   a MinIO konzolhoz ideiglenesen adj a `minio`-nak `127.0.0.1:9001:9001` portot, és nézd SSH-tunnellel
   (`ssh -L 9001:localhost:9001 <szerver>`).
 - A TPM által indított worker konténerek is a `hangbank-internal` hálózatra kerülnek (`WORKER_NETWORK`).
+
+
