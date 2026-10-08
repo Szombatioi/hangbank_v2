@@ -25,6 +25,7 @@ import { blob } from 'stream/consumers';
 import { audioQualitiesHaveProblems } from 'src/audio-quality/audio-quality.metadata';
 import { AudioFile } from 'src/audio-file/entities/audio-file.entity';
 import { ExistingFilesProject } from './entities/existing-files-project.entity';
+import { ExportableAudioFileDto } from './dto/exportable-audio-file.dto';
 import { Project } from './entities/project.entity';
 import {
   CorpusProjectListItemDto,
@@ -306,14 +307,23 @@ export class ProjectService {
     };
   }
 
-  // Returns every recorded audio file of a project (owner-checked) with the fields
-  // the export UI needs: name, duration, transcription, block index, and whether
-  // the audio has any quality problems.
-  async getExportableAudioFiles(requesterId: string, projectId: string) {
-    const project = await this.corpusBasedProjectRepository.findOne({
-      where: { id: projectId },
-      relations: { roles: true },
-    });
+  // Returns every recorded audio file of a project 
+  // with the fields the export needs
+  async getExportableAudioFiles(
+    requesterId: string,
+    projectId: string,
+  ): Promise<ExportableAudioFileDto[]> {
+    const [corpusProject, existingFilesProject] = await Promise.all([
+      this.corpusBasedProjectRepository.findOne({
+        where: { id: projectId },
+        relations: { roles: true },
+      }),
+      this.existingFilesProjectRepository.findOne({
+        where: { id: projectId },
+        relations: { roles: true },
+      }),
+    ]);
+    const project = corpusProject ?? existingFilesProject;
     if (!project) {
       throw new NotFoundException(`Project with id '${projectId}' not found`);
     }
@@ -324,6 +334,14 @@ export class ProjectService {
       throw new ForbiddenException('Only the project owner can export this project');
     }
 
+    return corpusProject
+      ? this.exportableCorpusAudioFiles(projectId)
+      : this.exportableExistingAudioFiles(projectId);
+  }
+
+  private async exportableCorpusAudioFiles(
+    projectId: string,
+  ): Promise<ExportableAudioFileDto[]> {
     const blocks = await this.corpusBlockRepository.find({
       where: { corpusProject: { id: projectId }, audioFile: Not(IsNull()) },
       relations: ['audioFile', 'audioFile.audioQualities'],
@@ -349,6 +367,29 @@ export class ProjectService {
             !transcriptionMatches,
         };
       });
+  }
+
+  private async exportableExistingAudioFiles(
+    projectId: string,
+  ): Promise<ExportableAudioFileDto[]> {
+    const audioFiles = await this.audioFileRepository.find({
+      where: { project: { id: projectId } },
+      relations: { audioQualities: true },
+      order: { createdAt: 'ASC' },
+    });
+
+    // There is no expected prompt to compare against, so a missing transcription
+    // is what counts as a problem besides failed quality checks.
+    return audioFiles.map((f, index) => ({
+      audioFileId: f.id,
+      name: f.name,
+      durationSeconds: f.durationSeconds,
+      transcription: f.transcription,
+      blockIndex: index,
+      hasQualityProblems:
+        audioQualitiesHaveProblems(f.audioQualities ?? []) ||
+        !f.transcription.trim(),
+    }));
   }
 
   async findAll(requesterId: string): Promise<ProjectListItemDto[]> {
