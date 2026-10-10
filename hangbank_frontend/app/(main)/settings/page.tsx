@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -11,14 +10,14 @@ import api from "@/app/axios";
 import { translateHttpError } from "@/app/components/helpers/http-error";
 import { useAuth } from "@/app/contexts/auth-context";
 import { useCustomTheme } from "@/app/contexts/theme-context";
+import type { PaletteMode } from "@mui/material";
 import { useLanguage } from "@/app/providers/language-provider";
 import { useSnackbar, Severity } from "@/app/providers/SnackbarProvider";
 import { BODY, HEADLINE, LABEL, ORANGE } from "@/app/components/style-constants";
 
-// A UI-selectable language fetched from the backend (only the translated ones).
 interface UiLanguage {
-    code: string; // BCP-47, e.g. "en-US"
-    name: string; // i18n key under "language.", e.g. "lang_en-US"
+    code: string;
+    name: string;
     isTranslated: boolean;
 }
 
@@ -53,7 +52,7 @@ export default function SettingsPage() {
     const { t } = useTranslation("common");
     const { showMessage } = useSnackbar();
     const { user, loading } = useAuth();
-    const { mode, toggleTheme } = useCustomTheme();
+    const { mode, setTheme } = useCustomTheme();
     const { language, setLanguage } = useLanguage();
 
     const [firstName, setFirstName] = useState("");
@@ -67,10 +66,13 @@ export default function SettingsPage() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [savingPassword, setSavingPassword] = useState(false);
 
-    // Interface languages — only those with a complete UI translation (isTranslated = true)
     const [languages, setLanguages] = useState<UiLanguage[]>([]);
 
-    // Seed the profile form once the authenticated user is available
+    const [tempTheme, setTempTheme] = useState<PaletteMode | null>(null);
+    const [tempLanguage, setTempLanguage] = useState<string | null>(null);
+    const [tempApiKey, setTempApiKey] = useState<string | null>("");
+    const [savingPreferences, setSavingPreferences] = useState(false);
+
     useEffect(() => {
         if (!user) return;
         setFirstName(user.firstName ?? "");
@@ -79,27 +81,46 @@ export default function SettingsPage() {
         setGender(user.gender ?? "");
     }, [user]);
 
-    // Fetch the translated languages offered as interface options
     useEffect(() => {
         let ignore = false;
         const loadLanguages = async () => {
             try {
                 const { data } = await api.get<UiLanguage[]>("/language/translated");
                 if (!ignore) setLanguages(data);
-            } catch {
-                /* leave empty — language picker just won't list options */
-            }
+            } catch {}
         };
         loadLanguages();
         return () => { ignore = true; };
     }, []);
 
-    // The active i18n locale may be a short code ("en") while DB codes are BCP-47
-    // ("en-US"); match on the base subtag so the right option stays selected.
-    const selectedLanguageCode =
-        languages.find((l) => l.code === language)?.code ??
-        languages.find((l) => l.code.split("-")[0] === language.split("-")[0])?.code ??
-        "";
+    const selectedLanguageCode = languages.find((l) => l.code === language)?.code ??
+        languages.find((l) => l.code.split("-")[0] === language.split("-")[0])?.code ?? "";
+
+    const shownTheme = tempTheme ?? mode;
+    const shownLanguage = tempLanguage ?? selectedLanguageCode;
+    const preferencesChanged = shownTheme !== mode || 
+        shownLanguage !== selectedLanguageCode ||
+        (tempApiKey !== null && tempApiKey !== "" && tempApiKey !== localStorage.getItem("apiKey"));
+
+    const handleSavePreferences = async () => {
+        setSavingPreferences(true);
+        try {
+            await api.patch("/user-settings/me", {
+                theme: shownTheme,
+                languageCode: shownLanguage || undefined,
+                apiKey: tempApiKey || undefined,
+            });
+            setTheme(shownTheme);
+            if (shownLanguage) setLanguage(shownLanguage);
+            setTempTheme(null);
+            setTempLanguage(null);
+            showMessage(t("settings.preferences_saved"), Severity.success);
+        } catch (err) {
+            showMessage(translateHttpError(err, t, t("settings.preferences_error")), Severity.error);
+        } finally {
+            setSavingPreferences(false);
+        }
+    };
 
     const handleSaveProfile = async () => {
         setSavingProfile(true);
@@ -166,7 +187,7 @@ export default function SettingsPage() {
                     {/* Appearance */}
                     <SectionCard title={t("settings.appearance")}>
                         <FormControlLabel
-                            control={<Switch checked={mode === "dark"} onChange={() => toggleTheme()} />}
+                            control={<Switch checked={shownTheme === "dark"} onChange={(e) => setTempTheme(e.target.checked ? "dark" : "light")} />}
                             label={
                                 <Box>
                                     <Typography sx={{ fontFamily: BODY, fontSize: "0.925rem", fontWeight: 600, color: "var(--app-text-primary)" }}>
@@ -190,8 +211,8 @@ export default function SettingsPage() {
                             </Box>
                         ) : (
                             <Select
-                                value={selectedLanguageCode}
-                                onChange={(e) => setLanguage(e.target.value)}
+                                value={shownLanguage}
+                                onChange={(e) => setTempLanguage(e.target.value)}
                                 fullWidth
                                 sx={{ borderRadius: "8px" }}
                             >
@@ -203,6 +224,30 @@ export default function SettingsPage() {
                             </Select>
                         )}
                     </SectionCard>
+
+                    <SectionCard title={t("settings.api_key")}>
+                        <FieldLabel label={t("settings.api_key_label")} />
+                        <TextField
+                            value={tempApiKey ?? ""}
+                            placeholder={localStorage.getItem("apiKeyPresent") ? t('settings.apiKeyPresent') : t('settings.apiKeyNotPresent')}
+                            onChange={(e) => setTempApiKey(e.target.value)}
+                            fullWidth
+                            sx={fieldSx}
+                        />
+                    </SectionCard>
+
+                    {/* Save */}
+                    <Box sx={{ display: "flex", justifyContent: "flex-end", mt: -1 }}>
+                        <Button
+                            variant="contained"
+                            onClick={handleSavePreferences}
+                            disabled={savingPreferences || !preferencesChanged}
+                            startIcon={savingPreferences ? <CircularProgress size={14} sx={{ color: "inherit" }} /> : undefined}
+                            sx={{ bgcolor: "var(--app-btn)", borderRadius: 1.5, textTransform: "none", fontFamily: LABEL, fontWeight: 700, fontSize: "0.78rem", px: 2.5, "&:hover": { bgcolor: "var(--app-btn-hover)" }, "&.Mui-disabled": { bgcolor: "var(--app-border)", color: "var(--app-text-faint)" } }}
+                        >
+                            {t("settings.save")}
+                        </Button>
+                    </Box>
 
                     {/* Profile */}
                     <SectionCard title={t("settings.profile")}>

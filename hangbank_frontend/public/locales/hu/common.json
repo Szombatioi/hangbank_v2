@@ -467,7 +467,13 @@
         "password_mismatch": "A jelszavak nem egyeznek.",
         "password_too_short": "A jelszónak legalább 6 karakterből kell állnia.",
         "current_password_required": "Kérlek, add meg a jelenlegi jelszavadat.",
-        "password_incorrect": "A jelenlegi jelszavad hibás."
+        "password_incorrect": "A jelenlegi jelszavad hibás.",
+        "preferences_saved": "A beállítások elmentve.",
+        "preferences_error": "A beállítások mentése nem sikerült.",
+        "apiKeyPresent": "(Be van állítva egy API-kulcs. Itt módosíthatod.)",
+        "apiKeyNotPresent": "(Nincs beállítva API-kulcs. Itt adhatod meg.)",
+        "api_key": "AI API Key",
+        "api_key_label": "Used for AI Chat Projects"
     },
     "support": {
         "title": "Súgó",

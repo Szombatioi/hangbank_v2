@@ -4,6 +4,7 @@ import { AuthProvider } from "./contexts/auth-context";
 import { ThemeProvider } from "./contexts/theme-context";
 import { LanguageProvider } from "./providers/language-provider";
 import { SnackbarProvider } from "./providers/SnackbarProvider";
+import UserSettingsSync from "./providers/user-settings-sync";
 
 export default function RootLayout({
   children,
@@ -29,6 +30,7 @@ export default function RootLayout({
           <CssBaseline />
           <AuthProvider>
             <LanguageProvider>
+              <UserSettingsSync />
               <SnackbarProvider>{children}</SnackbarProvider>
             </LanguageProvider>
           </AuthProvider>

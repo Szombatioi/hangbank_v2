@@ -21,6 +21,9 @@ import { ExportModule } from './export/export.module';
 import { SupportTextModule } from './support-text/support-text.module';
 import { ExistingAudioProjectModule } from './existing-audio-project/existing-audio-project.module';
 import { BullModule } from '@nestjs/bullmq';
+import { AiChatProjectModule } from './ai-chat-project/ai-chat-project.module';
+import { UserSettingsModule } from './user-settings/user-settings.module';
+import { EncryptionModule } from './encryption-service/encryption.module';
 
 @Module({
   imports: [
@@ -75,6 +78,9 @@ import { BullModule } from '@nestjs/bullmq';
     ExportModule,
     SupportTextModule,
     ExistingAudioProjectModule,
+    AiChatProjectModule,
+    UserSettingsModule,
+    EncryptionModule
   ],
   controllers: [AppController],
   providers: [AppService],

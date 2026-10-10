@@ -467,7 +467,13 @@
         "password_mismatch": "Passwords do not match.",
         "password_too_short": "Password must be at least 6 characters.",
         "current_password_required": "Please enter your current password.",
-        "password_incorrect": "Your current password is incorrect."
+        "password_incorrect": "Your current password is incorrect.",
+        "preferences_saved": "Preferences saved.",
+        "preferences_error": "Could not save your preferences.",
+        "apiKeyPresent": "(API key is present. You can update it here.)",
+        "apiKeyNotPresent": "(API key is not present. You can set it here.)",
+        "api_key": "AI API Key",
+        "api_key_label": "Used for AI Chat Projects"
     },
     "support": {
         "title": "Support",

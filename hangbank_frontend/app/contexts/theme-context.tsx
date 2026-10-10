@@ -8,11 +8,13 @@ import { createAppTheme } from "../theme";
 interface ThemeContextType {
   mode: PaletteMode;
   toggleTheme: () => void;
+  setTheme: (mode: PaletteMode) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType>({
   mode: "light",
   toggleTheme: () => {},
+  setTheme: () => {},
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -39,10 +41,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const setTheme = (next: PaletteMode) => {
+    localStorage.setItem("theme", next);
+    setMode(next);
+  };
+
   const theme = useMemo(() => createAppTheme(mode), [mode]);
 
   return (
-    <ThemeContext.Provider value={{ mode, toggleTheme }}>
+    <ThemeContext.Provider value={{ mode, toggleTheme, setTheme }}>
       <MuiThemeProvider theme={theme}>
         {children}
       </MuiThemeProvider>
