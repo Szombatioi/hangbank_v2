@@ -114,6 +114,7 @@ export default function SettingsPage() {
             if (shownLanguage) setLanguage(shownLanguage);
             setTempTheme(null);
             setTempLanguage(null);
+            setTempApiKey(null);
             showMessage(t("settings.preferences_saved"), Severity.success);
         } catch (err) {
             showMessage(translateHttpError(err, t, t("settings.preferences_error")), Severity.error);
@@ -229,7 +230,7 @@ export default function SettingsPage() {
                         <FieldLabel label={t("settings.api_key_label")} />
                         <TextField
                             value={tempApiKey ?? ""}
-                            placeholder={localStorage.getItem("apiKeyPresent") ? t('settings.apiKeyPresent') : t('settings.apiKeyNotPresent')}
+                            placeholder={localStorage.getItem("apiKeyPresent") === "true" ? t('settings.apiKeyPresent') : t('settings.apiKeyNotPresent')}
                             onChange={(e) => setTempApiKey(e.target.value)}
                             fullWidth
                             sx={fieldSx}

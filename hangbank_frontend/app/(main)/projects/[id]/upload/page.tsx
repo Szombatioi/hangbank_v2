@@ -466,7 +466,7 @@ export default function UploadPage() {
 
             <Box>
               <Typography sx={captionSx}>
-                {t("new_project.existing_files.label_transcription_language")}
+                {t("new_project.common.label_transcription_language")}
               </Typography>
               <Typography sx={detailValueSx}>
                 {details.transcriptionLanguage

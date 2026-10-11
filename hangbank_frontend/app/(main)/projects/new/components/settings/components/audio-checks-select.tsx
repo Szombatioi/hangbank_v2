@@ -29,7 +29,7 @@ export function AudioChecksSelect({
         }}
         color="primary"
       >
-        {t("new_project.corpus_based.label_audio_checks")}
+        {t("new_project.common.label_audio_checks")}
       </Typography>
       <Autocomplete
         options={availableChecks.filter((c) => !value.includes(c))}
@@ -45,7 +45,7 @@ export function AudioChecksSelect({
         renderInput={(params) => (
           <TextField
             {...params}
-            placeholder={t("new_project.corpus_based.placeholder_audio_checks")}
+            placeholder={t("new_project.common.placeholder_audio_checks")}
             sx={{
               "& .MuiOutlinedInput-root": {
                 borderRadius: "8px",

@@ -5,6 +5,7 @@ import { ProjectType } from "./project-type-selector";
 import ProjectBasedSettings from "./settings/corpus-based-settings";
 import CorpusBasedSettings from "./settings/corpus-based-settings";
 import ExistingFilesSettings from "./settings/existing-files-settings";
+import AIChatSettings from "./settings/ai-chat-settings";
 
 interface ProjectSettingsComponentTypes{
     key: ProjectType,
@@ -18,7 +19,7 @@ interface NewProjectSettingsProps{
 export default function NewProjectSettings({type}: NewProjectSettingsProps){
     const projectSettingsComponents: Record<ProjectType, React.ReactNode> = {
         [ProjectType.CORPUS]: <CorpusBasedSettings />,
-        [ProjectType.AI_CHAT]: <></>,
+        [ProjectType.AI_CHAT]: <AIChatSettings />,
         [ProjectType.MULTI_SPEAKER]: <></>,
         [ProjectType.EXISTING_FILES]: <ExistingFilesSettings />,
     };

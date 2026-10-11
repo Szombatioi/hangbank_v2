@@ -120,17 +120,13 @@ export class ExistingAudioProjectService {
     requester: IJwtPayload,
     dto: SaveExistingAudioProjectDto,
   ): Promise<ExistingFilesProject> {
-    const transcriptionLanguage = await this.languageService.findOne(
-      dto.transcriptionLanguageCode,
-    );
-    const speakerProfile = await this.authService.getProfile(
-      dto.speaker.userId,
-    );
+    const transcriptionLanguage = await this.languageService.findOne(dto.transcriptionLanguageCode);
+    const speakerProfile = await this.authService.getProfile(dto.speaker.userId);
     const speechCharacteristics = dto.speaker.speechCharacteristics?.trim();
 
-    return this.entityManager.transaction(async (tx) => {
-      const project = await tx.save(
-        tx.create(ExistingFilesProject, {
+    return this.entityManager.transaction(async (transaction) => {
+      const project = await transaction.save(
+        transaction.create(ExistingFilesProject, {
           name: dto.projectName,
           description: dto.description?.trim() ?? '',
           samplingRate: dto.samplingRate ?? undefined,
@@ -140,8 +136,8 @@ export class ExistingAudioProjectService {
         }),
       );
 
-      await tx.save(
-        tx.create(Speaker, {
+      await transaction.save(
+        transaction.create(Speaker, {
           userId: speakerProfile.id,
           actualAge: speakerProfile.birthDate
             ? computeAge(speakerProfile.birthDate)
@@ -155,15 +151,20 @@ export class ExistingAudioProjectService {
       const roles = new Map<string, ProjectRoleType>([
         [requester.id, ProjectRoleType.OWNER],
       ]);
+
+      //Add the speaker as editor, if they are NOT the creators
       if (!roles.has(speakerProfile.id)) {
         roles.set(speakerProfile.id, ProjectRoleType.EDITOR);
       }
+
+      //Add additional members
       for (const member of dto.members ?? []) {
         if (roles.has(member.userId)) continue;
         if (!Object.values(ProjectRoleType).includes(member.role)) continue;
         roles.set(member.userId, member.role);
       }
-      await tx.insert(
+
+      await transaction.insert(
         ProjectRole,
         [...roles].map(([userId, role]) => ({
           userId,
@@ -176,7 +177,7 @@ export class ExistingAudioProjectService {
     });
   }
 
-  async saveNew(
+  async saveNewFiles(
     requesterId: string,
     dto: SaveNewAudioDto,
   ): Promise<ExistingAudioFileView[]> {

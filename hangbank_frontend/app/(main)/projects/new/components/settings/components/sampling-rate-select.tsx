@@ -38,7 +38,7 @@ export function SamplingRateSelect({
         }}
         color={disabled ? "text.disabled" : "primary"}
       >
-        {t("new_project.corpus_based.label_sampling_rate")}
+        {t("new_project.common.label_sampling_rate")}
       </Typography>
       <Select
         value={value}
@@ -53,7 +53,7 @@ export function SamplingRateSelect({
         renderValue={(val) =>
           val === "" ? (
             <em style={{ color: "#aaa", fontStyle: "normal" }}>
-              {t("new_project.corpus_based.placeholder_sampling_rate")}
+              {t("new_project.common.placeholder_sampling_rate")}
             </em>
           ) : (
             SAMPLING_RATES.find((r) => r.value === val)?.label ?? String(val)
@@ -69,7 +69,7 @@ export function SamplingRateSelect({
       </Select>
       {error ? (
         <FormHelperText error sx={{ mx: "14px" }}>
-          {t("new_project.corpus_based.error_sampling_rate_required")}
+          {t("new_project.common.error_sampling_rate_required")}
         </FormHelperText>
       ) : (
         <Typography

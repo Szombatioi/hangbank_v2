@@ -30,7 +30,7 @@ export default function ProjectTypeSelector({onSelect}: ProjectTypeSelectorProps
         },
         { 
             title: t("new_project.ai_chat_title"), 
-            disabled: true,
+            disabled: false,
             onClick: () => {onSelect(ProjectType.AI_CHAT)}
         },
         { 

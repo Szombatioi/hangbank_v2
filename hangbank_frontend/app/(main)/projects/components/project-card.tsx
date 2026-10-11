@@ -1,15 +1,24 @@
 "use client";
 
 import GetProjectIcon from "@/app/components/helpers/get-project-icon";
-import { Box, Chip, Container, LinearProgress, Paper, Typography } from "@mui/material";
+import {
+  Box,
+  Chip,
+  Container,
+  LinearProgress,
+  Paper,
+  Typography,
+} from "@mui/material";
 import PeopleOutlineIcon from "@mui/icons-material/PeopleOutline";
 import LanguageIcon from "@mui/icons-material/Language";
 import { ProjectType } from "../new/components/project-type-selector";
 import { useTranslation } from "react-i18next";
-import GetColorFromProgress, { ProjectProgress } from "@/app/components/helpers/get-color-from-progress";
+import GetColorFromProgress, {
+  ProjectProgress,
+} from "@/app/components/helpers/get-color-from-progress";
 import { ProjectListItemDto } from "@/app/components/types/project-list-item.dto";
 import { formatUpdatedAt } from "@/app/components/helpers/format-update-date";
-import { AudioFile, MenuBook } from "@mui/icons-material";
+import { AudioFile, MenuBook, Topic } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { TFunction } from "i18next";
 
@@ -18,208 +27,358 @@ const HEADLINE = "'Space Grotesk', sans-serif";
 const BODY = "'Inter', sans-serif";
 
 export interface ProjectCardProps {
-    project: ProjectListItemDto;
-    featured?: boolean;
+  project: ProjectListItemDto;
+  featured?: boolean;
 }
 
 function getTypeDetails(project: ProjectListItemDto, t: TFunction) {
-    switch (project.type) {
-        case ProjectType.CORPUS:
-            return {
-                href: `/projects/${project.id}`,
-                progressLabel: t("project_card.corpus_progress"),
-                badgeIcon: MenuBook,
-                badgeText: project.corpusName,
-            };
-        case ProjectType.EXISTING_FILES:
-            return {
-                href: `/projects/${project.id}/upload`,
-                progressLabel: t("project_card.transcription_progress"),
-                badgeIcon: AudioFile,
-                badgeText: t("project_card.audio_file_count", { count: project.audioFileCount }),
-            };
-    }
+  switch (project.type) {
+    case ProjectType.CORPUS:
+      return {
+        href: `/projects/${project.id}`,
+        progressLabel: t("project_card.corpus_progress"),
+        badgeIcon: MenuBook,
+        badgeText: project.corpusName,
+      };
+    case ProjectType.AI_CHAT:
+      return {
+        href: `/projects/chat/${project.id}`,
+        badgeIcon: Topic,
+        badgeText: project.topic,
+      };
+    case ProjectType.EXISTING_FILES:
+      return {
+        href: `/projects/${project.id}/upload`,
+        progressLabel: t("project_card.transcription_progress"),
+        badgeIcon: AudioFile,
+        badgeText: t("project_card.audio_file_count", {
+          count: project.audioFileCount,
+        }),
+      };
+  }
 }
 
-export default function ProjectCard({ project, featured = false }: ProjectCardProps) {
-    const { t } = useTranslation("common");
-    const router = useRouter();
+export default function ProjectCard({
+  project,
+  featured = false,
+}: ProjectCardProps) {
+  const { t } = useTranslation("common");
+  const router = useRouter();
 
-    const { type, name, description, language, speakerCount } = project;
-    const percent = project.progress;
-    const updatedAt = formatUpdatedAt(project.updatedAt ?? project.createdAt);
-    const { href, progressLabel, badgeIcon: BadgeIcon, badgeText } = getTypeDetails(project, t);
+  const { type, name, description, language, speakerCount } = project;
+  const percent = project.progress;
+  const updatedAt = formatUpdatedAt(project.updatedAt ?? project.createdAt);
+  const {
+    href,
+    progressLabel,
+    badgeIcon: BadgeIcon,
+    badgeText,
+  } = getTypeDetails(project, t);
 
-    const progress = percent > 0 ?
-        percent === 100 ? ProjectProgress.FINISHED : ProjectProgress.IN_PROGRESS :
-        ProjectProgress.NEW;
+  const progress = percent //TODO solve this issue later... Corpus project have no badge yet
+    ? percent > 0
+      ? percent === 100
+        ? ProjectProgress.FINISHED
+        : ProjectProgress.IN_PROGRESS
+      : ProjectProgress.NEW
+    : null;
 
-    const colors = GetColorFromProgress(progress);
+  const colors = GetColorFromProgress(progress ?? ProjectProgress.NEW);
 
-    return (
-        <Paper
-            elevation={0}
-            onClick={() => { router.push(href) }}
-            sx={{
-                width: "100%",
-                minHeight: 300,
-                bgcolor: featured ? "var(--app-btn)" : "var(--app-card)",
-                border: featured ? "none" : "1px solid var(--app-border)",
-                borderRadius: 3,
-                display: "flex",
-                flexDirection: "column",
-                p: 2.5,
-                gap: 1.5,
-                cursor: "pointer",
-                overflow: "hidden",
-                position: "relative",
-                transition: "box-shadow 0.2s, border-color 0.2s",
-                ...(featured
-                    ? { background: "linear-gradient(135deg, #1e2a3a 0%, #0f172a 100%)" }
-                    : { "&:hover": { boxShadow: "0 4px 20px rgba(0,0,0,0.07)", borderColor: "var(--app-border-strong)" } }),
-            }}
+  return (
+    <Paper
+      elevation={0}
+      onClick={() => {
+        router.push(href);
+      }}
+      sx={{
+        width: "100%",
+        minHeight: 300,
+        bgcolor: featured ? "var(--app-btn)" : "var(--app-card)",
+        border: featured ? "none" : "1px solid var(--app-border)",
+        borderRadius: 3,
+        display: "flex",
+        flexDirection: "column",
+        p: 2.5,
+        gap: 1.5,
+        cursor: "pointer",
+        overflow: "hidden",
+        position: "relative",
+        transition: "box-shadow 0.2s, border-color 0.2s",
+        ...(featured
+          ? { background: "linear-gradient(135deg, #1e2a3a 0%, #0f172a 100%)" }
+          : {
+              "&:hover": {
+                boxShadow: "0 4px 20px rgba(0,0,0,0.07)",
+                borderColor: "var(--app-border-strong)",
+              },
+            }),
+      }}
+    >
+      {/* Top row: icon + chip + timestamp */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+        }}
+      >
+        <Box
+          sx={{
+            p: 1.25,
+            bgcolor: featured
+              ? "rgba(255,255,255,0.08)"
+              : "var(--app-surface-muted)",
+            borderRadius: 2,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: featured
+              ? "var(--app-text-faint)"
+              : "var(--app-text-secondary)",
+          }}
         >
-            {/* Top row: icon + chip + timestamp */}
-            <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-                <Box
+          {GetProjectIcon(type)}
+        </Box>
+
+        {progress && (
+          <>
+            <Chip
+              label={featured ? "Featured" : t(progress)}
+              size="small"
+              sx={{
+                borderColor: featured ? "#ed4a14" : colors.text,
+                color: featured ? "#ed4a14" : colors.text,
+                bgcolor: featured ? "rgba(237,74,20,0.12)" : colors.background,
+                borderRadius: "999px",
+                fontFamily: LABEL,
+                fontWeight: 700,
+                fontSize: "0.65rem",
+                letterSpacing: "0.08em",
+                px: 0.5,
+                border: "1.5px solid",
+              }}
+            />
+          </>
+        )}
+      </Box>
+
+      <Box sx={{ display: "flex", justifyContent: "space-between", flex: 1 }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-evenly",
+          }}
+        >
+          {/* Name */}
+          <Typography
+            sx={{
+              fontFamily: HEADLINE,
+              fontWeight: 700,
+              fontSize: "1.125rem",
+              color: featured ? "#f8fafc" : "var(--app-text-primary)",
+              lineHeight: 1.3,
+              mt: 0.5,
+            }}
+          >
+            {name}
+          </Typography>
+
+          {/* Description */}
+          {description && (
+            <Typography
+              sx={{
+                fontFamily: BODY,
+                fontSize: "0.8125rem",
+                color: featured
+                  ? "var(--app-text-faint)"
+                  : "var(--app-text-muted)",
+                lineHeight: 1.55,
+                display: "-webkit-box",
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+                flex: 1,
+              }}
+            >
+              {description}
+            </Typography>
+          )}
+
+          {/* Metadata row: speakers + language */}
+          {(speakerCount !== undefined || language) && (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+                flexWrap: "wrap",
+              }}
+            >
+              {speakerCount !== undefined && (
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                  <PeopleOutlineIcon
                     sx={{
-                        p: 1.25,
-                        bgcolor: featured ? "rgba(255,255,255,0.08)" : "var(--app-surface-muted)",
-                        borderRadius: 2,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: featured ? "var(--app-text-faint)" : "var(--app-text-secondary)",
+                      fontSize: "0.9rem",
+                      color: featured
+                        ? "var(--app-text-secondary)"
+                        : "var(--app-text-faint)",
                     }}
-                >
-                    {GetProjectIcon(type)}
-                </Box>
-
-                <Chip
-                    label={featured ? "Featured" : t(progress)}
-                    size="small"
+                  />
+                  <Typography
                     sx={{
-                        borderColor: featured ? "#ed4a14" : colors.text,
-                        color: featured ? "#ed4a14" : colors.text,
-                        bgcolor: featured ? "rgba(237,74,20,0.12)" : colors.background,
-                        borderRadius: "999px",
-                        fontFamily: LABEL,
-                        fontWeight: 700,
-                        fontSize: "0.65rem",
-                        letterSpacing: "0.08em",
-                        px: 0.5,
-                        border: "1.5px solid",
+                      fontFamily: LABEL,
+                      fontSize: "0.72rem",
+                      fontWeight: 600,
+                      color: "var(--app-text-muted)",
                     }}
-                />
-            </Box>
-
-            <Box sx={{ display: "flex", justifyContent: "space-between", flex: 1 }}>
-                <Box sx={{ display: "flex", flexDirection: "column", justifyContent: "space-evenly" }}>
-                    {/* Name */}
-                    <Typography
-                        sx={{
-                            fontFamily: HEADLINE,
-                            fontWeight: 700,
-                            fontSize: "1.125rem",
-                            color: featured ? "#f8fafc" : "var(--app-text-primary)",
-                            lineHeight: 1.3,
-                            mt: 0.5,
-                        }}
-                    >
-                        {name}
-                    </Typography>
-
-                    {/* Description */}
-                    {description && (
-                        <Typography
-                            sx={{
-                                fontFamily: BODY,
-                                fontSize: "0.8125rem",
-                                color: featured ? "var(--app-text-faint)" : "var(--app-text-muted)",
-                                lineHeight: 1.55,
-                                display: "-webkit-box",
-                                WebkitLineClamp: 3,
-                                WebkitBoxOrient: "vertical",
-                                overflow: "hidden",
-                                flex: 1,
-                            }}
-                        >
-                            {description}
-                        </Typography>
+                  >
+                    {speakerCount}{" "}
+                    {t(
+                      speakerCount === 1
+                        ? "project_card.speaker"
+                        : "project_card.speakers"
                     )}
-
-                    {/* Metadata row: speakers + language */}
-                    {(speakerCount !== undefined || language) && (
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
-                            {speakerCount !== undefined && (
-                                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                                    <PeopleOutlineIcon sx={{ fontSize: "0.9rem", color: featured ? "var(--app-text-secondary)" : "var(--app-text-faint)" }} />
-                                    <Typography sx={{ fontFamily: LABEL, fontSize: "0.72rem", fontWeight: 600, color: "var(--app-text-muted)" }}>
-                                        {speakerCount} {t(speakerCount === 1 ? "project_card.speaker" : "project_card.speakers")}
-                                    </Typography>
-                                </Box>
-                            )}
-                            {language && (
-                                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                                    <LanguageIcon sx={{ fontSize: "0.9rem", color: featured ? "var(--app-text-secondary)" : "var(--app-text-faint)" }} />
-                                    <Typography sx={{ fontFamily: LABEL, fontSize: "0.72rem", fontWeight: 600, color: "var(--app-text-muted)" }}>
-                                        {t(`language.${language}`)}
-                                    </Typography>
-                                </Box>
-                            )}
-                        </Box>
-                    )}
-
-                    {badgeText && (
-                        <Box sx={{ mt: 0.5, display: "flex", justifyContent: "start", alignItems: "center", gap: 1 }}>
-                            <BadgeIcon sx={{ fontSize: "0.9rem", color: featured ? "var(--app-text-secondary)" : "var(--app-text-faint)" }} />
-                            <Typography
-                                sx={{
-                                    fontFamily: LABEL,
-                                    fontSize: "0.7rem",
-                                    fontWeight: 600,
-                                    color: featured ? "var(--app-text-secondary)" : "var(--app-text-faint)",
-                                    textTransform: "uppercase",
-                                    letterSpacing: "0.1em",
-                                }}
-                            >
-                                {badgeText}
-                            </Typography>
-                        </Box>
-                    )}
+                  </Typography>
                 </Box>
-                <Box sx={{ display: "flex", flexShrink: 0, alignItems: "end" }}>
-                    {updatedAt && (
-                        <Typography sx={{fontFamily: LABEL, fontSize: "0.65rem", fontWeight: 600, color: featured ? "var(--app-text-secondary)" : "var(--app-text-faint)", textAlign: "right", mb: 0.5 }}>
-                            {updatedAt}
-                        </Typography>
-                    )}
-                </Box>
-            </Box>
-
-            {/* Progress bar */}
-            <Box sx={{ mt: "auto", pt: 0 }}>
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 0.75 }}>
-                    <Typography
-                        sx={{ fontFamily: LABEL, fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: featured ? "var(--app-text-secondary)" : "var(--app-text-faint)" }}
-                    >
-                        {progressLabel}
-                    </Typography>
-                    <Typography sx={{ fontFamily: LABEL, fontWeight: 700, fontSize: "0.8rem", color: featured ? "var(--app-border)" : "var(--app-text-body)" }}>
-                        {percent}%
-                    </Typography>
-                </Box>
-                <LinearProgress
-                    variant="determinate"
-                    value={percent}
+              )}
+              {language && (
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                  <LanguageIcon
                     sx={{
-                        height: 4,
-                        borderRadius: 2,
-                        bgcolor: featured ? "var(--app-text-body)" : "var(--app-surface-muted)",
-                        "& .MuiLinearProgress-bar": { bgcolor: featured ? "#ed4a14" : "var(--app-text-primary)" },
+                      fontSize: "0.9rem",
+                      color: featured
+                        ? "var(--app-text-secondary)"
+                        : "var(--app-text-faint)",
                     }}
-                />
+                  />
+                  <Typography
+                    sx={{
+                      fontFamily: LABEL,
+                      fontSize: "0.72rem",
+                      fontWeight: 600,
+                      color: "var(--app-text-muted)",
+                    }}
+                  >
+                    {t(`language.${language}`)}
+                  </Typography>
+                </Box>
+              )}
             </Box>
-        </Paper>
-    );
+          )}
+
+          {badgeText && (
+            <Box
+              sx={{
+                mt: 0.5,
+                display: "flex",
+                justifyContent: "start",
+                alignItems: "center",
+                gap: 1,
+              }}
+            >
+              <BadgeIcon
+                sx={{
+                  fontSize: "0.9rem",
+                  color: featured
+                    ? "var(--app-text-secondary)"
+                    : "var(--app-text-faint)",
+                }}
+              />
+              <Typography
+                sx={{
+                  fontFamily: LABEL,
+                  fontSize: "0.7rem",
+                  fontWeight: 600,
+                  color: featured
+                    ? "var(--app-text-secondary)"
+                    : "var(--app-text-faint)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                }}
+              >
+                {badgeText}
+              </Typography>
+            </Box>
+          )}
+        </Box>
+        <Box sx={{ display: "flex", flexShrink: 0, alignItems: "end" }}>
+          {updatedAt && (
+            <Typography
+              sx={{
+                fontFamily: LABEL,
+                fontSize: "0.65rem",
+                fontWeight: 600,
+                color: featured
+                  ? "var(--app-text-secondary)"
+                  : "var(--app-text-faint)",
+                textAlign: "right",
+                mb: 0.5,
+              }}
+            >
+              {updatedAt}
+            </Typography>
+          )}
+        </Box>
+      </Box>
+
+      {progress && percent && (
+        <>
+          {/* Progress bar */}
+          <Box sx={{ mt: "auto", pt: 0 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 0.75,
+              }}
+            >
+              <Typography
+                sx={{
+                  fontFamily: LABEL,
+                  fontSize: "0.6rem",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.15em",
+                  color: featured
+                    ? "var(--app-text-secondary)"
+                    : "var(--app-text-faint)",
+                }}
+              >
+                {progressLabel}
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: LABEL,
+                  fontWeight: 700,
+                  fontSize: "0.8rem",
+                  color: featured
+                    ? "var(--app-border)"
+                    : "var(--app-text-body)",
+                }}
+              >
+                {percent}%
+              </Typography>
+            </Box>
+            <LinearProgress
+              variant="determinate"
+              value={percent}
+              sx={{
+                height: 4,
+                borderRadius: 2,
+                bgcolor: featured
+                  ? "var(--app-text-body)"
+                  : "var(--app-surface-muted)",
+                "& .MuiLinearProgress-bar": {
+                  bgcolor: featured ? "#ed4a14" : "var(--app-text-primary)",
+                },
+              }}
+            />
+          </Box>
+        </>
+      )}
+    </Paper>
+  );
 }

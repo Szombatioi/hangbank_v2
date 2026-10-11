@@ -62,7 +62,7 @@ export class ExistingAudioProjectController {
     if (!projectId) throw new BadRequestException('projectId is required');
     const parsedDetails = parseDetails(details, files.length);
 
-    return this.existingAudioProjectService.saveNew(req.user.id, {
+    return this.existingAudioProjectService.saveNewFiles(req.user.id, {
       projectId,
       files: files.map((audioFile, i) => ({ audioFile, ...parsedDetails[i] })),
     });

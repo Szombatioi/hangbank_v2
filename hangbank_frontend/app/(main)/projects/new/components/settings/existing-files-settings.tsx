@@ -3,13 +3,9 @@ import {
   Box,
   Button,
   Checkbox,
-  Chip,
   CircularProgress,
   FormControlLabel,
-  FormHelperText,
-  MenuItem,
   Paper,
-  Select,
   Stack,
   TextField,
   Typography,
@@ -20,16 +16,10 @@ import api from "@/app/axios";
 import { useRouter } from "next/navigation";
 import { useSnackbar, Severity } from "@/app/providers/SnackbarProvider";
 import { useAuth } from "@/app/contexts/auth-context";
-import { computeAge } from "@/app/components/helpers/compute-age";
-import {
-  UserSearchAutocomplete,
-  AccessUser,
-  fullName,
-} from "@/app/components/user-access-selector";
+import { AccessUser } from "@/app/components/user-access-selector";
 import { translateHttpError } from "@/app/components/helpers/http-error";
-import { ProjectRole, PROJECT_ROLES, HEADLINE, LABEL, BODY } from "./constants";
+import { HEADLINE, LABEL, BODY } from "./constants";
 import {
-  captionSx,
   fieldLabelSx,
   paperSx,
   sectionTitleSx,
@@ -39,20 +29,11 @@ import LanguageSelect from "@/app/components/language-select";
 import { LanguageDto } from "@/app/components/types/language.dto";
 import { SamplingRateSelect } from "./components/sampling-rate-select";
 import { AudioChecksSelect } from "./components/audio-checks-select";
-
-const infoCardSx = {
-  bgcolor: "var(--app-card)",
-  borderRadius: 3,
-  px: 2.5,
-  py: 2,
-} as const;
-
-const infoValueSx = {
-  fontFamily: LABEL,
-  fontWeight: 700,
-  fontSize: "1.25rem",
-  color: "var(--app-text-primary)",
-} as const;
+import { SpeakerInfoPaper } from "./components/speaker-info-paper";
+import {
+  ProjectMember,
+  ProjectMembersPaper,
+} from "./components/project-members-paper";
 
 export default function ExistingFilesSettings() {
   const { t } = useTranslation("common");
@@ -74,11 +55,7 @@ export default function ExistingFilesSettings() {
   const [speaker, setSpeaker] = useState<AccessUser | null>(null);
   const [speechDescription, setSpeechDescription] = useState("");
 
-  const [projectMembers, setProjectMembers] = useState<
-    { user: AccessUser; role: ProjectRole }[]
-  >([]);
-  const [memberUser, setMemberUser] = useState<AccessUser | null>(null);
-  const [memberRole, setMemberRole] = useState<ProjectRole>("VIEW");
+  const [projectMembers, setProjectMembers] = useState<ProjectMember[]>([]);
 
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -91,7 +68,6 @@ export default function ExistingFilesSettings() {
     setSpeaker(next);
     if (!next) return;
     setProjectMembers((prev) => prev.filter((m) => m.user.id !== next.id));
-    if (memberUser?.id === next.id) setMemberUser(null);
   };
 
   
@@ -132,22 +108,6 @@ export default function ExistingFilesSettings() {
     };
   }, [speakerId, speakerNeedsProfile]);
 
-  const addMember = () => {
-    if (!memberUser) return;
-    if (memberUser.id === speaker?.id) return;
-    if (projectMembers.some((m) => m.user.id === memberUser.id)) return;
-    setProjectMembers((prev) => [
-      ...prev,
-      { user: memberUser, role: memberRole },
-    ]);
-    setMemberUser(null);
-    setMemberRole("VIEW");
-  };
-
-  const removeMember = (id: string) => {
-    setProjectMembers((prev) => prev.filter((m) => m.user.id !== id));
-  };
-
   const errors = {
     name: !name.trim(),
     samplingRate: resample && samplingRate === "",
@@ -181,11 +141,11 @@ export default function ExistingFilesSettings() {
           role: m.role,
         })),
       });
-      showMessage(t("new_project.existing_files.success"), Severity.success);
+      showMessage(t("new_project.common.success"), Severity.success);
       router.push("/projects");
     } catch (err) {
       showMessage(
-        translateHttpError(err, t, t("new_project.existing_files.error_create")),
+        translateHttpError(err, t, t("new_project.common.error_create")),
         Severity.error
       );
     } finally {
@@ -235,13 +195,13 @@ export default function ExistingFilesSettings() {
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Paper elevation={0} sx={{ ...paperSx, gap: 2.5 }}>
             <Typography variant="overline" sx={sectionTitleSx}>
-              {t("new_project.corpus_based.section_details")}
+              {t("new_project.common.section_details")}
             </Typography>
 
             {/* Name */}
             <Box>
               <Typography variant="h6" sx={fieldLabelSx} color="primary">
-                {t("new_project.corpus_based.label_name")}
+                {t("new_project.common.label_name")}
               </Typography>
               <TextField
                 value={name}
@@ -251,7 +211,7 @@ export default function ExistingFilesSettings() {
                 error={submitted && errors.name}
                 helperText={
                   submitted && errors.name
-                    ? t("new_project.corpus_based.error_name_required")
+                    ? t("new_project.common.error_name_required")
                     : undefined
                 }
                 sx={textFieldSx}
@@ -261,13 +221,13 @@ export default function ExistingFilesSettings() {
             {/* Description */}
             <Box>
               <Typography variant="h6" sx={fieldLabelSx} color="primary">
-                {t("new_project.corpus_based.label_description")}
+                {t("new_project.common.label_description")}
               </Typography>
               <TextField
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder={t(
-                  "new_project.corpus_based.placeholder_description"
+                  "new_project.common.placeholder_description"
                 )}
                 fullWidth
                 multiline
@@ -305,7 +265,7 @@ export default function ExistingFilesSettings() {
             {/* Recording environment */}
             <Box>
               <Typography variant="h6" sx={fieldLabelSx} color="primary">
-                {t("new_project.corpus_based.recording_environment")}
+                {t("new_project.common.recording_environment")}
               </Typography>
               <TextField
                 value={recordingEnvironment}
@@ -313,7 +273,7 @@ export default function ExistingFilesSettings() {
                 multiline
                 rows={3}
                 placeholder={t(
-                  "new_project.corpus_based.recording_environment_placeholder"
+                  "new_project.common.recording_environment_placeholder"
                 )}
                 fullWidth
                 sx={textFieldSx}
@@ -326,7 +286,7 @@ export default function ExistingFilesSettings() {
             {/* Transcription language */}
             <Box>
               <Typography variant="h6" sx={fieldLabelSx} color="primary">
-                {t("new_project.existing_files.label_transcription_language")}
+                {t("new_project.common.label_transcription_language")}
               </Typography>
               <LanguageSelect
                 value={transcriptionLanguage?.code ?? null}
@@ -337,7 +297,7 @@ export default function ExistingFilesSettings() {
                 helperText={
                   submitted && errors.transcriptionLanguage
                     ? t(
-                        "new_project.existing_files.error_transcription_language_required"
+                        "new_project.common.error_transcription_language_required"
                       )
                     : undefined
                 }
@@ -356,7 +316,7 @@ export default function ExistingFilesSettings() {
                   />
                 }
                 label={t(
-                  "new_project.existing_files.label_automatic_transcription"
+                  "new_project.common.label_automatic_transcription"
                 )}
                 sx={{
                   mb: 1,
@@ -392,7 +352,7 @@ export default function ExistingFilesSettings() {
               {submitting ? (
                 <CircularProgress size={20} sx={{ color: "#fff" }} />
               ) : (
-                t("new_project.corpus_based.create_button")
+                t("new_project.common.create_button")
               )}
             </Button>
           </Box>
@@ -400,169 +360,35 @@ export default function ExistingFilesSettings() {
 
         {/* Right side */}
         <Box sx={{ flex: 1 }}>
-          {/* Speaker info */}
-          <Paper elevation={0} sx={{ ...paperSx, gap: 2.5 }}>
-            <Typography variant="overline" sx={sectionTitleSx}>
-              {t("new_project.corpus_based.section_speaker")}
-            </Typography>
+          <SpeakerInfoPaper
+            speaker={speaker}
+            onSpeakerChange={selectSpeaker}
+            speakerError={submitted && errors.speaker}
+            speechDescription={speechDescription}
+            onSpeechDescriptionChange={setSpeechDescription}
+          />
 
-            <Box sx={infoCardSx}>
-              <Typography sx={captionSx}>
-                {t("new_project.corpus_based.label_speaker_name")}
-              </Typography>
-              <UserSearchAutocomplete
-                value={speaker}
-                onChange={selectSpeaker}
-                includeSelf
-                placeholder={t(
-                  "new_project.existing_files.placeholder_speaker_search"
-                )}
-              />
-              {submitted && errors.speaker && (
-                <FormHelperText error sx={{ mx: "14px" }}>
-                  {t("new_project.existing_files.error_speaker_required")}
-                </FormHelperText>
-              )}
-            </Box>
-
-            {/* Identity row */}
-            <Box sx={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
-              <Box sx={{ ...infoCardSx, flex: "1 1 120px" }}>
-                <Typography sx={captionSx}>
-                  {t("new_project.corpus_based.label_age")}
-                </Typography>
-                <Typography sx={infoValueSx}>
-                  {speaker?.birthDate ? computeAge(speaker.birthDate) : "—"}
-                </Typography>
-              </Box>
-
-              <Box sx={{ ...infoCardSx, flex: "1 1 120px" }}>
-                <Typography sx={captionSx}>
-                  {t("new_project.corpus_based.label_gender")}
-                </Typography>
-                <Typography
-                  sx={{ ...infoValueSx, textTransform: "capitalize" }}
-                >
-                  {speaker?.gender
-                    ? t(`gender.${speaker.gender.toLowerCase()}`)
-                    : "—"}
-                </Typography>
-              </Box>
-            </Box>
-
-            {/* Speech description */}
-            <Box>
-              <Typography variant="h6" sx={fieldLabelSx} color="primary">
-                {t("new_project.corpus_based.label_speech_description")}
-              </Typography>
-              <TextField
-                value={speechDescription}
-                onChange={(e) => setSpeechDescription(e.target.value)}
-                placeholder={t(
-                  "new_project.existing_files.placeholder_speech_description"
-                )}
-                fullWidth
-                multiline
-                rows={3}
-                sx={textFieldSx}
-              />
-            </Box>
-          </Paper>
-
-          {/* Roles */}
-          <Paper elevation={0} sx={paperSx}>
-            <Typography variant="overline" sx={{ ...sectionTitleSx, mb: 2 }}>
-              {t("new_project.corpus_based.section_roles")}
-            </Typography>
-
-            {/* User search */}
-            <Box sx={{ mb: 2, minWidth: 0 }}>
-              <Typography variant="h6" sx={fieldLabelSx} color="primary">
-                {t("new_project.corpus_based.label_user_name")}
-              </Typography>
-              <UserSearchAutocomplete
-                value={memberUser}
-                onChange={setMemberUser}
-                excludeIds={[
-                  ...projectMembers.map((m) => m.user.id),
-                  ...(speaker ? [speaker.id] : []),
-                ]}
-              />
-            </Box>
-
-            {/* Role */}
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="h6" sx={fieldLabelSx} color="primary">
-                {t("new_project.corpus_based.label_user_role")}
-              </Typography>
-              <Select
-                value={memberRole}
-                onChange={(e) => setMemberRole(e.target.value as ProjectRole)}
-                fullWidth
-                sx={{ borderRadius: "8px", bgcolor: "var(--app-card)" }}
-              >
-                {PROJECT_ROLES.map((role) => (
-                  <MenuItem key={role} value={role}>
-                    {t(`project_roles.${role.toLowerCase()}`)}
-                  </MenuItem>
-                ))}
-              </Select>
-            </Box>
-
-            {/* Add */}
-            <Button
-              variant="contained"
-              onClick={addMember}
-              disabled={!memberUser}
-              sx={{
-                bgcolor: "var(--app-btn)",
-                borderRadius: 2,
-                textTransform: "none",
-                fontFamily: LABEL,
-                fontWeight: 700,
-                mt: 2,
-                px: 2.5,
-                py: 1.5,
-                "&:hover": { bgcolor: "var(--app-btn-hover)" },
-                "&.Mui-disabled": {
-                  bgcolor: "var(--app-border)",
-                  color: "var(--app-text-faint)",
-                },
-              }}
-            >
-              {t("new_project.corpus_based.add_member")}
-            </Button>
-
-            {(speakerIsEditor || projectMembers.length > 0) && (
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 2 }}>
-                {speakerIsEditor && (
-                  <Chip
-                    label={`${fullName(speaker!)} · ${t(
-                      "project_roles.editor"
-                    )} (${t("new_project.existing_files.speaker_tag")})`}
-                  />
-                )}
-                {projectMembers.map((m) => (
-                  <Chip
-                    key={m.user.id}
-                    label={`${fullName(m.user)} · ${t(
-                      `project_roles.${m.role.toLowerCase()}`
-                    )}`}
-                    onDelete={() => removeMember(m.user.id)}
-                  />
-                ))}
-              </Box>
-            )}
-            {speakerIsEditor && (
-              <Typography
-                sx={{ mt: 1, ml: 1 }}
-                variant="subtitle2"
-                color="var(--app-text-muted)"
-              >
-                {t("new_project.existing_files.speaker_editor_hint")}
-              </Typography>
-            )}
-          </Paper>
+          <ProjectMembersPaper
+            members={projectMembers}
+            onChange={setProjectMembers}
+            excludeUserIds={speaker ? [speaker.id] : []}
+            fixedMembers={
+              speakerIsEditor
+                ? [
+                    {
+                      user: speaker!,
+                      role: "EDITOR",
+                      tag: t("new_project.common.speaker_tag"),
+                    },
+                  ]
+                : []
+            }
+            hint={
+              speakerIsEditor
+                ? t("new_project.common.speaker_editor_hint")
+                : undefined
+            }
+          />
         </Box>
       </Stack>
     </Box>

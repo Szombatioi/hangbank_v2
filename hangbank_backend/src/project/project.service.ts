@@ -1,10 +1,10 @@
 import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { CorpusBasedProject } from './entities/corpus-based-project.entity';
 import { Speaker } from './entities/speaker.entity';
 import { Gender } from './entities/gender.enum';
 import { CorpusBlock } from 'src/corpus/entities/corpus-block.entity';
-import { Not, IsNull, Repository } from 'typeorm';
+import { Not, IsNull, Repository, EntityManager } from 'typeorm';
 import { CreateCorpusProjectDto } from './dto/create-corpus-project.dto';
 import { AuthService } from 'src/auth/auth.service';
 import { CorpusService } from 'src/corpus/corpus.service';
@@ -28,18 +28,19 @@ import { ExistingFilesProject } from './entities/existing-files-project.entity';
 import { ExportableAudioFileDto } from './dto/exportable-audio-file.dto';
 import { Project } from './entities/project.entity';
 import {
+  AIChatProjectListItemDto,
   CorpusProjectListItemDto,
   ExistingFilesProjectListItemDto,
   ProjectListItemDto,
 } from './dto/project-list-item.dto';
+import { AiChatProject } from 'src/ai-chat-project/entity/ai-chat-project.entity';
 
 @Injectable()
 export class ProjectService {
   constructor(
+    @InjectEntityManager() private readonly entityManager: EntityManager,
     @InjectRepository(CorpusBasedProject)
     private readonly corpusBasedProjectRepository: Repository<CorpusBasedProject>,
-    @InjectRepository(ExistingFilesProject)
-    private readonly existingFilesProjectRepository: Repository<ExistingFilesProject>,
     @InjectRepository(Speaker)
     private readonly speakerRepository: Repository<Speaker>,
     @InjectRepository(CorpusBlock)
@@ -314,11 +315,11 @@ export class ProjectService {
     projectId: string,
   ): Promise<ExportableAudioFileDto[]> {
     const [corpusProject, existingFilesProject] = await Promise.all([
-      this.corpusBasedProjectRepository.findOne({
+      this.entityManager.findOne(CorpusBasedProject,{
         where: { id: projectId },
         relations: { roles: true },
       }),
-      this.existingFilesProjectRepository.findOne({
+      this.entityManager.findOne(ExistingFilesProject, {
         where: { id: projectId },
         relations: { roles: true },
       }),
@@ -398,12 +399,16 @@ export class ProjectService {
       roles: { userId: requesterId, role: ProjectRoleType.OWNER },
     };
 
-    const [corpusProjects, existingFilesProjects] = await Promise.all([
-      this.corpusBasedProjectRepository.find({
+    const [corpusProjects, aiChatProjects, existingFilesProjects] = await Promise.all([
+      this.entityManager.find(CorpusBasedProject, {
         where: ownedByRequester,
         relations: { corpus: { language: true } },
       }),
-      this.existingFilesProjectRepository.find({
+      this.entityManager.find(AiChatProject, {
+        where: ownedByRequester,
+        relations: { transcriptionLanguage: true },
+      }),
+      this.entityManager.find(ExistingFilesProject, {
         where: ownedByRequester,
         relations: { transcriptionLanguage: true },
       }),
@@ -411,6 +416,7 @@ export class ProjectService {
 
     const items = await Promise.all([
       ...corpusProjects.map((p) => this.toCorpusListItem(p)),
+      ...aiChatProjects.map((p) => this.toAIChatListItem(p)),
       ...existingFilesProjects.map((p) => this.toExistingFilesListItem(p)),
     ]);
     return items.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
@@ -430,14 +436,21 @@ export class ProjectService {
       ...this.listItemBase(project),
       type: 'corpus',
       language: project.corpus.language?.name ?? null,
-      progress: total > 0 ? Math.round((recordedCount / total) * 100) : 0,
+      progress: total > 0 ? +((recordedCount / total) * 100).toFixed(2) : 0, //Math.round rounds to nearest integer, making 0.01 to 0...
       corpusName: project.corpus.name,
     };
   }
 
-  private async toExistingFilesListItem(
-    project: ExistingFilesProject,
-  ): Promise<ExistingFilesProjectListItemDto> {
+  private async toAIChatListItem(project: AiChatProject): Promise<AIChatProjectListItemDto>{
+    return {
+      type: 'ai chat',
+      topic: project.topic ?? '-',
+      ...this.listItemBase(project),
+      language: project.transcriptionLanguage?.name ?? null,
+    };
+  }
+
+  private async toExistingFilesListItem(project: ExistingFilesProject): Promise<ExistingFilesProjectListItemDto> {
     const [audioFileCount, transcribedCount] = await Promise.all([
       this.audioFileRepository.count({
         where: { project: { id: project.id } },

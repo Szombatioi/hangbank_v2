@@ -581,7 +581,7 @@ export default function ProjectDetailPage() {
                                 disabled={!memberUser}
                                 sx={{ bgcolor: "var(--app-btn)", borderRadius: 1.5, textTransform: "none", fontFamily: LABEL, fontWeight: 700, px: 2.5, py: 1.75, "&:hover": { bgcolor: "var(--app-btn-hover)" }, "&.Mui-disabled": { bgcolor: "var(--app-border)", color: "var(--app-text-faint)" } }}
                             >
-                                {t("new_project.corpus_based.add_member")}
+                                {t("new_project.common.add_member")}
                             </Button>
                         </Box>
                         {editMembers.length > 0 && (

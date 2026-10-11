@@ -4,18 +4,10 @@
 import {
   Box,
   Button,
-  Chip,
   CircularProgress,
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  Divider,
   FormHelperText,
   IconButton,
-  MenuItem,
   Paper,
-  Select,
-  SelectChangeEvent,
   Stack,
   TextField,
   Typography,
@@ -29,22 +21,17 @@ import api from "@/app/axios";
 import { CorpusDto } from "@/app/components/types/corpus.dto";
 import { useRouter } from "next/navigation";
 import { useSnackbar, Severity } from "@/app/providers/SnackbarProvider";
-import {
-  getMicrophones,
-  MicrophoneDetail,
-} from "@/app/components/helpers/get-mics";
-import { CorpusRow } from "./components/corpus-row";
 import { CorpusPickerDialog } from "./components/corpus-picker-dialog";
 import { useAuth } from "@/app/contexts/auth-context";
-import { computeAge } from "@/app/components/helpers/compute-age";
-import {
-  UserSearchAutocomplete,
-  AccessUser,
-  fullName,
-} from "@/app/components/user-access-selector";
 import { translateHttpError } from "@/app/components/helpers/http-error";
 import { SamplingRateSelect } from "./components/sampling-rate-select";
 import { AudioChecksSelect } from "./components/audio-checks-select";
+import { MicrophoneSelect } from "./components/microphone-select";
+import { SpeakerInfoPaper } from "./components/speaker-info-paper";
+import {
+  ProjectMember,
+  ProjectMembersPaper,
+} from "./components/project-members-paper";
 import {
   ProjectRole,
   PROJECT_ROLES,
@@ -78,9 +65,6 @@ export default function CorpusBasedSettings() {
 
   const selectedCorpus = corpora.find((c) => c.id === selectedCorpusId) ?? null;
 
-  const [availableMics, setAvailableMics] = useState<MediaDeviceInfo[] | null>(
-    null
-  );
   const [selectedMic, setSelectedMic] = useState<MediaDeviceInfo | null>(null);
 
   const [recordingEnvorinment, setRecordingEnvironment] = useState<
@@ -89,27 +73,7 @@ export default function CorpusBasedSettings() {
 
   const [audioChecks, setAudioChecks] = useState<string[]>([]);
 
-  // Project members (user + role)
-  const [projectMembers, setProjectMembers] = useState<
-    { user: AccessUser; role: ProjectRole }[]
-  >([]);
-  const [memberUser, setMemberUser] = useState<AccessUser | null>(null);
-  const [memberRole, setMemberRole] = useState<ProjectRole>("VIEW");
-
-  const addMember = () => {
-    if (!memberUser) return;
-    if (projectMembers.some((m) => m.user.id === memberUser.id)) return;
-    setProjectMembers((prev) => [
-      ...prev,
-      { user: memberUser, role: memberRole },
-    ]);
-    setMemberUser(null);
-    setMemberRole("VIEW");
-  };
-
-  const removeMember = (id: string) => {
-    setProjectMembers((prev) => prev.filter((m) => m.user.id !== id));
-  };
+  const [projectMembers, setProjectMembers] = useState<ProjectMember[]>([]);
 
   const errors = {
     name: !name.trim(),
@@ -118,36 +82,6 @@ export default function CorpusBasedSettings() {
     corpus: !selectedCorpusId,
   };
   const hasErrors = Object.values(errors).some(Boolean);
-
-  useEffect(() => {
-    async function getMics() {
-      const mics = await getMicrophones();
-      setAvailableMics(mics); // console.log(availableMics);
-
-      if (mics.length > 0 && !selectedMic) {
-        setSelectedMic(mics[0]);
-
-        //Set recommended sample rate (max of this OS/Mic)
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: { deviceId: { exact: mics[0].deviceId } },
-        });
-        const nativeRate = stream.getAudioTracks()[0].getSettings().sampleRate;
-        if (!nativeRate) return; //should not happen, but just in case
-
-        const recommendedRate = SAMPLING_RATES.slice()
-          .reverse()
-          .find((r) => r.value <= nativeRate);
-        if (recommendedRate) {
-          SAMPLING_RATES.find(
-            (r) => r.value === recommendedRate.value
-          )!.recommended = true;
-          setSamplingRate(recommendedRate.value);
-        }
-      }
-    }
-
-    getMics();
-  }, []);
 
   useEffect(() => {
     const loadCorpora = async () => {
@@ -184,14 +118,14 @@ export default function CorpusBasedSettings() {
         audioChecks: audioChecks,
         members: projectMembers.map((m) => ({ userId: m.user.id, role: m.role })),
       });
-      showMessage(t("new_project.corpus_based.success"), Severity.success);
+      showMessage(t("new_project.common.success"), Severity.success);
 
       //TODO: redirect to the new project!
       console.log(res.data.id);
       router.push("/projects");
     } catch (err) {
       showMessage(
-        translateHttpError(err, t, t("new_project.corpus_based.error_create")),
+        translateHttpError(err, t, t("new_project.common.error_create")),
         Severity.error,
       );
     } finally {
@@ -262,7 +196,7 @@ export default function CorpusBasedSettings() {
                 color: "text.secondary",
               }}
             >
-              {t("new_project.corpus_based.section_details")}
+              {t("new_project.common.section_details")}
             </Typography>
 
             {/* Name */}
@@ -276,7 +210,7 @@ export default function CorpusBasedSettings() {
                 }}
                 color="primary"
               >
-                {t("new_project.corpus_based.label_name")}
+                {t("new_project.common.label_name")}
               </Typography>
               <TextField
                 value={name}
@@ -286,7 +220,7 @@ export default function CorpusBasedSettings() {
                 error={submitted && errors.name}
                 helperText={
                   submitted && errors.name
-                    ? t("new_project.corpus_based.error_name_required")
+                    ? t("new_project.common.error_name_required")
                     : undefined
                 }
                 sx={{
@@ -309,13 +243,13 @@ export default function CorpusBasedSettings() {
                 }}
                 color="primary"
               >
-                {t("new_project.corpus_based.label_description")}
+                {t("new_project.common.label_description")}
               </Typography>
               <TextField
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder={t(
-                  "new_project.corpus_based.placeholder_description"
+                  "new_project.common.placeholder_description"
                 )}
                 fullWidth
                 multiline
@@ -329,66 +263,13 @@ export default function CorpusBasedSettings() {
               />
             </Box>
 
-            {/* Mics */}
-            <Box>
-              <Typography
-                variant="h6"
-                sx={{
-                  fontFamily: LABEL,
-                  textTransform: "capitalize",
-                  mb: 0.75,
-                }}
-                color="primary"
-              >
-                {t("new_project.corpus_based.label_microphone")}
-              </Typography>
-              <Select
-                value={selectedMic?.deviceId || ""}
-                onChange={(e: SelectChangeEvent<string>) => {
-                  const mic = availableMics?.find(
-                    (m) => m.deviceId === e.target.value
-                  );
-                  if (mic) setSelectedMic(mic);
-                }}
-                fullWidth
-                displayEmpty
-                error={submitted && errors.microphone}
-                sx={{ borderRadius: "8px", bgcolor: "var(--app-card)" }}
-                renderValue={(selectedId) => {
-                  if (!selectedId) {
-                    return (
-                      <em style={{ color: "#aaa", fontStyle: "normal" }}>
-                        {t("microphone_select.placeholder")}
-                      </em>
-                    );
-                  }
-                  const mic = availableMics?.find(
-                    (m) => m.deviceId === selectedId
-                  );
-                  return mic?.label || t("microphone_select.unknown_device");
-                }}
-              >
-                {/* Disabled placeholder option */}
-                <MenuItem disabled value="">
-                  <em>{t("microphone_select.placeholder")}</em>
-                </MenuItem>
-
-                {/* Mic List */}
-                {availableMics?.map((mic) => (
-                  <MenuItem key={mic.deviceId} value={mic.deviceId}>
-                    {mic.label ||
-                      `${t(
-                        "microphone_select.default_label"
-                      )} ${mic.deviceId.substring(0, 5)}`}
-                  </MenuItem>
-                ))}
-              </Select>
-              {submitted && errors.microphone && (
-                <FormHelperText error sx={{ mx: "14px" }}>
-                  {t("new_project.corpus_based.error_microphone_required")}
-                </FormHelperText>
-              )}
-            </Box>
+            {/* Microphone */}
+            <MicrophoneSelect
+              value={selectedMic}
+              onChange={setSelectedMic}
+              error={submitted && errors.microphone}
+              onRecommendedSamplingRate={setSamplingRate}
+            />
             {/* Sampling rate */}
             <SamplingRateSelect
               value={samplingRate}
@@ -408,7 +289,7 @@ export default function CorpusBasedSettings() {
                 }}
                 color="primary"
               >
-                {t("new_project.corpus_based.recording_environment")}
+                {t("new_project.common.recording_environment")}
               </Typography>
               <TextField
                 value={recordingEnvorinment ?? ""}
@@ -416,7 +297,7 @@ export default function CorpusBasedSettings() {
                 multiline
                 rows={3}
                 placeholder={t(
-                  "new_project.corpus_based.recording_environment_placeholder"
+                  "new_project.common.recording_environment_placeholder"
                 )}
                 fullWidth
                 sx={{
@@ -605,7 +486,7 @@ export default function CorpusBasedSettings() {
               {submitting ? (
                 <CircularProgress size={20} sx={{ color: "#fff" }} />
               ) : (
-                t("new_project.corpus_based.create_button")
+                t("new_project.common.create_button")
               )}
             </Button>
           </Box>
@@ -613,297 +494,16 @@ export default function CorpusBasedSettings() {
 
         {/* Right side: visibility */}
         <Box width={"60%"}>
-          {/* Speaker info */}
-          <Paper
-            elevation={0}
-            sx={{
-              bgcolor: "var(--app-surface-muted)",
-              borderRadius: 4,
-              py: 4,
-              px: 4,
-              mb: 3,
-              display: "flex",
-              flexDirection: "column",
-              gap: 2.5,
-            }}
-          >
-            <Typography
-              variant="overline"
-              sx={{
-                fontFamily: LABEL,
-                fontWeight: 700,
-                letterSpacing: "0.12em",
-                color: "text.secondary",
-              }}
-            >
-              {t("new_project.corpus_based.section_speaker")}
-            </Typography>
+          <SpeakerInfoPaper
+            speaker={user}
+            speechDescription={speechDescription}
+            onSpeechDescriptionChange={setSpeechDescription}
+          />
 
-            <Box
-              sx={{
-                flex: "1 1",
-                bgcolor: "var(--app-card)",
-                borderRadius: 3,
-                px: 2.5,
-                py: 2,
-              }}
-            >
-              <Typography
-                sx={{
-                  fontFamily: LABEL,
-                  fontSize: "0.65rem",
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.15em",
-                  color: "var(--app-text-faint)",
-                  mb: 0.5,
-                }}
-              >
-                {t("new_project.corpus_based.label_speaker_name")}
-              </Typography>
-              <Typography
-                sx={{
-                  fontFamily: LABEL,
-                  fontWeight: 700,
-                  fontSize: "1.25rem",
-                  color: "var(--app-text-primary)",
-                }}
-              >
-                {user
-                  ? `${user.firstName} ${user.lastName} (${t("you")})`
-                  : "—"}
-              </Typography>
-            </Box>
-
-            {/* Identity row */}
-            <Box sx={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
-              {/* Age */}
-              <Box
-                sx={{
-                  flex: "1 1 120px",
-                  bgcolor: "var(--app-card)",
-                  borderRadius: 3,
-                  px: 2.5,
-                  py: 2,
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontFamily: LABEL,
-                    fontSize: "0.65rem",
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.15em",
-                    color: "var(--app-text-faint)",
-                    mb: 0.5,
-                  }}
-                >
-                  {t("new_project.corpus_based.label_age")}
-                </Typography>
-                <Typography
-                  sx={{
-                    fontFamily: LABEL,
-                    fontWeight: 700,
-                    fontSize: "1.25rem",
-                    color: "var(--app-text-primary)",
-                  }}
-                >
-                  {user?.birthDate ? computeAge(user.birthDate) : "—"}
-                </Typography>
-              </Box>
-
-              {/* Gender */}
-              <Box
-                sx={{
-                  flex: "1 1 120px",
-                  bgcolor: "var(--app-card)",
-                  borderRadius: 3,
-                  px: 2.5,
-                  py: 2,
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontFamily: LABEL,
-                    fontSize: "0.65rem",
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.15em",
-                    color: "var(--app-text-faint)",
-                    mb: 0.5,
-                  }}
-                >
-                  {t("new_project.corpus_based.label_gender")}
-                </Typography>
-                <Typography
-                  sx={{
-                    fontFamily: LABEL,
-                    fontWeight: 700,
-                    fontSize: "1.25rem",
-                    color: "var(--app-text-primary)",
-                    textTransform: "capitalize",
-                  }}
-                >
-                  {user?.gender
-                    ? t(`gender.${user.gender.toLowerCase()}`)
-                    : "—"}
-                </Typography>
-              </Box>
-            </Box>
-
-            {/* Speech description */}
-            <Box>
-              <Typography
-                variant="h6"
-                sx={{
-                  fontFamily: LABEL,
-                  textTransform: "capitalize",
-                  mb: 0.75,
-                }}
-                color="primary"
-              >
-                {t("new_project.corpus_based.label_speech_description")}
-              </Typography>
-              <TextField
-                value={speechDescription}
-                onChange={(e) => setSpeechDescription(e.target.value)}
-                placeholder={t(
-                  "new_project.corpus_based.placeholder_speech_description"
-                )}
-                fullWidth
-                multiline
-                rows={3}
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "8px",
-                    bgcolor: "var(--app-card)",
-                  },
-                }}
-              />
-            </Box>
-          </Paper>
-
-          {/* TODO: Here comes the visibility paper */}
-          <Paper
-            elevation={0}
-            sx={{
-              bgcolor: "var(--app-surface-muted)",
-              borderRadius: 4,
-              py: 4,
-              px: 4,
-              mb: 3,
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            <Typography
-              variant="overline"
-              sx={{
-                fontFamily: LABEL,
-                fontWeight: 700,
-                letterSpacing: "0.12em",
-                color: "text.secondary",
-                mb: 2,
-              }}
-            >
-              {t("new_project.corpus_based.section_roles")}
-            </Typography>
-            {/* <Box
-              sx={{
-                display: "flex",
-                gap: 1.5,
-                alignItems: "flex-start",
-                flexWrap: "wrap",
-                border: '1px solid red'
-              }}
-            >
-              
-            </Box> */}
-            {/* User search */}
-            <Box sx={{ mb: 2, minWidth: 0 }}>
-                <Typography
-                  variant="h6"
-                  sx={{
-                    fontFamily: LABEL,
-                    textTransform: "capitalize",
-                    mb: 0.75,
-                  }}
-                  color="primary"
-                >
-                  {t("new_project.corpus_based.label_user_name")}
-                </Typography>
-                <UserSearchAutocomplete
-                  value={memberUser}
-                  onChange={setMemberUser}
-                  excludeIds={projectMembers.map((m) => m.user.id)}
-                />
-              </Box>
-
-              {/* Role */}
-              <Box sx={{ mb: 2 }}>
-                <Typography
-                  variant="h6"
-                  sx={{
-                    fontFamily: LABEL,
-                    textTransform: "capitalize",
-                    mb: 0.75,
-                  }}
-                  color="primary"
-                >
-                  {t("new_project.corpus_based.label_user_role")}
-                </Typography>
-                <Select
-                  value={memberRole}
-                  onChange={(e) => setMemberRole(e.target.value as ProjectRole)}
-                  fullWidth
-                  sx={{ borderRadius: "8px", bgcolor: "var(--app-card)" }}
-                >
-                  {PROJECT_ROLES.map((role) => (
-                    <MenuItem key={role} value={role}>
-                      {t(`project_roles.${role.toLowerCase()}`)}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </Box>
-
-              {/* Add */}
-              <Button
-                variant="contained"
-                onClick={addMember}
-                disabled={!memberUser}
-                sx={{
-                  bgcolor: "var(--app-btn)",
-                  borderRadius: 2,
-                  textTransform: "none",
-                  fontFamily: LABEL,
-                  fontWeight: 700,
-                  mt: 2,
-                  px: 2.5,
-                  py: 1.5,
-                  "&:hover": { bgcolor: "var(--app-btn-hover)" },
-                  "&.Mui-disabled": {
-                    bgcolor: "var(--app-border)",
-                    color: "var(--app-text-faint)",
-                  },
-                }}
-              >
-                {t("new_project.corpus_based.add_member")}
-              </Button>
-
-            {projectMembers.length > 0 && (
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 2 }}>
-                {projectMembers.map((m) => (
-                  <Chip
-                    key={m.user.id}
-                    label={`${fullName(m.user)} · ${t(
-                      `project_roles.${m.role.toLowerCase()}`
-                    )}`}
-                    onDelete={() => removeMember(m.user.id)}
-                  />
-                ))}
-              </Box>
-            )}
-          </Paper>
+          <ProjectMembersPaper
+            members={projectMembers}
+            onChange={setProjectMembers}
+          />
         </Box>
       </Stack>
 

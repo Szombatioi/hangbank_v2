@@ -1,9 +1,10 @@
 import { Language } from "src/language/entities/language.entity";
 import { Project } from "src/project/entities/project.entity";
 import { Speaker } from "src/project/entities/speaker.entity";
-import { OneToOne, Column, ManyToOne, OneToMany } from "typeorm";
+import { ChildEntity, OneToOne, Column, ManyToOne, OneToMany } from "typeorm";
 import { ChatMessage } from "./chat-message.entity";
 
+@ChildEntity()
 export class AiChatProject extends Project {
   @OneToOne(() => Speaker, (s) => s.project)
   speaker!: Speaker;
@@ -14,7 +15,7 @@ export class AiChatProject extends Project {
   @ManyToOne(() => Language, { nullable: true })
   transcriptionLanguage?: Language | null;
 
-  @Column({ nullable: true, default: null })
+  @Column({ type: 'text', nullable: true })
   topic?: string | null;
 
   @OneToMany(() => ChatMessage, c => c.aiChatProject, { cascade: true })
