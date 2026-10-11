@@ -348,7 +348,7 @@ export class CorpusService {
     //Get corpus from the first block, and check that all blocks belong to the same corpus
     const firstBlock = await this.corpusBlockRepository.findOne({
       where: { id: recordings[0].blockId },
-      relations: ['corpus'],
+      relations: { corpus: true },
     });
 
     if (!firstBlock) {
@@ -361,7 +361,7 @@ export class CorpusService {
     for (const recording of recordings) {
       const block = await this.corpusBlockRepository.findOne({
         where: { id: recording.blockId },
-        relations: ['corpus'],
+        relations: { corpus: true },
       });
       if (!block) {
         throw new BadRequestException(
@@ -382,7 +382,11 @@ export class CorpusService {
     const blockIds = recordings.map((r) => r.blockId);
     const blocks = await this.corpusBlockRepository.find({
       where: { id: In(blockIds) },
-      relations: ['corpus', 'corpusProject', 'audioFile'],
+      relations: {
+        corpus: true,
+        corpusProject: true,
+        audioFile: true
+      },
     });
 
     if (blocks.length !== blockIds.length) {

@@ -29,5 +29,6 @@ import { S3StorageClientModule } from 'src/s3-storage-client/s3-storage-client.m
   ],
   controllers: [ProjectController],
   providers: [ProjectService, ProjectRoleService],
+  exports: [ProjectRoleService],
 })
 export class ProjectModule {}

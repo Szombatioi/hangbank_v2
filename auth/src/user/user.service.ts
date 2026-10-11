@@ -75,7 +75,7 @@ export class UserService {
 
   //TODO: remove? or add auth guard? (+pagination)
   findAll() {
-    return this.userRepository.find({ relations: ['roles'] });
+    return this.userRepository.find({ relations: { roles: true } });
   }
 
   // findOne(id: number) {
@@ -87,7 +87,7 @@ export class UserService {
   }
 
   findById(id: string) {
-    return this.userRepository.findOne({ where: { id }, relations: ['roles'] });
+    return this.userRepository.findOne({ where: { id }, relations: { roles: true } });
   }
 
   //This function handles all possible user modifications
@@ -168,7 +168,7 @@ export class UserService {
         throw new NotFoundException(`Role '${role.role}' not found`);
       }
 
-    const user = await this.userRepository.findOne({ where: { id: userId }, relations: ['roles'] });
+    const user = await this.userRepository.findOne({ where: { id: userId }, relations: { roles: true } });
     if(!user) {
       throw new NotFoundException('User not found');
     }
@@ -214,7 +214,7 @@ export class UserService {
   }
 
   async getProfile(id: string) {
-    const user = await this.userRepository.findOne({ where: { id }, relations: ['roles'] });
+    const user = await this.userRepository.findOne({ where: { id }, relations: { roles: true } });
     if(!user) {
       throw new NotFoundException('User not found');
     }

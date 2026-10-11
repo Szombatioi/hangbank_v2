@@ -122,7 +122,7 @@ function CorpusRecordInner() {
         }
         try {
             const resp = await api.get<{ data: RecordingBlockDto[]; total: number }>(
-                `/project/${id}/blocks`,
+                `/corpus-project/project/${id}/blocks`,
                 { params: { from, to: from + BLOCKS_PAGE_SIZE } },
             );
             const { data, total } = resp.data;
@@ -144,7 +144,7 @@ function CorpusRecordInner() {
 
     // Re-fetchable detail loader, so we can refresh after the master recording is saved
     const reloadProjectDetail = useCallback(async () => {
-        const resp = await api.get<CorpusProjectDetailDto>(`/project/${id}/detail`);
+        const resp = await api.get<CorpusProjectDetailDto>(`/corpus-project/project/${id}/detail`);
         setProject(resp.data);
         return resp.data;
     }, [id]);
@@ -236,7 +236,7 @@ function CorpusRecordInner() {
         if (recordings.length === 0 || saving) return;
 
         const form = new FormData();
-        const meta = recordings.map(r => ({
+        const data = recordings.map(r => ({
             blockId: r.blockId,
             blockIndex: r.blockIndex,
             durationSeconds: r.durationSeconds,
@@ -245,14 +245,14 @@ function CorpusRecordInner() {
         for (const r of recordings) {
             form.append("audio", r.blob, `${r.blockId}.wav`);
         }
-        form.append("meta", JSON.stringify(meta));
+        form.append("data", JSON.stringify(data));
 
         setSaving(true);
         try {
             const resp = await api.post<{
                 saved: number;
                 results: { blockId: string; audioFile: { id: string; s3Link: string; transcription: string } }[];
-            }>(`/project/${id}/recordings`, form, {
+            }>(`/corpus-project/project/${id}/recordings`, form, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
             // Only clear the records we just uploaded — any take captured during

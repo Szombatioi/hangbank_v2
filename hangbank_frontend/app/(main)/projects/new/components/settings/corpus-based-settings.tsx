@@ -105,7 +105,7 @@ export default function CorpusBasedSettings() {
     if (hasErrors) return;
     setSubmitting(true);
     try {
-      const res = await api.post("/project", {
+      const res = await api.post("/corpus-project/project", {
         projectName: name.trim(),
         description: description.trim() || undefined,
         samplingRate: samplingRate as number,

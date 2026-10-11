@@ -15,6 +15,7 @@ import { CorpusDomainModule } from './corpus-domain/corpus-domain.module';
 import { S3StorageClientModule } from './s3-storage-client/s3-storage-client.module';
 import { SeederModule } from './seeder/seeder.module';
 import { ProjectModule } from './project/project.module';
+import { CorpusProjectModule } from './corpus-project/corpus-project.module';
 import { AudioFileModule } from './audio-file/audio-file.module';
 import { AudioQualityModule } from './audio-quality/audio-quality.module';
 import { ExportModule } from './export/export.module';
@@ -73,6 +74,7 @@ import { EncryptionModule } from './encryption-service/encryption.module';
     S3StorageClientModule,
     SeederModule,
     ProjectModule,
+    CorpusProjectModule,
     AudioFileModule,
     AudioQualityModule,
     ExportModule,

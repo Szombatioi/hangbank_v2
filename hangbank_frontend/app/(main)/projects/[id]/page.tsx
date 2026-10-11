@@ -121,7 +121,7 @@ export default function ProjectDetailPage() {
     const fetchBlocks = async (from: number, isLoadMore: boolean = false) => {
         isLoadMore ? setLoadingMore(true) : setBlocksLoading(true);
         try {
-            const r = await api.get<{ data: BlockDto[]; total: number }>(`/project/${id}/blocks`, {
+            const r = await api.get<{ data: BlockDto[]; total: number }>(`/corpus-project/project/${id}/blocks`, {
                 params: { from, to: from + BLOCKS_PAGE_SIZE },
             });
             setBlocks(prev => [...prev, ...r.data.data]);

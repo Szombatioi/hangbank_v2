@@ -57,7 +57,7 @@ export default function MasterRecordingDialog({
         setPromptLoading(true);
         const loadPrompt = async () => {
             try {
-                const resp = await api.get<{ languageCode: string; text: string }>(`/project/${projectId}/master-recording-prompt`);
+                const resp = await api.get<{ languageCode: string; text: string }>(`/corpus-project/project/${projectId}/master-recording-prompt`);
                 if (!cancelled) setPrompt(resp.data.text);
             } catch {
                 if (!cancelled) setPrompt(t("master_recording.loading_prompt"));
@@ -80,7 +80,7 @@ export default function MasterRecordingDialog({
         form.append("audio", take.blob, "master.wav");
         form.append("durationSeconds", String(take.durationSeconds));
         try {
-            await api.post(`/project/${projectId}/master-recording`, form, {
+            await api.post(`/corpus-project/project/${projectId}/master-recording`, form, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
             onSaved();

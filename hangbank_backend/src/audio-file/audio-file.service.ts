@@ -67,7 +67,11 @@ export class AudioFileService {
   async getForUser(id: string, requesterId: string): Promise<AudioFile> {
     const audioFile = await this.audioFileRepository.findOne({
       where: { id },
-      relations: ['project', 'project.roles'],
+      relations: {
+        project: {
+          roles: true,
+        }
+      },
     });
     if (!audioFile) {
       throw new NotFoundException(`AudioFile with id '${id}' not found`);

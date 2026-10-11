@@ -238,7 +238,7 @@ export default function ViewRecording() {
     const form = new FormData();
     form.append("audio", newRecording.blob, `${audioFile.blockId}.wav`);
     form.append(
-      "meta",
+      "data",
       JSON.stringify([
         {
           blockId: audioFile.blockId,
@@ -251,7 +251,7 @@ export default function ViewRecording() {
 
     try {
       const resp = await api.post<{ results: SavedRecordingResult[] }>(
-        `/project/${id}/recordings`,
+        `/corpus-project/project/${id}/recordings`,
         form,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
